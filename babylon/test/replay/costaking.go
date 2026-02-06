@@ -1,0 +1,251 @@
+package replay
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"strings"
+	"testing"
+
+	sdkmath "cosmossdk.io/math"
+	appparams "github.com/babylonlabs-io/babylon/v4/app/params"
+	"github.com/babylonlabs-io/babylon/v4/testutil/coins"
+	abcitypes "github.com/cometbft/cometbft/abci/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	stktypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stretchr/testify/require"
+
+	costktypes "github.com/babylonlabs-io/babylon/v4/x/costaking/types"
+	epochingtypes "github.com/babylonlabs-io/babylon/v4/x/epoching/types"
+	ictvtypes "github.com/babylonlabs-io/babylon/v4/x/incentive/types"
+	minttypes "github.com/babylonlabs-io/babylon/v4/x/mint/types"
+)
+
+const (
+	evtAttrAddRewards = "add_rewards"
+)
+
+func (d *BabylonAppDriver) CheckCostakerRewards(
+	addr sdk.AccAddress,
+	expActiveBaby, expActiveSats, expTotalScore sdkmath.Int,
+	expStartPeriod uint64,
+) {
+	costkK := d.App.CostakingKeeper
+
+	del, err := costkK.GetCostakerRewards(d.Ctx(), addr)
+	require.NoError(d.t, err)
+	require.Equal(d.t, expActiveBaby.String(), del.ActiveBaby.String(), "active baby")
+	require.Equal(d.t, expActiveSats.String(), del.ActiveSatoshis.String(), "active sats")
+	require.Equal(d.t, expStartPeriod, del.StartPeriodCumulativeReward, "start period cumulative rewards exp %d != %d act", expStartPeriod, del.StartPeriodCumulativeReward)
+	require.Equal(d.t, expTotalScore.String(), del.TotalScore.String(), "total score")
+}
+
+func (d *BabylonAppDriver) CheckCostakerRewardsInPointOnePercentMargin(
+	addr sdk.AccAddress,
+	expActiveBaby, expActiveSats, expTotalScore sdkmath.Int,
+) {
+	costkK := d.App.CostakingKeeper
+
+	del, err := costkK.GetCostakerRewards(d.Ctx(), addr)
+	require.NoError(d.t, err)
+	coins.RequireIntDiffInPointOnePercentMargin(d.t, expActiveBaby, del.ActiveBaby, "active baby")
+	coins.RequireIntDiffInPointOnePercentMargin(d.t, expActiveSats, del.ActiveSatoshis, "active sats")
+	coins.RequireIntDiffInPointOnePercentMargin(d.t, expTotalScore, del.TotalScore, "total score")
+}
+
+func (d *BabylonAppDriver) ZeroCostakerRewards(addr sdk.AccAddress) {
+	costkK := d.App.CostakingKeeper
+
+	del, err := costkK.GetCostakerRewards(d.Ctx(), addr)
+	require.NoError(d.t, err)
+	require.Truef(d.t, del.ActiveBaby.IsZero(), "active baby should be zero %s", del.ActiveBaby.String())
+	require.Truef(d.t, del.ActiveSatoshis.IsZero(), "active sats should be zero %s", del.ActiveSatoshis.String())
+	require.Truef(d.t, del.TotalScore.IsZero(), "active score should be zero %s", del.TotalScore.String())
+}
+
+func (d *BabylonAppDriver) CheckCostakingCurrentRewards(
+	expRewardsWithoutDecimals sdk.Coins,
+	expPeriod uint64,
+	expTotalScore sdkmath.Int,
+) {
+	costkK := d.App.CostakingKeeper
+
+	rwdWithDecimals := expRewardsWithoutDecimals.MulInt(ictvtypes.DecimalRewards)
+	currRwd, err := costkK.GetCurrentRewards(d.Ctx())
+	require.NoError(d.t, err)
+	require.Equal(d.t, rwdWithDecimals.String(), currRwd.Rewards.String(), "current rewards decimals doesn't match")
+	require.Equal(d.t, expPeriod, currRwd.Period, "current rewards period doesn't match")
+	require.Equal(d.t, expTotalScore.String(), currRwd.TotalScore.String(), "current rewards total score doesn't match")
+}
+
+func (d *BabylonAppDriver) CheckCostakingCurrentHistoricalRewards(
+	period uint64,
+	expCumulativeRewardsPerScore sdk.Coins,
+) {
+	costkK := d.App.CostakingKeeper
+
+	hist, err := costkK.GetHistoricalRewards(d.Ctx(), period)
+	require.NoError(d.t, err)
+	require.Equal(d.t, expCumulativeRewardsPerScore.String(), hist.CumulativeRewardsPerScore.String(), "cumulative rewards per score")
+}
+
+func (d *BabylonAppDriver) GenerateNewBlockAssertExecutionSuccessWithCostakerRewards() sdk.Coins {
+	response := d.GenerateNewBlock()
+
+	for _, tx := range response.TxResults {
+		// ignore checkpoint txs
+		if tx.GasWanted == 0 {
+			continue
+		}
+
+		require.Equal(d.t, tx.Code, uint32(0), tx.Log)
+	}
+
+	return FindEventCostakerRewards(d.t, response.Events)
+}
+
+func EventCostakerRewardsFromBlocks(t *testing.T, blocks []*abcitypes.ResponseFinalizeBlock) sdk.Coins {
+	totalRewardsAdded := sdk.NewCoins()
+
+	for _, block := range blocks {
+		totalRewardsAdded = totalRewardsAdded.Add(FindEventCostakerRewards(t, block.Events)...)
+	}
+	return totalRewardsAdded
+}
+
+type EventCoinsExtractor func(attr abcitypes.EventAttribute) (sdk.Coins, error)
+
+func FindEventCoinsT(t *testing.T, evts []abcitypes.Event, eventType, attrKey string, extractor EventCoinsExtractor) sdk.Coins {
+	total, err := FindEventCoins(evts, eventType, attrKey, extractor)
+	require.NoError(t, err)
+	return total
+}
+
+func FindEventCoins(evts []abcitypes.Event, eventType, attrKey string, extractor EventCoinsExtractor) (sdk.Coins, error) {
+	totalCoins := sdk.NewCoins()
+	for _, evt := range evts {
+		if evt.Type != eventType {
+			continue
+		}
+
+		for _, attr := range evt.Attributes {
+			if attr.Key != attrKey {
+				continue
+			}
+
+			coins, err := extractor(attr)
+			if err != nil {
+				return sdk.NewCoins(), err
+			}
+			totalCoins = totalCoins.Add(coins...)
+			break
+		}
+	}
+	return totalCoins, nil
+}
+
+func ExtractCoinsFromJSON(attr abcitypes.EventAttribute) (sdk.Coins, error) {
+	var coins sdk.Coins
+	err := json.Unmarshal([]byte(attr.Value), &coins)
+	return coins, err
+}
+
+func ExtractCoinsFromInt(attr abcitypes.EventAttribute) (sdk.Coins, error) {
+	amt, ok := sdkmath.NewIntFromString(attr.Value)
+	if !ok {
+		return sdk.NewCoins(), fmt.Errorf("failed to parse int from %s", attr.Value)
+	}
+	return sdk.NewCoins(sdk.NewCoin(appparams.DefaultBondDenom, amt)), nil
+}
+
+func ExtractCoinsFromDecCoins(attr abcitypes.EventAttribute) (sdk.Coins, error) {
+	decCoins, err := sdk.ParseDecCoins(attr.Value)
+	if err != nil {
+		return nil, err
+	}
+	coins, _ := decCoins.TruncateDecimal()
+	return coins, nil
+}
+
+func FindEventCostakerRewards(t *testing.T, evts []abcitypes.Event) sdk.Coins {
+	evtTypeCostAddRwd := sdk.MsgTypeURL(&costktypes.EventCostakersAddRewards{})[1:]
+	return FindEventCoinsT(t, evts, evtTypeCostAddRwd, evtAttrAddRewards, ExtractCoinsFromJSON)
+}
+
+func FindEventMint(t *testing.T, evts []abcitypes.Event) sdk.Coins {
+	return FindEventCoinsT(t, evts, minttypes.EventTypeMint, sdk.AttributeKeyAmount, ExtractCoinsFromInt)
+}
+
+func FindEventBtcStakers(t *testing.T, evts []abcitypes.Event) sdk.Coins {
+	return FindEventCoinsT(t, evts, ictvtypes.EventTypeBTCStakingReward, sdk.AttributeKeyAmount, ExtractCoinsFromDecCoins)
+}
+
+func FindEventTypeFPDirectRewards(t *testing.T, evts []abcitypes.Event) sdk.Coins {
+	return FindEventCoinsT(t, evts, ictvtypes.EventTypeFPDirectRewards, sdk.AttributeKeyAmount, ExtractCoinsFromDecCoins)
+}
+
+func FindEventTypeValidatorDirectRewards(t *testing.T, evts []abcitypes.Event) sdk.Coins {
+	return FindEventCoinsT(t, evts, costktypes.EventTypeValidatorDirectRewards, sdk.AttributeKeyAmount, ExtractCoinsFromDecCoins)
+}
+
+func isValidatorInValset(valset []epochingtypes.Validator, valAddr sdk.ValAddress) bool {
+	return FindValInValset(valset, valAddr) != nil
+}
+
+func FindValInValset(valset []epochingtypes.Validator, valAddr sdk.ValAddress) *epochingtypes.Validator {
+	for _, v := range valset {
+		if bytes.Equal(v.GetValAddress().Bytes(), valAddr.Bytes()) {
+			return &v
+		}
+	}
+	return nil
+}
+
+func FindValInValidators(validators []stktypes.Validator, valAddr sdk.ValAddress) *stktypes.Validator {
+	for _, v := range validators {
+		if strings.EqualFold(v.OperatorAddress, valAddr.String()) {
+			return &v
+		}
+	}
+	return nil
+}
+
+func (d *BabylonAppDriver) AreValsInActiveSet(expLenValset int, valAddrs ...sdk.ValAddress) epochingtypes.ValidatorSet {
+	return d.CheckValsForCurrValset(expLenValset, true, valAddrs...)
+}
+
+func (d *BabylonAppDriver) AreValsInactive(expLenValset int, valAddrs ...sdk.ValAddress) epochingtypes.ValidatorSet {
+	return d.CheckValsForCurrValset(expLenValset, false, valAddrs...)
+}
+
+func (d *BabylonAppDriver) CheckValsForCurrValset(expLenValset int, valsInValset bool, valAddrs ...sdk.ValAddress) epochingtypes.ValidatorSet {
+	epochK := d.App.EpochingKeeper
+	epoch := epochK.GetEpoch(d.Ctx())
+	valset := epochK.GetValidatorSet(d.Ctx(), epoch.EpochNumber)
+	require.Lenf(d.t, valset, expLenValset, "expected %d validators in active set", expLenValset)
+
+	for _, valAddr := range valAddrs {
+		val := FindValInValset(valset, valAddr)
+		if valsInValset {
+			require.NotNil(d.t, val)
+		} else {
+			require.Nil(d.t, val)
+		}
+	}
+	return valset
+}
+
+// JailValidatorForDowntime returns the validator if the validator indeed got jailed
+func (d *BabylonAppDriver) JailValidatorForDowntime(val sdk.ValAddress) *stktypes.Validator {
+	stkK := d.App.StakingKeeper
+	for i := 0; i < 1000; i++ { // it should get jailed before that
+		d.GenerateNewBlockAssertExecutionSuccess()
+		val, err := stkK.GetValidator(d.Ctx(), val)
+		require.NoError(d.t, err)
+
+		if val.IsJailed() {
+			return &val
+		}
+	}
+	return nil
+}

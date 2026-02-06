@@ -1,0 +1,77 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: none
+  enable:
+    - asasalint
+    - asciicheck
+    - bidichk
+    # - bodyclose
+    # - containedctx
+    # - contextcheck
+    - decorder
+    # - dogsled
+    - durationcheck
+    # - errcheck
+    - errchkjson
+    - errname
+    # - errorlint
+    # - exhaustive
+    # - forbidigo
+    # - forcetypeassert
+    - goconst
+    - gocritic
+    # - gocyclo
+    - goheader
+    - gomodguard
+    - goprintffuncname
+    - govet
+    - grouper
+    - importas
+    # - ineffassign
+    - loggercheck
+    # - maintidx
+    - makezero
+    - misspell
+    - nakedret
+    - nilerr
+    # - nlreturn
+    - noctx
+    - nosprintfhostport
+    # - paralleltest
+    - reassign
+    # - revive
+    - rowserrcheck
+    - sqlclosecheck
+    # - staticcheck
+    # - stylecheck
+    - testableexamples
+    # - tparallel
+    # - unconvert
+    - unparam
+    - usestdlibvars
+    - unused
+    # - wastedassign
+    - whitespace
+  exclusions:
+    # replaces `issues.exclude-dirs`
+    paths:
+      - e2etest/     # note the trailing slash for a directory
+    # replaces `issues.exclude-rules`
+    rules:
+      # Exclude some linters from running on test files.
+      - path: '_test\.go'
+        linters:
+          - gocyclo
+          - errcheck
+          - dupl
+          - gosec
+      - path-except: '_test\.go'
+        linters:
+          - forbidigo
+
+issues:
+  max-same-issues: 0

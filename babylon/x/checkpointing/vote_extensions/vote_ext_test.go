@@ -1,0 +1,245 @@
+package vote_extensions_test
+
+import (
+	"math/rand"
+	"testing"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/stretchr/testify/require"
+
+	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
+	testhelper "github.com/babylonlabs-io/babylon/v4/testutil/helper"
+	"github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
+)
+
+// FuzzAddBLSSigVoteExtension_MultipleVals tests adding BLS signatures via VoteExtension
+// with multiple validators
+func FuzzAddBLSSigVoteExtension_MultipleVals(f *testing.F) {
+	datagen.AddRandomSeedsToFuzzer(f, 10)
+
+	f.Fuzz(func(t *testing.T, seed int64) {
+		r := rand.New(rand.NewSource(seed))
+		// generate the validator set with 10 validators as genesis
+		genesisValSet, privSigner, err := datagen.GenesisValidatorSetWithPrivSigner(10)
+		require.NoError(t, err)
+		helper := testhelper.NewHelperWithValSet(t, genesisValSet, privSigner)
+		ek := helper.App.EpochingKeeper
+		ck := helper.App.CheckpointingKeeper
+
+		epoch := ek.GetEpoch(helper.Ctx)
+		require.Equal(t, uint64(1), epoch.EpochNumber)
+
+		// go to block 11, ensure the checkpoint is finalized
+		interval := ek.GetParams(helper.Ctx).EpochInterval
+		for i := uint64(0); i < interval; i++ {
+			_, err := helper.ApplyEmptyBlockWithVoteExtension(r)
+			require.NoError(t, err)
+		}
+
+		epoch = ek.GetEpoch(helper.Ctx)
+		require.Equal(t, uint64(2), epoch.EpochNumber)
+
+		ckpt, err := ck.GetRawCheckpoint(helper.Ctx, epoch.EpochNumber-1)
+		require.NoError(t, err)
+		require.Equal(t, types.Sealed, ckpt.Status)
+	})
+}
+
+// FuzzAddBLSSigVoteExtension_InsufficientVotingPower tests adding BLS signatures
+// with insufficient voting power
+func FuzzAddBLSSigVoteExtension_InsufficientVotingPower(f *testing.F) {
+	datagen.AddRandomSeedsToFuzzer(f, 10)
+
+	f.Fuzz(func(t *testing.T, seed int64) {
+		r := rand.New(rand.NewSource(seed))
+		// generate the validator set with 10 validators as genesis
+		genesisValSet, privSigner, err := datagen.GenesisValidatorSetWithPrivSigner(10)
+		require.NoError(t, err)
+		helper := testhelper.NewHelperWithValSet(t, genesisValSet, privSigner)
+		ek := helper.App.EpochingKeeper
+
+		epoch := ek.GetEpoch(helper.Ctx)
+		require.Equal(t, uint64(1), epoch.EpochNumber)
+
+		// the number of validators is less than 2/3 if the total set
+		numOfValidators := datagen.RandomInt(r, 5) + 1
+		genesisValSet.Keys = genesisValSet.Keys[:numOfValidators]
+		interval := ek.GetParams(helper.Ctx).EpochInterval
+		for i := uint64(0); i < interval-1; i++ {
+			_, err := helper.ApplyEmptyBlockWithValSet(r, genesisValSet)
+			if i < interval-2 {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		}
+	})
+}
+
+// FuzzAddBLSSigVoteExtension_InvalidVoteExtensions tests adding BLS signatures
+// with invalid BLS signatures
+func FuzzAddBLSSigVoteExtension_InvalidVoteExtensions(f *testing.F) {
+	datagen.AddRandomSeedsToFuzzer(f, 10)
+
+	f.Fuzz(func(t *testing.T, seed int64) {
+		r := rand.New(rand.NewSource(seed))
+		helper := testhelper.NewHelper(t)
+		ek := helper.App.EpochingKeeper
+
+		epoch := ek.GetEpoch(helper.Ctx)
+		require.Equal(t, uint64(1), epoch.EpochNumber)
+
+		interval := ek.GetParams(helper.Ctx).EpochInterval
+		for i := uint64(0); i < interval-1; i++ {
+			_, err := helper.ApplyEmptyBlockWithInvalidVoteExtensions(r)
+			if i < interval-2 {
+				require.NoError(t, err)
+			} else {
+				require.Error(t, err)
+			}
+		}
+	})
+}
+
+// FuzzAddBLSSigVoteExtension_SomeInvalidVoteExtensions tests resilience
+// of ProcessProposal against invalid vote extensions
+func FuzzAddBLSSigVoteExtension_SomeInvalidVoteExtensions(f *testing.F) {
+	datagen.AddRandomSeedsToFuzzer(f, 10)
+
+	f.Fuzz(func(t *testing.T, seed int64) {
+		r := rand.New(rand.NewSource(seed))
+		// generate the validator set with 10 validators as genesis
+		genesisValSet, privSigner, err := datagen.GenesisValidatorSetWithPrivSigner(10)
+		require.NoError(t, err)
+		helper := testhelper.NewHelperWithValSet(t, genesisValSet, privSigner)
+		ek := helper.App.EpochingKeeper
+		ck := helper.App.CheckpointingKeeper
+
+		epoch := ek.GetEpoch(helper.Ctx)
+		require.Equal(t, uint64(1), epoch.EpochNumber)
+
+		// go to block 10, ensure the checkpoint is finalized
+		interval := ek.GetParams(helper.Ctx).EpochInterval
+		for i := uint64(0); i < interval-2; i++ {
+			_, err := helper.ApplyEmptyBlockWithSomeInvalidVoteExtensions(r)
+			require.NoError(t, err)
+		}
+		// height 11, i.e., 1st block of next epoch
+		_, err = helper.ApplyEmptyBlockWithSomeInvalidVoteExtensions(r)
+		require.NoError(t, err)
+
+		epoch = ek.GetEpoch(helper.Ctx)
+		require.Equal(t, uint64(2), epoch.EpochNumber)
+
+		ckpt, err := ck.GetRawCheckpoint(helper.Ctx, epoch.EpochNumber-1)
+		require.NoError(t, err)
+		require.Equal(t, types.Sealed, ckpt.Status)
+	})
+}
+
+// FuzzExtendVote_InvalidBlockHash tests the case where the
+// block hash for signing is invalid in terms of format
+func FuzzExtendVote_InvalidBlockHash(f *testing.F) {
+	datagen.AddRandomSeedsToFuzzer(f, 10)
+
+	f.Fuzz(func(t *testing.T, seed int64) {
+		r := rand.New(rand.NewSource(seed))
+		// generate the validator set with 10 validators as genesis
+		genesisValSet, privSigner, err := datagen.GenesisValidatorSetWithPrivSigner(10)
+		require.NoError(t, err)
+		helper := testhelper.NewHelperWithValSet(t, genesisValSet, privSigner)
+		ek := helper.App.EpochingKeeper
+
+		epoch := ek.GetEpoch(helper.Ctx)
+		require.Equal(t, uint64(1), epoch.EpochNumber)
+
+		// go to block 10, reaching epoch boundary
+		interval := ek.GetParams(helper.Ctx).EpochInterval
+		for i := uint64(0); i < interval-2; i++ {
+			_, err := helper.ApplyEmptyBlockWithVoteExtension(r)
+			require.NoError(t, err)
+		}
+
+		req1 := &abci.RequestExtendVote{
+			Hash:   datagen.GenRandomByteArray(r, datagen.RandomIntOtherThan(r, types.HashSize, 100)),
+			Height: 10,
+		}
+		_, err = helper.App.ExtendVote(helper.Ctx, req1)
+		require.Error(t, err)
+
+		req2 := &abci.RequestExtendVote{
+			Hash:   datagen.GenRandomByteArray(r, types.HashSize),
+			Height: 10,
+		}
+		_, err = helper.App.ExtendVote(helper.Ctx, req2)
+		require.NoError(t, err)
+	})
+}
+
+// TestVerifyVoteExtension_MalformedVoteExtension tests that malformed vote extensions
+// are properly rejected
+func TestVerifyVoteExtension_MalformedVoteExtension(t *testing.T) {
+	r := rand.New(rand.NewSource(42))
+	// generate the validator set with 10 validators as genesis
+	genesisValSet, privSigner, err := datagen.GenesisValidatorSetWithPrivSigner(10)
+	require.NoError(t, err)
+	helper := testhelper.NewHelperWithValSet(t, genesisValSet, privSigner)
+	ek := helper.App.EpochingKeeper
+
+	epoch := ek.GetEpoch(helper.Ctx)
+	require.Equal(t, uint64(1), epoch.EpochNumber)
+
+	// go to block 10, reaching epoch boundary
+	interval := ek.GetParams(helper.Ctx).EpochInterval
+	for i := uint64(0); i < interval-2; i++ {
+		_, err := helper.ApplyEmptyBlockWithVoteExtension(r)
+		require.NoError(t, err)
+	}
+
+	// case 1: create a vote extension with nil block hash
+	genesisKeys := genesisValSet.GetGenesisKeys()
+	sig := datagen.GenRandomBlsMultiSig(r)
+	ve1 := &types.VoteExtension{
+		Signer:           genesisKeys[0].ValidatorAddress,
+		ValidatorAddress: genesisKeys[0].ValidatorAddress,
+		BlockHash:        nil,
+		EpochNum:         epoch.EpochNumber,
+		Height:           uint64(helper.App.LastBlockHeight()),
+		BlsSig:           &sig,
+	}
+	veBytes1, err := ve1.Marshal()
+	require.NoError(t, err)
+
+	expectedBlockHash := datagen.GenRandomBlockHash(r)
+
+	res, err := helper.App.VerifyVoteExtension(&abci.RequestVerifyVoteExtension{
+		Hash:             expectedBlockHash,
+		Height:           helper.App.LastBlockHeight(),
+		VoteExtension:    veBytes1,
+		ValidatorAddress: genesisValSet.Keys[0].ValPubkey.Address(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, abci.ResponseVerifyVoteExtension_REJECT, res.Status)
+
+	// case 2: create a vote extension with mismatched block hash
+	wrongBlockHash := datagen.GenRandomBlockHash(r)
+	ve2 := &types.VoteExtension{
+		Signer:           genesisKeys[0].ValidatorAddress,
+		ValidatorAddress: genesisKeys[0].ValidatorAddress,
+		BlockHash:        &wrongBlockHash,
+		EpochNum:         epoch.EpochNumber,
+		Height:           uint64(helper.App.LastBlockHeight()),
+		BlsSig:           &sig,
+	}
+	veBytes2, err := ve2.Marshal()
+	require.NoError(t, err)
+
+	res, err = helper.App.VerifyVoteExtension(&abci.RequestVerifyVoteExtension{
+		Hash:             expectedBlockHash,
+		Height:           helper.App.LastBlockHeight(),
+		VoteExtension:    veBytes2,
+		ValidatorAddress: genesisValSet.Keys[0].ValPubkey.Address(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, abci.ResponseVerifyVoteExtension_REJECT, res.Status)
+}

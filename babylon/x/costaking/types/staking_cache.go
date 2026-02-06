@@ -1,0 +1,100 @@
+package types
+
+import (
+	context "context"
+
+	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
+// StakingCache used to cache the change of baby staking hooks
+// BeforeDelegationSharesModified sets the value and
+// AfterDelegationModified to calculate the delta change.
+type StakingCache struct {
+	// stkInfoByValByDel stores the amount and shares it had before the delegation
+	// was modified DelAddr => ValAddr => StakeInfo (amount, shares)
+	stkInfoByValByDel map[string]map[string]StakeInfo
+	// activeValSet caches the current active validator set map with the val address as key
+	activeValSet map[string]struct{}
+}
+
+type StakeInfo struct {
+	Amount math.LegacyDec
+	Shares math.LegacyDec
+}
+
+var zeroStakeInfo = StakeInfo{
+	Amount: math.LegacyZeroDec(),
+	Shares: math.LegacyZeroDec(),
+}
+
+func NewStakingCache() *StakingCache {
+	return &StakingCache{
+		stkInfoByValByDel: make(map[string]map[string]StakeInfo),
+	}
+}
+
+func (sc *StakingCache) SetStakedInfo(delAddr sdk.AccAddress, valAddr sdk.ValAddress, amtStaked math.LegacyDec, delShares math.LegacyDec) {
+	delAddrStr := delAddr.String()
+	valAddrStr := valAddr.String()
+
+	if sc.stkInfoByValByDel[delAddrStr] == nil {
+		sc.stkInfoByValByDel[delAddrStr] = make(map[string]StakeInfo)
+	}
+	sc.stkInfoByValByDel[delAddrStr][valAddrStr] = StakeInfo{
+		Amount: amtStaked,
+		Shares: delShares,
+	}
+}
+
+// GetStakedInfo gets the value in the cache if it is found.
+// Note: If a value is not found it returns zero dec.
+func (sc *StakingCache) GetStakedInfo(delAddr sdk.AccAddress, valAddr sdk.ValAddress) StakeInfo {
+	delAddrStr := delAddr.String()
+	valAddrStr := valAddr.String()
+
+	if sc.stkInfoByValByDel[delAddrStr] == nil {
+		return zeroStakeInfo
+	}
+
+	info, found := sc.stkInfoByValByDel[delAddrStr][valAddrStr]
+	if !found {
+		return zeroStakeInfo
+	}
+
+	return info
+}
+
+// GetActiveValidatorSet returns the cached active validator set, fetching it if not present.
+// The returned map has validator addresses (as strings) as keys.
+func (sc *StakingCache) GetActiveValidatorSet(ctx context.Context, fetchFn func(ctx context.Context) (map[string]struct{}, error)) (activeValset map[string]struct{}, err error) {
+	if sc.activeValSet != nil {
+		return sc.activeValSet, nil
+	}
+
+	valSet, err := fetchFn(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	sc.activeValSet = valSet
+	return sc.activeValSet, nil
+}
+
+// Clear removes all entries from the cache
+func (sc *StakingCache) Clear() {
+	sc.stkInfoByValByDel = make(map[string]map[string]StakeInfo)
+	sc.activeValSet = nil
+}
+
+// Delete removes one entry from the cache
+func (sc *StakingCache) Delete(delAddr sdk.AccAddress, valAddr sdk.ValAddress) {
+	delAddrStr := delAddr.String()
+	_, exists := sc.stkInfoByValByDel[delAddrStr]
+	if !exists {
+		return
+	}
+
+	valAddrStr := valAddr.String()
+	delete(sc.stkInfoByValByDel[delAddrStr], valAddrStr)
+}
