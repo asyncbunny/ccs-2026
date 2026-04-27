@@ -317,7 +317,7 @@ func UpdateGenesisRateLimit(rateLimiterGenState *ratelimiter.GenesisState) {
 		Flow: &ratelimiter.Flow{
 			Inflow:       sdkmath.NewInt(0),
 			Outflow:      sdkmath.NewInt(0),
-			ChannelValue: sdkmath.NewInt(10_000000), // 10 BABY
+			ChannelValue: sdkmath.NewInt(10_000000), // 10 NTK
 		},
 	}
 

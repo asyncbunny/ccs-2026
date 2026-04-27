@@ -36,7 +36,7 @@ type SoftwareUpgradeV23To4TestSuite struct {
 	fp2BTCSK  *btcec.PrivateKey
 	del1BTCSK *btcec.PrivateKey
 	del2BTCSK *btcec.PrivateKey
-	del3BTCSK *btcec.PrivateKey // New delegator without baby delegations
+	del3BTCSK *btcec.PrivateKey // New delegator without ntk delegations
 
 	fp1 *bstypes.FinalityProvider
 	fp2 *bstypes.FinalityProvider
@@ -47,9 +47,9 @@ type SoftwareUpgradeV23To4TestSuite struct {
 	fp2Del1StakingAmt int64
 	fp1Del3StakingAmt int64 // New delegator amount
 
-	// Baby staking amounts for delegations (to validators) to make them co-stakers
-	del1BabyAmt int64
-	del2BabyAmt int64
+	// Ntk staking amounts for delegations (to validators) to make them co-stakers
+	del1NtkAmt int64
+	del2NtkAmt int64
 
 	// bech32 addresses
 	del1Addr string
@@ -85,10 +85,10 @@ func (s *SoftwareUpgradeV23To4TestSuite) SetupSuite() {
 	s.fp1Del1StakingAmt = int64(2 * 10e7)
 	s.fp1Del2StakingAmt = int64(4 * 10e7)
 	s.fp2Del1StakingAmt = int64(5 * 10e8)
-	s.fp1Del3StakingAmt = int64(3 * 10e7) // Del3 only has BTC delegation, no baby
+	s.fp1Del3StakingAmt = int64(3 * 10e7) // Del3 only has BTC delegation, no ntk
 
-	s.del1BabyAmt = int64(1000000) // 1 Baby
-	s.del2BabyAmt = int64(2000000) // 2 Baby
+	s.del1NtkAmt = int64(1000000) // 1 Ntk
+	s.del2NtkAmt = int64(2000000) // 2 Ntk
 
 	covenantSKs, _, _ := bstypes.DefaultCovenantCommittee()
 	s.covenantSKs = covenantSKs
@@ -104,7 +104,7 @@ func (s *SoftwareUpgradeV23To4TestSuite) SetupSuite() {
 
 		chainA.WaitUntilHeight(2)
 		s.SetupFps(n)
-		s.SetupVerifiedBtcDelegationsWithBabyStaking(n)
+		s.SetupVerifiedBtcDelegationsWithNtkStaking(n)
 		s.FpCommitPubRandAndVote(n)
 	}
 
@@ -156,7 +156,7 @@ func (s *SoftwareUpgradeV23To4TestSuite) createTempUpgradeConfig() (string, erro
 		"metadata":  "",
 		"deposit":   "500000000uanc",
 		"title":     "Upgrade to Anon v4",
-		"summary":   "This upgrade introduces the costaking module for BTC stakers with Baby delegation",
+		"summary":   "This upgrade introduces the costaking module for BTC stakers with Ntk delegation",
 		"expedited": false,
 	}
 
@@ -218,14 +218,14 @@ func (s *SoftwareUpgradeV23To4TestSuite) SetupFps(n *chain.NodeConfig) {
 	s.Require().Len(actualFps, 2)
 }
 
-// SetupVerifiedBtcDelegationsWithBabyStaking sets up BTC delegations and also delegates Baby tokens
-// This is important for the v4 upgrade test as it creates co-stakers (BTC stakers who also stake Baby)
-func (s *SoftwareUpgradeV23To4TestSuite) SetupVerifiedBtcDelegationsWithBabyStaking(n *chain.NodeConfig) {
+// SetupVerifiedBtcDelegationsWithNtkStaking sets up BTC delegations and also delegates Ntk tokens
+// This is important for the v4 upgrade test as it creates co-stakers (BTC stakers who also stake Ntk)
+func (s *SoftwareUpgradeV23To4TestSuite) SetupVerifiedBtcDelegationsWithNtkStaking(n *chain.NodeConfig) {
 	s.del1Addr = n.KeysAdd(wDel1)
 	s.del2Addr = n.KeysAdd(wDel2)
-	s.del3Addr = n.KeysAdd(wDel3) // Del3 will only have BTC delegation, no baby
+	s.del3Addr = n.KeysAdd(wDel3) // Del3 will only have BTC delegation, no ntk
 
-	// Fund delegators with both uanc and additional amount for Baby staking
+	// Fund delegators with both uanc and additional amount for Ntk staking
 	n.BankMultiSendFromNode([]string{s.del1Addr, s.del2Addr, s.del3Addr}, "10000000uanc")
 
 	n.WaitForNextBlock()
@@ -242,7 +242,7 @@ func (s *SoftwareUpgradeV23To4TestSuite) SetupVerifiedBtcDelegationsWithBabyStak
 
 	s.CreateCovenantsAndSubmitSignaturesToPendDels(n, 4, s.fp1, s.fp2)
 
-	// Now create Baby delegations to validators to make them co-stakers
+	// Now create Ntk delegations to validators to make them co-stakers
 	// This is crucial for the v4 upgrade test as it will register these as CostakerRewardsTracker
 	validators, err := n.QueryValidators()
 	s.NoError(err)
@@ -250,14 +250,14 @@ func (s *SoftwareUpgradeV23To4TestSuite) SetupVerifiedBtcDelegationsWithBabyStak
 
 	validatorAddr := validators[0].OperatorAddress
 
-	// Delegate Baby tokens for del1 (making them a co-staker)
-	n.Delegate(s.del1Addr, validatorAddr, fmt.Sprintf("%duanc", s.del1BabyAmt))
+	// Delegate Ntk tokens for del1 (making them a co-staker)
+	n.Delegate(s.del1Addr, validatorAddr, fmt.Sprintf("%duanc", s.del1NtkAmt))
 
-	// Delegate Baby tokens for del2 (making them a co-staker)
-	n.Delegate(s.del2Addr, validatorAddr, fmt.Sprintf("%duanc", s.del2BabyAmt))
+	// Delegate Ntk tokens for del2 (making them a co-staker)
+	n.Delegate(s.del2Addr, validatorAddr, fmt.Sprintf("%duanc", s.del2NtkAmt))
 
 	// Wait for next epoch as delegations are queued and executed at epoch end
-	s.T().Logf("Waiting for next epoch to process Baby delegations...")
+	s.T().Logf("Waiting for next epoch to process Ntk delegations...")
 	nextEpoch, err := n.WaitForNextEpoch()
 	s.NoError(err)
 	s.T().Logf("Now in epoch %d, delegations should be processed", nextEpoch)
@@ -265,11 +265,11 @@ func (s *SoftwareUpgradeV23To4TestSuite) SetupVerifiedBtcDelegationsWithBabyStak
 	// Verify delegations exist after epoch boundary
 	del1Delegations, err := n.QueryDelegatorDelegations(s.del1Addr)
 	s.NoError(err)
-	s.Require().NotEmpty(del1Delegations, "del1 should have Baby delegations after epoch boundary")
+	s.Require().NotEmpty(del1Delegations, "del1 should have Ntk delegations after epoch boundary")
 
 	del2Delegations, err := n.QueryDelegatorDelegations(s.del2Addr)
 	s.NoError(err)
-	s.Require().NotEmpty(del2Delegations, "del2 should have Baby delegations after epoch boundary")
+	s.Require().NotEmpty(del2Delegations, "del2 should have Ntk delegations after epoch boundary")
 }
 
 func (s *SoftwareUpgradeV23To4TestSuite) FpCommitPubRandAndVote(n *chain.NodeConfig) {
@@ -400,15 +400,15 @@ func (s *SoftwareUpgradeV23To4TestSuite) Test1UpgradeV4() {
 
 // checkCostakerRewardsTrackerAfterUpgrade verifies that the CostakerRewardsTracker was properly initialized
 func (s *SoftwareUpgradeV23To4TestSuite) checkCostakerRewardsTrackerAfterUpgrade(n *chain.NodeConfig) {
-	// Query costaker rewards tracker for del1 (who has both BTC and Baby delegations)
+	// Query costaker rewards tracker for del1 (who has both BTC and Ntk delegations)
 	del1Tracker, err := n.QueryCostakerRewardsTracker(s.del1Addr)
 	s.NoError(err, "should be able to query costaker rewards tracker for del1")
 	s.Require().NotNil(del1Tracker, "del1 should have a costaker rewards tracker")
 
-	s.T().Logf("del1 costaker rewards tracker: ActiveSatoshis=%s, ActiveBaby=%s, TotalScore=%s",
-		del1Tracker.ActiveSatoshis.String(), del1Tracker.ActiveBaby.String(), del1Tracker.TotalScore.String())
+	s.T().Logf("del1 costaker rewards tracker: ActiveSatoshis=%s, ActiveNtk=%s, TotalScore=%s",
+		del1Tracker.ActiveSatoshis.String(), del1Tracker.ActiveNtk.String(), del1Tracker.TotalScore.String())
 
-	// Verify del1 has non-zero active satoshis, baby and score
+	// Verify del1 has non-zero active satoshis, ntk and score
 	s.Require().True(del1Tracker.TotalScore.GT(sdkmath.ZeroInt()), "del1 should have a total score")
 	s.Require().Equal(uint64(1), del1Tracker.StartPeriodCumulativeReward, "del1 should start at period 1")
 	expectedDel1Sats := sdkmath.NewIntFromUint64(uint64(s.fp1Del1StakingAmt + s.fp2Del1StakingAmt))
@@ -416,18 +416,18 @@ func (s *SoftwareUpgradeV23To4TestSuite) checkCostakerRewardsTrackerAfterUpgrade
 		"del1 active satoshis should match expected BTC delegations: expected %s, got %s",
 		expectedDel1Sats.String(), del1Tracker.ActiveSatoshis.String())
 
-	expectedDel1Baby := sdkmath.NewIntFromUint64(uint64(s.del1BabyAmt))
-	s.Require().True(del1Tracker.ActiveBaby.Equal(expectedDel1Baby),
-		"del1 active baby should match expected Baby delegations: expected %s, got %s",
-		expectedDel1Baby.String(), del1Tracker.ActiveBaby.String())
+	expectedDel1Ntk := sdkmath.NewIntFromUint64(uint64(s.del1NtkAmt))
+	s.Require().True(del1Tracker.ActiveNtk.Equal(expectedDel1Ntk),
+		"del1 active ntk should match expected Ntk delegations: expected %s, got %s",
+		expectedDel1Ntk.String(), del1Tracker.ActiveNtk.String())
 
-	// Query costaker rewards tracker for del2 (who has both BTC and Baby delegations)
+	// Query costaker rewards tracker for del2 (who has both BTC and Ntk delegations)
 	del2Tracker, err := n.QueryCostakerRewardsTracker(s.del2Addr)
 	s.NoError(err, "should be able to query costaker rewards tracker for del2")
 	s.Require().NotNil(del2Tracker, "del2 should have a costaker rewards tracker")
 
-	s.T().Logf("del2 costaker rewards tracker: ActiveSatoshis=%s, ActiveBaby=%s, TotalScore=%s",
-		del2Tracker.ActiveSatoshis.String(), del2Tracker.ActiveBaby.String(), del2Tracker.TotalScore.String())
+	s.T().Logf("del2 costaker rewards tracker: ActiveSatoshis=%s, ActiveNtk=%s, TotalScore=%s",
+		del2Tracker.ActiveSatoshis.String(), del2Tracker.ActiveNtk.String(), del2Tracker.TotalScore.String())
 
 	// Verify del2 values
 	s.Require().True(del2Tracker.TotalScore.GT(sdkmath.ZeroInt()), "del2 should have a total score")
@@ -438,21 +438,21 @@ func (s *SoftwareUpgradeV23To4TestSuite) checkCostakerRewardsTrackerAfterUpgrade
 		"del2 active satoshis should match expected BTC delegations: expected %s, got %s",
 		expectedDel2Sats.String(), del2Tracker.ActiveSatoshis.String())
 
-	expectedDel2Baby := sdkmath.NewIntFromUint64(uint64(s.del2BabyAmt))
-	s.Require().True(del2Tracker.ActiveBaby.Equal(expectedDel2Baby),
-		"del2 active baby should match expected Baby delegations: expected %s, got %s",
-		expectedDel2Baby.String(), del2Tracker.ActiveBaby.String())
+	expectedDel2Ntk := sdkmath.NewIntFromUint64(uint64(s.del2NtkAmt))
+	s.Require().True(del2Tracker.ActiveNtk.Equal(expectedDel2Ntk),
+		"del2 active ntk should match expected Ntk delegations: expected %s, got %s",
+		expectedDel2Ntk.String(), del2Tracker.ActiveNtk.String())
 
-	// Query costaker rewards tracker for del3 (who has BTC delegation but NO Baby delegations)
+	// Query costaker rewards tracker for del3 (who has BTC delegation but NO Ntk delegations)
 	del3Tracker, err := n.QueryCostakerRewardsTracker(s.del3Addr)
 	s.NoError(err, "should be able to query costaker rewards tracker for del3")
 	s.Require().NotNil(del3Tracker, "del3 should have a costaker rewards tracker")
 
-	s.T().Logf("del3 costaker rewards tracker: ActiveSatoshis=%s, ActiveBaby=%s, TotalScore=%s",
-		del3Tracker.ActiveSatoshis.String(), del3Tracker.ActiveBaby.String(), del3Tracker.TotalScore.String())
+	s.T().Logf("del3 costaker rewards tracker: ActiveSatoshis=%s, ActiveNtk=%s, TotalScore=%s",
+		del3Tracker.ActiveSatoshis.String(), del3Tracker.ActiveNtk.String(), del3Tracker.TotalScore.String())
 
-	// Verify del3 has BTC delegation but zero baby delegation
-	s.Require().True(del3Tracker.TotalScore.Equal(sdkmath.ZeroInt()), "del3 should have a total score of 0 since no baby delegation was made")
+	// Verify del3 has BTC delegation but zero ntk delegation
+	s.Require().True(del3Tracker.TotalScore.Equal(sdkmath.ZeroInt()), "del3 should have a total score of 0 since no ntk delegation was made")
 	s.Require().Equal(uint64(1), del3Tracker.StartPeriodCumulativeReward, "del3 should start at period 1")
 
 	expectedDel3Sats := sdkmath.NewIntFromUint64(uint64(s.fp1Del3StakingAmt))
@@ -460,10 +460,10 @@ func (s *SoftwareUpgradeV23To4TestSuite) checkCostakerRewardsTrackerAfterUpgrade
 		"del3 active satoshis should match expected BTC delegations: expected %s, got %s",
 		expectedDel3Sats.String(), del3Tracker.ActiveSatoshis.String())
 
-	// del3 should have zero baby delegations
-	s.Require().True(del3Tracker.ActiveBaby.IsZero(),
-		"del3 active baby should be zero since no baby delegations were made: got %s",
-		del3Tracker.ActiveBaby.String())
+	// del3 should have zero ntk delegations
+	s.Require().True(del3Tracker.ActiveNtk.IsZero(),
+		"del3 active ntk should be zero since no ntk delegations were made: got %s",
+		del3Tracker.ActiveNtk.String())
 }
 
 // slashFinalityProviderAndCheckRewards slashes fp1 and verifies reward tracker updates

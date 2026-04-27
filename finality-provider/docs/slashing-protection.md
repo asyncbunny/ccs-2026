@@ -113,10 +113,7 @@ Pruning of old records can be done with configurable retention policies.
 
 ### Operation Recommendations
 
-Detailed specifications on the secure operation of the finality provider
-program stack can be found in
-the [Finality Provider Operation](./finality-provider-operation.md) document.
-Here, we list security tips specifically for preventing double-sign:
+We list security tips specifically for preventing double-sign:
 - Operate your own Anon Genesis RPC node and securely connect with it
   to ensure a trustless setup
 - The keyring files or the mnemonic phrases should be backed up and kept safe

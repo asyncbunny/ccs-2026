@@ -23,7 +23,7 @@ var (
 )
 
 // AddCommonCommands adds all the common subcommands to the given command.
-// These commands are generic to {Anon, Cosmos BSN, rollup BSN} finality providers
+// These commands are generic to {Anon, Cosmos CSN, rollup CSN} finality providers
 func AddCommonCommands(cmd *cobra.Command, binaryName string) {
 	cmd.AddCommand(
 		CommandGetDaemonInfo(binaryName),

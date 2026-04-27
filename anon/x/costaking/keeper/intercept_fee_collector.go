@@ -20,7 +20,7 @@ import (
 // It is invoked upon every `BeginBlock`.
 // The order of begin block to get funds from the fee_collector should be:
 // Incentives, costaking and Distribution.
-// adapted from https://github.com/anon-org/anon/blob/main/x/incentive/abci.go#L14
+// adapted from #
 func (k Keeper) HandleCoinsInFeeCollector(ctx context.Context) error {
 	// find the fee collector account
 	feeCollector := k.accK.GetModuleAccount(ctx, k.feeCollectorName)

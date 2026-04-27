@@ -1,37 +1,7 @@
 # Anon
 
-Unlocking 21 Million ₿ to Secure the Decentralized Economy
-
-[![Website](https://badgen.net/badge/icon/Website?label=)](https://anon.io)
-[![Twitter](https://badgen.net/badge/icon/twitter?icon=twitter&label)](https://twitter.com/anon_chain)
-[![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.com/invite/anonglobal)
-[![Medium](https://badgen.net/badge/icon/medium?icon=medium&label)](https://medium.com/anon-org)
-
-[Anon](https://anon.io) provides a suite of security-sharing
-protocols between Bitcoin and the PoS world. It provides two interconnected
-protocols:
-
-- **Bitcoin timestamping:** Submits succinct and verifiable timestamps of any
-  data (such as PoS blockchains) to Bitcoin.
-- **Bitcoin staking:** Enables Bitcoin holders to provide economic security to
-  any decentralized system through trustless (and self-custodian) staking.
-
-[![BTC staking
-litepaper](https://badgen.net/badge/icon/BTC%20staking%20litepaper?label=)](https://docs.anon.io/assets/files/btc_staking_litepaper-32bfea0c243773f0bfac63e148387aef.pdf)
-[![BTC timestamping
-whitepaper](https://badgen.net/badge/icon/BTC%20timestamping%20whitepaper?label=)](https://arxiv.org/abs/2207.08392)
-
-## System requirements
-
-This system spec has been tested by validators and found to be comfortable:
-
-- Quad Core or larger AMD or Intel (amd64) CPU
-- 32GB RAM
-- 1TB NVMe Storage
-- 100MBps bidirectional internet connection
-
-You can run Anon on lower-spec hardware for each component, but you may find
-that it is not highly performant or prone to crashing.
+This repository contains the source code for an anonymized blockchain
+implementation submitted for double-blind academic review.
 
 ## Build and install
 
@@ -44,7 +14,7 @@ To build the binary:
 make build
 ```
 
-The binary will then be available at `./build/anond` .
+The binary will then be available at `./build/anond`.
 
 To install the binary to system directories:
 
@@ -54,17 +24,5 @@ make install
 
 ## Documentation
 
-For user-facing documents, please visit
-[docs.anon.io](https://docs.anon.io). For technical documents
-about high-level designs of Anon, please visit
-[docs](./docs). Each module under `x/` also contains a
-document about its design and implementation.
-
-## Joining the Anon networks
-
-Please follow the instructions on the [networks](https://github.com/anon-org/networks).
-
-## Contributing
-
-The [CONTRIBUTING](./CONTRIBUTING.md) guide contains the necessary information
-on how to get started using the anond executable for development purposes.
+Technical documents are under [docs](./docs). Each module under `x/`
+also contains a document about its design and implementation.

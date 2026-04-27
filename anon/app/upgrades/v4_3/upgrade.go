@@ -56,8 +56,8 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 		}
 		coStkStoreService := runtime.NewKVStoreService(costkStoreKey)
 
-		// Reset co-staker rewards tracker for ActiveBaby
-		if err := ResetCoStakerRwdsTrackerActiveBaby(
+		// Reset co-staker rewards tracker for ActiveNtk
+		if err := ResetCoStakerRwdsTrackerActiveNtk(
 			ctx,
 			keepers.EncCfg.Codec,
 			coStkStoreService,
@@ -72,9 +72,9 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 	}
 }
 
-// ResetCoStakerRwdsTrackerActiveBaby resets the ActiveBaby in costaker rewards tracker
-// It recalculates ActiveBaby for all BABY stakers based on current delegations to active validators
-func ResetCoStakerRwdsTrackerActiveBaby(
+// ResetCoStakerRwdsTrackerActiveNtk resets the ActiveNtk in costaker rewards tracker
+// It recalculates ActiveNtk for all NTK stakers based on current delegations to active validators
+func ResetCoStakerRwdsTrackerActiveNtk(
 	ctx context.Context,
 	cdc codec.BinaryCodec,
 	costkStoreService corestoretypes.KVStoreService,
@@ -91,8 +91,8 @@ func ResetCoStakerRwdsTrackerActiveBaby(
 		codec.CollValue[costktypes.CostakerRewardsTracker](cdc),
 	)
 
-	// Zero out ActiveBaby in all existing rewards trackers and track previous values
-	accsWithActiveBaby, err := zeroOutCoStakerRwdsActiveBaby(ctx, rwdTrackers)
+	// Zero out ActiveNtk in all existing rewards trackers and track previous values
+	accsWithActiveNtk, err := zeroOutCoStakerRwdsActiveNtk(ctx, rwdTrackers)
 	if err != nil {
 		return err
 	}
@@ -103,8 +103,8 @@ func ResetCoStakerRwdsTrackerActiveBaby(
 		return err
 	}
 
-	// Recalculate ActiveBaby for all BABY stakers based on current delegations to active validators
-	if err := updateBABYStakersRwdTracker(ctx, endedPeriod, rwdTrackers, accsWithActiveBaby, epochingKeeper, stkKeeper, coStkKeeper, params); err != nil {
+	// Recalculate ActiveNtk for all NTK stakers based on current delegations to active validators
+	if err := updateNTKStakersRwdTracker(ctx, endedPeriod, rwdTrackers, accsWithActiveNtk, epochingKeeper, stkKeeper, coStkKeeper, params); err != nil {
 		return err
 	}
 
@@ -126,52 +126,52 @@ func ResetCoStakerRwdsTrackerActiveBaby(
 	return coStkKeeper.SetCurrentRewards(ctx, *currentRwd)
 }
 
-type ActiveBabyTracked struct {
-	PreviousActiveBaby math.Int
-	CurrentActiveBaby  math.Int
+type ActiveNtkTracked struct {
+	PreviousActiveNtk math.Int
+	CurrentActiveNtk  math.Int
 }
 
-// updateBABYStakersRwdTracker retrieves all BABY stakers delegating to active validators and updates their ActiveBaby
-func updateBABYStakersRwdTracker(
+// updateNTKStakersRwdTracker retrieves all NTK stakers delegating to active validators and updates their ActiveNtk
+func updateNTKStakersRwdTracker(
 	ctx context.Context,
 	period uint64,
 	rwdTrackers collections.Map[[]byte, costktypes.CostakerRewardsTracker],
-	accsWithActiveBaby map[string]ActiveBabyTracked,
+	accsWithActiveNtk map[string]ActiveNtkTracked,
 	epochingKeeper epochingkeeper.Keeper,
 	stkKeeper *stkkeeper.Keeper,
 	coStkKeeper costkkeeper.Keeper,
 	params costktypes.Params,
 ) error {
-	// Get all BABY stakers delegating to active validators in the current epoch
-	babyStakers, err := getAllBABYStakers(ctx, epochingKeeper, stkKeeper)
+	// Get all NTK stakers delegating to active validators in the current epoch
+	ntkStakers, err := getAllNTKStakers(ctx, epochingKeeper, stkKeeper)
 	if err != nil {
-		return fmt.Errorf("failed to get all BABY stakers: %w", err)
+		return fmt.Errorf("failed to get all NTK stakers: %w", err)
 	}
 
-	// Add current BABY delegations to the tracking map
-	for delegatorAddr, babyAmount := range babyStakers {
-		data, found := accsWithActiveBaby[delegatorAddr]
+	// Add current NTK delegations to the tracking map
+	for delegatorAddr, ntkAmount := range ntkStakers {
+		data, found := accsWithActiveNtk[delegatorAddr]
 		if found {
-			data.CurrentActiveBaby = data.CurrentActiveBaby.Add(babyAmount)
-			accsWithActiveBaby[delegatorAddr] = data
+			data.CurrentActiveNtk = data.CurrentActiveNtk.Add(ntkAmount)
+			accsWithActiveNtk[delegatorAddr] = data
 		} else {
-			accsWithActiveBaby[delegatorAddr] = ActiveBabyTracked{
-				PreviousActiveBaby: math.ZeroInt(),
-				CurrentActiveBaby:  babyAmount,
+			accsWithActiveNtk[delegatorAddr] = ActiveNtkTracked{
+				PreviousActiveNtk: math.ZeroInt(),
+				CurrentActiveNtk:  ntkAmount,
 			}
 		}
 	}
 
 	// Update the costaker rewards trackers for all accounts
-	for accAddrStr, babyTracked := range accsWithActiveBaby {
-		if err := updateCostakerActiveBabyRewardsTracker(
+	for accAddrStr, ntkTracked := range accsWithActiveNtk {
+		if err := updateCostakerActiveNtkRewardsTracker(
 			ctx,
 			coStkKeeper,
 			period,
 			rwdTrackers,
 			sdk.MustAccAddressFromBech32(accAddrStr),
 			params,
-			babyTracked,
+			ntkTracked,
 		); err != nil {
 			return err
 		}
@@ -180,10 +180,10 @@ func updateBABYStakersRwdTracker(
 	return nil
 }
 
-// getAllBABYStakers retrieves all BABY stakers by iterating over the current epoch's active validators
-func getAllBABYStakers(ctx context.Context, epochingKeeper epochingkeeper.Keeper, stkKeeper *stkkeeper.Keeper) (map[string]math.Int, error) {
+// getAllNTKStakers retrieves all NTK stakers by iterating over the current epoch's active validators
+func getAllNTKStakers(ctx context.Context, epochingKeeper epochingkeeper.Keeper, stkKeeper *stkkeeper.Keeper) (map[string]math.Int, error) {
 	stkQuerier := stkkeeper.NewQuerier(stkKeeper)
-	babyStakers := make(map[string]math.Int)
+	ntkStakers := make(map[string]math.Int)
 
 	// Get the current epoch's validator set from epoching keeper
 	valSet := epochingKeeper.GetCurrentValidatorSet(ctx)
@@ -193,16 +193,16 @@ func getAllBABYStakers(ctx context.Context, epochingKeeper epochingkeeper.Keeper
 		valAddr := sdk.ValAddress(val.Addr)
 
 		// Get all delegations for this active validator
-		if err := getValidatorDelegations(ctx, stkQuerier, valAddr.String(), babyStakers); err != nil {
+		if err := getValidatorDelegations(ctx, stkQuerier, valAddr.String(), ntkStakers); err != nil {
 			return nil, fmt.Errorf("failed to get delegations for validator %s: %w", valAddr.String(), err)
 		}
 	}
 
-	return babyStakers, nil
+	return ntkStakers, nil
 }
 
 // getValidatorDelegations gets all delegations for a specific validator
-func getValidatorDelegations(ctx context.Context, stkQuerier stkkeeper.Querier, validatorAddr string, babyStakers map[string]math.Int) error {
+func getValidatorDelegations(ctx context.Context, stkQuerier stkkeeper.Querier, validatorAddr string, ntkStakers map[string]math.Int) error {
 	var nextKey []byte
 
 	for {
@@ -222,10 +222,10 @@ func getValidatorDelegations(ctx context.Context, stkQuerier stkkeeper.Querier, 
 			delegatorAddr := delegation.Delegation.DelegatorAddress
 			amount := delegation.Balance.Amount
 
-			if existing, found := babyStakers[delegatorAddr]; found {
-				babyStakers[delegatorAddr] = existing.Add(amount)
+			if existing, found := ntkStakers[delegatorAddr]; found {
+				ntkStakers[delegatorAddr] = existing.Add(amount)
 			} else {
-				babyStakers[delegatorAddr] = amount
+				ntkStakers[delegatorAddr] = amount
 			}
 		}
 
@@ -238,15 +238,15 @@ func getValidatorDelegations(ctx context.Context, stkQuerier stkkeeper.Querier, 
 	return nil
 }
 
-// updateCostakerActiveBabyRewardsTracker creates or updates a costaker rewards tracker with ActiveBaby
-func updateCostakerActiveBabyRewardsTracker(
+// updateCostakerActiveNtkRewardsTracker creates or updates a costaker rewards tracker with ActiveNtk
+func updateCostakerActiveNtkRewardsTracker(
 	ctx context.Context,
 	coStkKeeper costkkeeper.Keeper,
 	endedPeriod uint64,
 	rwdTrackers collections.Map[[]byte, costktypes.CostakerRewardsTracker],
 	stakerAddr sdk.AccAddress,
 	params costktypes.Params,
-	babyTracked ActiveBabyTracked,
+	ntkTracked ActiveNtkTracked,
 ) error {
 	addrKey := []byte(stakerAddr)
 
@@ -261,10 +261,10 @@ func updateCostakerActiveBabyRewardsTracker(
 		return nil
 	}
 
-	// Update existing tracker (set the ActiveBaby because it was zeroed out before)
-	// Update the StartPeriodCumulativeReward only if the ActiveBaby is changing
-	rt.ActiveBaby = rt.ActiveBaby.Add(babyTracked.CurrentActiveBaby)
-	diff := babyTracked.CurrentActiveBaby.Sub(babyTracked.PreviousActiveBaby)
+	// Update existing tracker (set the ActiveNtk because it was zeroed out before)
+	// Update the StartPeriodCumulativeReward only if the ActiveNtk is changing
+	rt.ActiveNtk = rt.ActiveNtk.Add(ntkTracked.CurrentActiveNtk)
+	diff := ntkTracked.CurrentActiveNtk.Sub(ntkTracked.PreviousActiveNtk)
 	if !diff.IsZero() { // if there is any diff, the period needs to be increased
 		rt.StartPeriodCumulativeReward = endedPeriod
 		if err := coStkKeeper.CalculateCostakerRewardsAndSendToGauge(ctx, stakerAddr, endedPeriod); err != nil {
@@ -273,7 +273,7 @@ func updateCostakerActiveBabyRewardsTracker(
 	}
 
 	// Update score
-	rt.UpdateScore(params.ScoreRatioBtcByBaby)
+	rt.UpdateScore(params.ScoreRatioBtcByNtk)
 
 	// Save tracker
 	if err := rwdTrackers.Set(ctx, addrKey, rt); err != nil {
@@ -283,46 +283,46 @@ func updateCostakerActiveBabyRewardsTracker(
 	return nil
 }
 
-// zeroOutCoStakerRwdsActiveBaby zeros out ActiveBaby in all costaker rewards trackers
-func zeroOutCoStakerRwdsActiveBaby(
+// zeroOutCoStakerRwdsActiveNtk zeros out ActiveNtk in all costaker rewards trackers
+func zeroOutCoStakerRwdsActiveNtk(
 	ctx context.Context,
 	rwdTrackers collections.Map[[]byte, costktypes.CostakerRewardsTracker],
-) (map[string]ActiveBabyTracked, error) {
-	accsWithActiveBaby := make(map[string]ActiveBabyTracked)
+) (map[string]ActiveNtkTracked, error) {
+	accsWithActiveNtk := make(map[string]ActiveNtkTracked)
 	iter, err := rwdTrackers.Iterate(ctx, nil)
 	if err != nil {
-		return accsWithActiveBaby, err
+		return accsWithActiveNtk, err
 	}
 	defer iter.Close()
 
 	for ; iter.Valid(); iter.Next() {
 		costakerAddr, err := iter.Key()
 		if err != nil {
-			return accsWithActiveBaby, err
+			return accsWithActiveNtk, err
 		}
 
 		tracker, err := iter.Value()
 		if err != nil {
-			return accsWithActiveBaby, err
+			return accsWithActiveNtk, err
 		}
-		if tracker.ActiveBaby.IsZero() {
+		if tracker.ActiveNtk.IsZero() {
 			continue
 		}
 
 		sdkAddr := sdk.AccAddress(costakerAddr)
-		accsWithActiveBaby[sdkAddr.String()] = ActiveBabyTracked{
-			PreviousActiveBaby: tracker.ActiveBaby,
-			CurrentActiveBaby:  math.ZeroInt(),
+		accsWithActiveNtk[sdkAddr.String()] = ActiveNtkTracked{
+			PreviousActiveNtk: tracker.ActiveNtk,
+			CurrentActiveNtk:  math.ZeroInt(),
 		}
 
-		// Zero out ActiveBaby
-		tracker.ActiveBaby = math.ZeroInt()
+		// Zero out ActiveNtk
+		tracker.ActiveNtk = math.ZeroInt()
 		if err := rwdTrackers.Set(ctx, costakerAddr, tracker); err != nil {
-			return accsWithActiveBaby, err
+			return accsWithActiveNtk, err
 		}
 	}
 
-	return accsWithActiveBaby, nil
+	return accsWithActiveNtk, nil
 }
 
 func getTotalScore(

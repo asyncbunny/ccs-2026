@@ -89,10 +89,10 @@ func NewTmWithIbc(t *testing.T) *TestManagerIbc {
 	tm := NewTestManager(t)
 
 	ancCfg := NewChainConfig(tm.TempDir, CHAIN_ID_ANON)
-	bsnCfg := NewChainConfig(tm.TempDir, CHAIN_ID_BSN)
+	csnCfg := NewChainConfig(tm.TempDir, CHAIN_ID_CSN)
 
 	tm.Chains[CHAIN_ID_ANON] = NewChain(tm, ancCfg)
-	tm.Chains[CHAIN_ID_BSN] = NewChain(tm, bsnCfg)
+	tm.Chains[CHAIN_ID_CSN] = NewChain(tm, csnCfg)
 
 	return &TestManagerIbc{
 		TestManager: tm,
@@ -140,7 +140,7 @@ func (tm *TestManagerIbc) Start() {
 	// Wait for chains to produce at least one block
 	tm.ChainsWaitUntilHeight(1)
 
-	cA, cB := tm.ChainANC(), tm.ChainBSN()
+	cA, cB := tm.ChainANC(), tm.ChainCSN()
 	tm.Hermes.Start(cA, cB)
 
 	tm.Hermes.CreateIBCTransferChannel(cA, cB)
@@ -232,20 +232,20 @@ func (tm *TestManagerIbc) ChainANC() *Chain {
 	return tm.Chains[CHAIN_ID_ANON]
 }
 
-func (tm *TestManagerIbc) ChainBSN() *Chain {
-	return tm.Chains[CHAIN_ID_BSN]
+func (tm *TestManagerIbc) ChainCSN() *Chain {
+	return tm.Chains[CHAIN_ID_CSN]
 }
 
-func (tm *TestManagerIbc) ChainNodes() (anc, bsn *Node) {
-	return tm.ChainANC().Nodes[0], tm.ChainBSN().Nodes[0]
+func (tm *TestManagerIbc) ChainNodes() (anc, csn *Node) {
+	return tm.ChainANC().Nodes[0], tm.ChainCSN().Nodes[0]
 }
 
 func (tm *TestManagerIbc) RequireChannelsCreated() {
-	anc, bsn := tm.ChainNodes()
+	anc, csn := tm.ChainNodes()
 
 	tm.T.Log("Verifying IBC channels were created...")
 	ancChannels := anc.QueryIBCChannels()
 	require.Len(tm.T, ancChannels.Channels, 1, "No IBC channels found on Anon chain")
-	bsnChannels := bsn.QueryIBCChannels()
-	require.Len(tm.T, bsnChannels.Channels, 1, "No IBC channels found on BSN Consumer chain")
+	csnChannels := csn.QueryIBCChannels()
+	require.Len(tm.T, csnChannels.Channels, 1, "No IBC channels found on CSN Consumer chain")
 }

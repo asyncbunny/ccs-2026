@@ -32,7 +32,7 @@ To generate a new commit, following steps are needed:
 3. Send a [Schnorr](https://github.com/btcsuite/btcd/blob/684d64ad74fed203fb846c032f2b55b3e3c36734/btcec/schnorr/signature.go#L391)
   signature request to the EOTS manager over the hash of the commit
   (concatenated by the start height, number of randomness, and the merkle root).
-4. Build the commit message ([MsgCommitPubRandList](https://github.com/anon-org/anon/blob/aa99e2eb093e06cb9a28a58f373e8fa5f2494383/proto/anon/finality/v1/tx.proto#L29))
+4. Build the commit message ([MsgCommitPubRandList](#))
   and send a transaction to Anon.
 
 ### Timing to Commit

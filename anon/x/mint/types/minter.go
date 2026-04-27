@@ -12,9 +12,9 @@ import (
 
 const DefaultBondDenom = "uanc"
 
-// MaxMintedPerBlock defines the maximum amount (in uanc, i.e. micro-Baby tokens) allowed to mint per block.
-// On mainnet, the current rate is around 189 Baby tokens per block (≈189_000000 uanc), so this cap of
-// 600_000000 uanc (600 Baby tokens) is approximately 3.17x the current rate.
+// MaxMintedPerBlock defines the maximum amount (in uanc, i.e. micro-Ntk tokens) allowed to mint per block.
+// On mainnet, the current rate is around 189 Ntk tokens per block (≈189_000000 uanc), so this cap of
+// 600_000000 uanc (600 Ntk tokens) is approximately 3.17x the current rate.
 var MaxMintedPerBlock = math.NewInt(600_000000)
 
 // NewMinter returns a new Minter object.

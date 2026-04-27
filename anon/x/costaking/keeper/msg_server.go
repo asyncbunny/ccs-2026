@@ -32,9 +32,9 @@ func (ms MsgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdatePara
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	currentParams := ms.GetParams(ctx)
-	if !req.Params.ScoreRatioBtcByBaby.Equal(currentParams.ScoreRatioBtcByBaby) {
+	if !req.Params.ScoreRatioBtcByNtk.Equal(currentParams.ScoreRatioBtcByNtk) {
 		// if the score ratio continues the same, no need to iterate over all costakers
-		err := ms.UpdateAllCostakersScore(ctx, req.Params.ScoreRatioBtcByBaby)
+		err := ms.UpdateAllCostakersScore(ctx, req.Params.ScoreRatioBtcByNtk)
 		if err != nil {
 			return nil, govtypes.ErrInvalidProposalMsg.Wrapf("unable to update all the costakers score: %v", err)
 		}

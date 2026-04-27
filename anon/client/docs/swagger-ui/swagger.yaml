@@ -615,7 +615,7 @@ paths:
       summary: |-
         ContainsBytes is a temporary method that
         checks whether a hash is maintained by the module.
-        See discussion at https://github.com/anon-org/anon/pull/132
+        See discussion at #
         for more details.
       operationId: ContainsBytes
       responses:
@@ -11419,18 +11419,18 @@ paths:
                   made his last withdraw of costaking rewards or modified his
                   active staking
 
-                  amount of satoshis or baby.
+                  amount of satoshis or ntk.
               active_satoshis:
                 type: string
                 format: byte
                 description: |-
                   ActiveSatoshis is the total amount of active satoshi delegated
                   from this costaker anon address.
-              active_baby:
+              active_ntk:
                 type: string
                 format: byte
                 description: |-
-                  ActiveBaby is the total amount of active baby delegated
+                  ActiveNtk is the total amount of active ntk delegated
                   from this costaker anon address.
               total_score:
                 type: string
@@ -11507,7 +11507,7 @@ paths:
                   for all the
 
                   costakers for the whole chain. If some action happens of
-                  satoshi or baby
+                  satoshi or ntk
 
                   staked or is unbonded or withdraw of the rewards available,
                   this current
@@ -11678,18 +11678,18 @@ paths:
 
                       takes part of the fee_collector to give out to BTC
                       stakers.
-                  score_ratio_btc_by_baby:
+                  score_ratio_btc_by_ntk:
                     type: string
                     format: byte
                     title: >-
-                      ScoreRatioBtcByBaby defines the amount of uanc necessary
+                      ScoreRatioBtcByNtk defines the amount of uanc necessary
                       for the
 
                       sats staked to count as score in the formula.
 
                       score: min(costakers_sats_staked, (costakers_uanc_staked /
 
-                      score_ratio_btc_by_baby))
+                      score_ratio_btc_by_ntk))
                   validators_portion:
                     type: string
                     description: >-
@@ -18894,14 +18894,14 @@ definitions:
           CostakingPortion is the portion of rewards that goes to costakers
           NOTE: This portion of costakers is taken after the incentive module
           takes part of the fee_collector to give out to BTC stakers.
-      score_ratio_btc_by_baby:
+      score_ratio_btc_by_ntk:
         type: string
         format: byte
         title: |-
-          ScoreRatioBtcByBaby defines the amount of uanc necessary for the
+          ScoreRatioBtcByNtk defines the amount of uanc necessary for the
           sats staked to count as score in the formula.
           score: min(costakers_sats_staked, (costakers_uanc_staked /
-          score_ratio_btc_by_baby))
+          score_ratio_btc_by_ntk))
       validators_portion:
         type: string
         description: >-
@@ -18926,18 +18926,18 @@ definitions:
           made his last withdraw of costaking rewards or modified his active
           staking
 
-          amount of satoshis or baby.
+          amount of satoshis or ntk.
       active_satoshis:
         type: string
         format: byte
         description: |-
           ActiveSatoshis is the total amount of active satoshi delegated
           from this costaker anon address.
-      active_baby:
+      active_ntk:
         type: string
         format: byte
         description: |-
-          ActiveBaby is the total amount of active baby delegated
+          ActiveNtk is the total amount of active ntk delegated
           from this costaker anon address.
       total_score:
         type: string
@@ -18970,7 +18970,7 @@ definitions:
           the
 
           costakers for the whole chain. If some action happens of satoshi or
-          baby
+          ntk
 
           staked or is unbonded or withdraw of the rewards available, this
           current
@@ -19052,14 +19052,14 @@ definitions:
               module
 
               takes part of the fee_collector to give out to BTC stakers.
-          score_ratio_btc_by_baby:
+          score_ratio_btc_by_ntk:
             type: string
             format: byte
             title: |-
-              ScoreRatioBtcByBaby defines the amount of uanc necessary for the
+              ScoreRatioBtcByNtk defines the amount of uanc necessary for the
               sats staked to count as score in the formula.
               score: min(costakers_sats_staked, (costakers_uanc_staked /
-              score_ratio_btc_by_baby))
+              score_ratio_btc_by_ntk))
           validators_portion:
             type: string
             description: >-

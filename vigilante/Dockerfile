@@ -48,7 +48,7 @@ RUN addgroup --gid 1138 -S vigilante && adduser --uid 1138 -S vigilante -G vigil
 RUN apk --no-cache add bash curl jq && rm -rf /var/cache/apk/*
 
 # Label should match your github repo
-LABEL org.opencontainers.image.source="https://github.com/anon-org/vigilante:${VERSION}"
+LABEL org.opencontainers.image.source="#:${VERSION}"
 
 COPY --from=build-env /go/src/github.com/anon-org/vigilante/build/vigilante /bin/vigilante
 

@@ -30,7 +30,7 @@ var (
 	LargestBtcReorgInBlocks   = collections.NewPrefix(11) // key prefix for the BTC block height difference of the largest reorg
 	// prefix {12} reserved to BTCStakingEventKey
 	// prefix {13} is cleaned in v3rc3 and can be reused after that upgrade is run on testnet
-	// prefix {14} reserved to FinalityProviderBsnIndexKey
+	// prefix {14} reserved to FinalityProviderCsnIndexKey
 	// prefix {15} reserved to AllowedMultiStakingTxHashesKey
 	FpAncAddrKey             = collections.NewPrefix(16) // key prefix for index fpAncAddr
 	FinalityProvidersDeleted = collections.NewPrefix(17) // key prefix for the deleted finality provider btcPk

@@ -4,7 +4,7 @@
 
 1. [Distribution for BTC Stakers and Finality Providers](#1-distribution-for-btc-stakers-and-finality-providers)
    1. [Overview of x/distribution logic](#overview-of-xdistribution-logic)
-   2. [Reward Distribution for BABY Stakers](#reward-distribution-for-baby-stakers)
+   2. [Reward Distribution for NTK Stakers](#reward-distribution-for-ntk-stakers)
    3. [What is the inflation mechanism and how are rewards distributed](#what-is-the-inflation-mechanism-and-how-are-rewards-distributed)
 2. [States](#2-states)
    1. [Parameters](#21-parameters)
@@ -84,7 +84,7 @@ So, while rewards continuously accrue, they are actually distributed
 (when transferred out of the pool) only when a withdrawal is executed
 or when a change in delegation triggers a withdrawal.
 
-### Reward Distribution for BABY Stakers
+### Reward Distribution for NTK Stakers
 
 Upon `BeginBlock`, following the reward distribution for BTC stakers and finality
 providers, the [`x/distribution`](https://docs.cosmos.network/main/build/modules/distribution)

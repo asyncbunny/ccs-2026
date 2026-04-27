@@ -82,7 +82,7 @@ voting power is cast on it.
 The voting power of each finality provider is based on
 its Bitcoin stake retrieved from the BTC Staking module.
 Finality votes are performed using
-[Extractable-One-Time-Signatures (EOTS)](https://docs.anon.io/assets/files/btc_staking_litepaper-32bfea0c243773f0bfac63e148387aef.pdf)
+[Extractable-One-Time-Signatures (EOTS)](#)
 and verified using
 the finality providers' committed public randomness.
 
@@ -103,14 +103,14 @@ operator of each of the programs exist.
 Otherwise,
 an alarm will be raised by the monitor program.
 
-### [Vigilante Submitter](https://github.com/anon-org/vigilante)
+### [Vigilante Submitter](#)
 
 A standalone program that submits
 Anon checkpoints to Bitcoin as
 Bitcoin transactions embedding data
 utilizing the `OP_RETURN` Bitcoin script code.
 
-### [Vigilante Reporter](https://github.com/anon-org/vigilante)
+### [Vigilante Reporter](#)
 
 A standalone program that scans
 the Bitcoin ledger for Bitcoin headers and Anon checkpoints,
@@ -122,7 +122,7 @@ The monitor programs suite is responsible for
 monitoring the consistency between Anon's state and
 Bitcoin.
 
-### [Checkpointing Monitor](https://github.com/anon-org/vigilante)
+### [Checkpointing Monitor](#)
 
 A standalone program that monitors:
 
@@ -132,7 +132,7 @@ A standalone program that monitors:
 - The timely inclusion of Anon's Bitcoin checkpoints
   information in the Anon ledger.
 
-### [BTC Staking Monitor](https://github.com/anon-org/vigilante)
+### [BTC Staking Monitor](#)
 
 A standalone program that monitors:
 
@@ -165,29 +165,29 @@ withdraw their funds when their stake expires.
 The following set of standalone programs
 has been developed to enable these functionalities:
 
-- [BTC Staker Daemon](https://github.com/anon-org/btc-staker):
+- [BTC Staker Daemon](#):
   Daemon program connecting to a Bitcoin wallet and Anon.
-- [Staking API Service](https://github.com/anon-org/staking-api-service):
+- [Staking API Service](#):
   Backend of Anon staking DApp connecting with Anon gRPC and providing API service.
 - Wallet Integrations (TBD)
 
-### [Finality Provider](https://github.com/anon-org/finality-provider)
+### [Finality Provider](#)
 
 A standalone program that allows the registration and
 maintenance of a finality provider.
 It monitors for a finality provider's inclusion in the active set, commits
-[Extractable One Time Signature (EOTS)](https://docs.anon.io/assets/files/btc_staking_litepaper-32bfea0c243773f0bfac63e148387aef.pdf)
+[Extractable One Time Signature (EOTS)](#)
 public randomness, and
 submits finality votes for blocks.
 Finality votes are created through a connection to a standalone
-[EOTS manager daemon](https://github.com/anon-org/finality-provider)
+[EOTS manager daemon](#)
 responsible for securely maintaining the
 finality provider's private keys.
 
-### [Covenant Emulator](https://github.com/anon-org/covenant-emulator)
+### [Covenant Emulator](#)
 
 A standalone program utilized by the covenant emulation committee members.
-It emulates [covenant](https://covenants.info) functionality by monitoring
+It emulates [covenant](https://example.com) functionality by monitoring
 for pending staking requests,
 verifying their contents, and
 submitting necessary signatures.
@@ -209,14 +209,14 @@ this function. Most notably:
 
 - [Cosmos Relayer](https://github.com/cosmos/relayer):
   A fully functional relayer written in Go.
-- [Anon Relayer](https://github.com/anon-org/anon/blob/main/docs/ibc-relayer.md):
+- [Anon Relayer](#):
   A wrapper of the Cosmos Relayer that can maintain a one-way IBC connection.
   It is recommended to be used when the Consumer Zone does not deploy the
   Anon smart contract.
 - [Hermes Relayer](https://github.com/informalsystems/hermes):
   A fully functional relayer written in Rust.
 
-### [Anon Contract](https://github.com/anon-org/anon-contract)
+### [Anon Contract](#)
 
 A [CosmWasm](https://cosmwasm.com/) smart contract intended for
 deployment in a Consumer Zone.

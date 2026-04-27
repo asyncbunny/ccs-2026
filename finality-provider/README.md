@@ -12,7 +12,7 @@ systems and consists of three core components:
 A Anon Genesis network node that provides chain data and transaction
 submission capabilities. While not mandatory, running your own node is
 strongly recommended for security rather than relying on third-party RPC nodes.
-See the [Setup Node Guide](https://github.com/anon-org/networks/blob/main/anc-test-6/anon-node/README.md) 
+See the [Setup Node Guide](#) 
 for details.
 2. **Extractable One-Time Signature (EOTS) Manager**:
 A secure key management daemon that handles EOTS key operations,
@@ -32,22 +32,8 @@ all EOTS key operations.
 
 ![Finality Provider Architecture Diagram](./docs/static/finality-provider-arch.png)
 
-## Finality Provider for Consumer Networks Specification
-
-For detailed technical specifications and requirements of the finality provider
-program for Consumer networks, please see [./docs/SPEC-CONSUMER.md](./docs/SPEC-CONSUMER.md).
-The spec document outlines the Consumer's interfaces, message handlers and
-queries.
-It also provides guidance for integrators.
-
-## Become a Finality Provider
-
-For instructions on creating and operating a finality provider,
-see our [Finality Provider Guide](./docs/finality-provider-operation.md).
-
 ## High Level Descriptions of EOTS and Finality Provider
 
-<!-- These are out of place right now, we need to decide where to place them -->
 ### EOTS Manager
 
 The EOTS daemon is responsible for managing EOTS keys, producing EOTS randomness, and
@@ -55,7 +41,7 @@ using them to produce EOTS signatures.
 
 > ⚡ **Note:** EOTS stands for Extractable One Time Signature. You can read more about it
 in
-the [Anon BTC Staking Litepaper](https://docs.anon.io/assets/files/btc_staking_litepaper-32bfea0c243773f0bfac63e148387aef.pdf).
+the [Anon BTC Staking Litepaper](#).
 In short, the EOTS manager generates EOTS public/private randomness pairs. The
 finality provider commits the public part of these pairs to Anon Genesis for every future
 block height that they intend to provide a finality signature for. If the finality

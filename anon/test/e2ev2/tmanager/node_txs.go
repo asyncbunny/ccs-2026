@@ -32,7 +32,7 @@ import (
 
 // SendIBCTransfer creates and submits an IBC transfer transaction
 func (n *Node) SendIBCTransfer(wallet *WalletSender, recipient string, token sdk.Coin, channelID string, memo string) string {
-	n.T().Logf("Sending %s from %s (BSN) to %s (ANC) via channel %s", token.String(), wallet.Address.String(), recipient, channelID)
+	n.T().Logf("Sending %s from %s (CSN) to %s (ANC) via channel %s", token.String(), wallet.Address.String(), recipient, channelID)
 	timeoutHeight := clienttypes.NewHeight(0, 1000)
 	timeoutTimestamp := uint64(time.Now().Add(time.Hour).UnixNano())
 

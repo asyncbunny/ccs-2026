@@ -75,7 +75,7 @@ func (tm *TestManager) CreateFinalityProvider(t *testing.T) (*bstypes.FinalityPr
 	return btcFp, fpSK
 }
 
-func (tm *TestManager) CreateFinalityProviderBSN(t *testing.T, bsnID string) (*bstypes.FinalityProvider, *btcec.PrivateKey) {
+func (tm *TestManager) CreateFinalityProviderCSN(t *testing.T, csnID string) (*bstypes.FinalityProvider, *btcec.PrivateKey) {
 	var err error
 	signerAddr := tm.AnonClient.MustGetAddr()
 	addr := sdk.MustAccAddressFromBech32(signerAddr)

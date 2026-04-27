@@ -161,14 +161,14 @@ var xxx_messageInfo_QueryCostakerRewardsTrackerRequest proto.InternalMessageInfo
 type QueryCostakerRewardsTrackerResponse struct {
 	// StartPeriodCumulativeReward the starting period the costaker
 	// made his last withdraw of costaking rewards or modified his active staking
-	// amount of satoshis or baby.
+	// amount of satoshis or ntk.
 	StartPeriodCumulativeReward uint64 `protobuf:"varint,1,opt,name=start_period_cumulative_reward,json=startPeriodCumulativeReward,proto3" json:"start_period_cumulative_reward,omitempty"`
 	// ActiveSatoshis is the total amount of active satoshi delegated
 	// from this costaker anon address.
 	ActiveSatoshis cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=active_satoshis,json=activeSatoshis,proto3,customtype=cosmossdk.io/math.Int" json:"active_satoshis"`
-	// ActiveBaby is the total amount of active baby delegated
+	// ActiveNtk is the total amount of active ntk delegated
 	// from this costaker anon address.
-	ActiveBaby cosmossdk_io_math.Int `protobuf:"bytes,3,opt,name=active_baby,json=activeBaby,proto3,customtype=cosmossdk.io/math.Int" json:"active_baby"`
+	ActiveNtk cosmossdk_io_math.Int `protobuf:"bytes,3,opt,name=active_ntk,json=activeNtk,proto3,customtype=cosmossdk.io/math.Int" json:"active_ntk"`
 	// TotalScore is the total amount of calculated score
 	// of this costaker.
 	TotalScore cosmossdk_io_math.Int `protobuf:"bytes,4,opt,name=total_score,json=totalScore,proto3,customtype=cosmossdk.io/math.Int" json:"total_score"`
@@ -249,7 +249,7 @@ var xxx_messageInfo_QueryCurrentRewardsRequest proto.InternalMessageInfo
 // method.
 type QueryCurrentRewardsResponse struct {
 	// Rewards is the current rewards for the single pool of rewards for all the
-	// costakers for the whole chain. If some action happens of satoshi or baby
+	// costakers for the whole chain. If some action happens of satoshi or ntk
 	// staked or is unbonded or withdraw of the rewards available, this current
 	// period is sent to an HistoricalRewards and a new period is created and
 	// the rewards property is zerod out.
@@ -776,9 +776,9 @@ func (m *QueryCostakerRewardsTrackerResponse) MarshalToSizedBuffer(dAtA []byte) 
 	i--
 	dAtA[i] = 0x22
 	{
-		size := m.ActiveBaby.Size()
+		size := m.ActiveNtk.Size()
 		i -= size
-		if _, err := m.ActiveBaby.MarshalTo(dAtA[i:]); err != nil {
+		if _, err := m.ActiveNtk.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
 		}
 		i = encodeVarintQuery(dAtA, i, uint64(size))
@@ -998,7 +998,7 @@ func (m *QueryCostakerRewardsTrackerResponse) Size() (n int) {
 	}
 	l = m.ActiveSatoshis.Size()
 	n += 1 + l + sovQuery(uint64(l))
-	l = m.ActiveBaby.Size()
+	l = m.ActiveNtk.Size()
 	n += 1 + l + sovQuery(uint64(l))
 	l = m.TotalScore.Size()
 	n += 1 + l + sovQuery(uint64(l))
@@ -1365,7 +1365,7 @@ func (m *QueryCostakerRewardsTrackerResponse) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ActiveBaby", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ActiveNtk", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -1392,7 +1392,7 @@ func (m *QueryCostakerRewardsTrackerResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.ActiveBaby.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.ActiveNtk.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

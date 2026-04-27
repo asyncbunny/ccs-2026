@@ -30,7 +30,7 @@ emergency upgrade handler:
 ### 1. Collect correspondent Anon height
 
 The correlation of BTC and Anon block heights can be found in the `x/btcstaking`
-state in the [BlockHeightChains](https://github.com/anon-org/anon/blob/fcc6fdc009e414da440426e6b81920ceef981de3/x/btcstaking/types/genesis.pb.go#L36),
+state in the [BlockHeightChains](#),
 currently there is no query for it, but it can be retrieved by exporting the
 genesis state.
 
@@ -60,20 +60,20 @@ be removed from the following modules state `x/btcstaking`, `x/finality`,
 `x/incentives`.
 
 - `x/btcstaking`
-  - Remove from [`BTCDelegatorKey`](https://github.com/anon-org/anon/blob/7727f91491d5b8ddd6c10fa285ef3bea8a5ded4d/x/btcstaking/types/keys.go#L22)
+  - Remove from [`BTCDelegatorKey`](#)
   the BTC staking tx hash.
-  - Remove from [`BTCDelegationKey`](https://github.com/anon-org/anon/blob/7727f91491d5b8ddd6c10fa285ef3bea8a5ded4d/x/btcstaking/types/keys.go#L23)
+  - Remove from [`BTCDelegationKey`](#)
   the BTC staking tx hash.
-  - Remove the [`PowerDistUpdateKey`](https://github.com/anon-org/anon/blob/7727f91491d5b8ddd6c10fa285ef3bea8a5ded4d/x/btcstaking/types/keys.go#L27)
+  - Remove the [`PowerDistUpdateKey`](#)
   if a `EventPowerDistUpdate_BtcDelStateUpdate` was emitted for that
   BTC staking tx hash.
 - `x/finality`
-  - Update the voting power amount in [`VotingPowerKey`](https://github.com/anon-org/anon/blob/40f890d56d0bb081a6ce413281cc025f3d8b91d1/x/finality/types/keys.go#L50)
+  - Update the voting power amount in [`VotingPowerKey`](#)
   by subtracting the satoshi amounts of the finality provider that the BTC
   delegation delegated to if that BTC delegation was active.
   - Subtract the `TotalVotingPower` and the respective `FinalityProviderDistInfo`
   based on which finality provider was delegated to in
-  [`VotingPowerDistCacheKey`](https://github.com/anon-org/anon/blob/40f890d56d0bb081a6ce413281cc025f3d8b91d1/x/finality/types/keys.go#L51)
+  [`VotingPowerDistCacheKey`](#)
   if that BTC delegation was active.
 - `x/incentives` If that BTC delegation was ever active, there is a need to
 subtract the voting power from the rewards tracker. Also it is only modified
@@ -81,8 +81,8 @@ the values from now on, if rewards were accured from a BTC staking transaction
 that was rollbacked, the past is behind us and it should be let with the funds
 that were accured, losing a few coins in the rewards.
   - For the incentives module state there is a single function which should be
-  called [`BtcDelegationUnbonded`](https://github.com/anon-org/anon/blob/c8c44be12eb826b41f6f2cd3eae4452268398cdf/x/incentive/keeper/reward_tracker.go#L47)
-  which receives as parameter the Finality provider and BTC delegator baby
+  called [`BtcDelegationUnbonded`](#)
+  which receives as parameter the Finality provider and BTC delegator ntk
   address and the amount of satoshi from the rollbacked BTC delegation.
   This will already update all the keys in the state accordingly.
 
@@ -102,22 +102,22 @@ with similar steps took at [3.1](#31-msgcreatebtcdelegation).
 
 - `x/btcstaking`
   - Clean out the field for `BtcUndelegation` in `BTCDelegation` for the key
-  [`BTCDelegationKey`](https://github.com/anon-org/anon/blob/7727f91491d5b8ddd6c10fa285ef3bea8a5ded4d/x/btcstaking/types/keys.go#L23)
+  [`BTCDelegationKey`](#)
   in which corresponds to the BTC staking tx hash.
-  - Remove the [`PowerDistUpdateKey`](https://github.com/anon-org/anon/blob/7727f91491d5b8ddd6c10fa285ef3bea8a5ded4d/x/btcstaking/types/keys.go#L27)
+  - Remove the [`PowerDistUpdateKey`](#)
   if a `EventPowerDistUpdate_BtcDelStateUpdate` was emitted for that
   BTC staking tx hash with Undelegate.
 - `x/finality`
-  - Update the voting power amount in [`VotingPowerKey`](https://github.com/anon-org/anon/blob/40f890d56d0bb081a6ce413281cc025f3d8b91d1/x/finality/types/keys.go#L50)
+  - Update the voting power amount in [`VotingPowerKey`](#)
   by adding the satoshi amounts of the finality provider that the BTC
   delegation delegated to.
   - Add the `TotalVotingPower` and the respective `FinalityProviderDistInfo`
   based on which finality provider was delegated to in
-  [`VotingPowerDistCacheKey`](https://github.com/anon-org/anon/blob/40f890d56d0bb081a6ce413281cc025f3d8b91d1/x/finality/types/keys.go#L51).
+  [`VotingPowerDistCacheKey`](#).
 - `x/incentives` It is needed to add the voting power from the rewards tracker.
   - For the incentives module state there is a single function which should be
-  called [`BtcDelegationActivated`](https://github.com/anon-org/anon/blob/c8c44be12eb826b41f6f2cd3eae4452268398cdf/x/incentive/keeper/reward_tracker.go#L34)
-  which receives as parameter the Finality provider and BTC delegator baby
+  called [`BtcDelegationActivated`](#)
+  which receives as parameter the Finality provider and BTC delegator ntk
   address and the amount of satoshi from the rollbacked BTC undelegate.
   This will already update all the keys in the state accordingly.
 
@@ -127,15 +127,15 @@ Beside the specific cases of the messages sent, there is also the need
 to update some state about the new heights as in:
 
 - `x/btcstaking`
-  - Update [`BTCHeightKey`](https://github.com/anon-org/anon/blob/7727f91491d5b8ddd6c10fa285ef3bea8a5ded4d/x/btcstaking/types/keys.go#L25)
+  - Update [`BTCHeightKey`](#)
   the anon height corresponded to the BTC block height
-  - Remove the [`LargestBtcReorgInBlocks`](https://github.com/anon-org/anon/blob/7727f91491d5b8ddd6c10fa285ef3bea8a5ded4d/x/btcstaking/types/keys.go#L32)
+  - Remove the [`LargestBtcReorgInBlocks`](#)
   value previous set, to avoid halting again from the same BTC reorg.
 
 ### Create the emergency upgrade handler
 
 The emergency upgrade handler is called a
-[`Fork`](https://github.com/anon-org/anon/blob/b56406b48b3d3b541c8aa57fe4490edb0fbff6a8/app/upgrades/types.go#L43) in the structures as the chain is halted
+[`Fork`](#) in the structures as the chain is halted
 and there is no possibility to create a software upgrade proposal
 that handles nicely the upgrade plan. So, the fork structure
 would contain as the name something that correlates with the BTC block heights
@@ -144,7 +144,6 @@ height in which the panic for reorg happened and the `BeginForkLogic`
 should contain a single function that modifies the keepers with the data
 collected during step [3](#3-analyze-each-message).
 
-After that, tag a new release with the emergency upgrade in it, following
-the [Release Procedure](../../../RELEASE_PROCESS.md#release-procedure)
-test the logic in a private enviroment and if it all the state is modified
+After that, tag a new release with the emergency upgrade in it, test
+the logic in a private environment, and once all the state is modified
 as expected, announce the new binary for validators.

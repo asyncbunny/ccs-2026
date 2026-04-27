@@ -162,7 +162,7 @@ func TestCostakingValidatorDirectRewards(t *testing.T) {
 	require.True(t, costakingIncrease.IsAllPositive())
 }
 
-// TestCostakingRewardsHappyCase creates 2 fps and 3 btc delegations and a few baby delegations
+// TestCostakingRewardsHappyCase creates 2 fps and 3 btc delegations and a few ntk delegations
 // checking all the expected rewards are available in the coostaker reward tracker.
 func TestCostakingRewardsHappyCase(t *testing.T) {
 	t.Parallel()
@@ -184,10 +184,10 @@ func TestCostakingRewardsHappyCase(t *testing.T) {
 
 	delegators := d.CreateNStakerAccounts(3)
 	del1 := delegators[0]
-	del1BabyDelegatedAmt := sdkmath.NewInt(20_000000)
+	del1NtkDelegatedAmt := sdkmath.NewInt(20_000000)
 
 	d.MintNativeTo(del1.Address(), 100_000000)
-	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1BabyDelegatedAmt)
+	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1NtkDelegatedAmt)
 
 	// gets the current rewards prior to the end of epoch as it will be starting point
 	rwd, err := costkK.GetCurrentRewards(d.Ctx())
@@ -196,14 +196,14 @@ func TestCostakingRewardsHappyCase(t *testing.T) {
 	d.GenerateNewBlockAssertExecutionSuccess()
 	d.ProgressTillFirstBlockTheNextEpoch()
 
-	// confirms that baby delegation was done properly
+	// confirms that ntk delegation was done properly
 	del, err := stkK.GetDelegation(d.Ctx(), del1.Address(), valAddr)
 	require.NoError(t, err)
 	require.Equal(t, del.DelegatorAddress, del1.Address().String())
 
-	// check that baby delegation reached costaking
+	// check that ntk delegation reached costaking
 	zero := sdkmath.ZeroInt()
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, zero, zero, rwd.Period)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, zero, zero, rwd.Period)
 
 	fps := d.CreateNFinalityProviderAccounts(2)
 	fp1 := fps[0]
@@ -213,9 +213,9 @@ func TestCostakingRewardsHappyCase(t *testing.T) {
 	d.GenerateNewBlockAssertExecutionSuccess()
 
 	p := costkK.GetParams(d.Ctx())
-	// costaking ratio of btc by baby is 200, so for every sat staked it needs to
-	// have 200 baby staked to take full account of the btcs in the score.
-	del1BtcStakedAmt := del1BabyDelegatedAmt.Quo(p.ScoreRatioBtcByBaby)
+	// costaking ratio of btc by ntk is 200, so for every sat staked it needs to
+	// have 200 ntk staked to take full account of the btcs in the score.
+	del1BtcStakedAmt := del1NtkDelegatedAmt.Quo(p.ScoreRatioBtcByNtk)
 	del1.CreatePreApprovalDelegation(
 		[]*anc.BIP340PubKey{fp1.BTCPublicKey()},
 		defaultStakingTime,
@@ -237,7 +237,7 @@ func TestCostakingRewardsHappyCase(t *testing.T) {
 	require.Len(t, activeFps, 0)
 
 	// zero active sats and score, because fp is not active
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, zero, zero, rwd.Period)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, zero, zero, rwd.Period)
 
 	// activate fp
 	fp1.CommitRandomness()
@@ -261,7 +261,7 @@ func TestCostakingRewardsHappyCase(t *testing.T) {
 
 	// score is the same as btc staked as del1 have 50 uanc to each sat
 	del1StartCumulativeRewardPeriod := rwd.Period
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, del1BtcStakedAmt, del1BtcStakedAmt, del1StartCumulativeRewardPeriod)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, del1BtcStakedAmt, del1BtcStakedAmt, del1StartCumulativeRewardPeriod)
 
 	// new period without rewards is created
 	d.CheckCostakingCurrentRewards(sdk.NewCoins(), rwd.Period+1, del1BtcStakedAmt)
@@ -292,7 +292,7 @@ func TestCostakingRewardsHappyCase(t *testing.T) {
 	// after withdraw of rewards the period must increase
 	del1StartCumulativeRewardPeriod++
 	currentRwdPeriod++
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, del1BtcStakedAmt, del1BtcStakedAmt, del1StartCumulativeRewardPeriod)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, del1BtcStakedAmt, del1BtcStakedAmt, del1StartCumulativeRewardPeriod)
 	d.CheckCostakingCurrentRewards(sdk.NewCoins(), currentRwdPeriod, del1BtcStakedAmt)
 
 	fp2 := fps[1]
@@ -353,13 +353,13 @@ func TestCostakingFpSlashedAndBtcUnbondSameBlockPreventsDoubleSatsRemoval(t *tes
 	val := validators[0]
 	valAddr := sdk.MustValAddressFromBech32(val.OperatorAddress)
 
-	// Create a delegator and delegate baby tokens
+	// Create a delegator and delegate ntk tokens
 	delegators := d.CreateNStakerAccounts(1)
 	del1 := delegators[0]
-	del1BabyDelegatedAmt := sdkmath.NewInt(20_000000)
+	del1NtkDelegatedAmt := sdkmath.NewInt(20_000000)
 
 	d.MintNativeTo(del1.Address(), 100_000000)
-	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1BabyDelegatedAmt)
+	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1NtkDelegatedAmt)
 
 	d.GenerateNewBlockAssertExecutionSuccess()
 	d.ProgressTillFirstBlockTheNextEpoch()
@@ -373,7 +373,7 @@ func TestCostakingFpSlashedAndBtcUnbondSameBlockPreventsDoubleSatsRemoval(t *tes
 	p := costkK.GetParams(d.Ctx())
 
 	// Create BTC delegation
-	del1BtcStakedAmt := del1BabyDelegatedAmt.Quo(p.ScoreRatioBtcByBaby)
+	del1BtcStakedAmt := del1NtkDelegatedAmt.Quo(p.ScoreRatioBtcByNtk)
 	del1.CreatePreApprovalDelegation(
 		[]*anc.BIP340PubKey{fp1.BTCPublicKey()},
 		defaultStakingTime,
@@ -407,7 +407,7 @@ func TestCostakingFpSlashedAndBtcUnbondSameBlockPreventsDoubleSatsRemoval(t *tes
 	// Check that costaker rewards are properly set with active sats
 	currRwd, err := costkK.GetCurrentRewards(d.Ctx())
 	require.NoError(t, err)
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, del1BtcStakedAmt, del1BtcStakedAmt, currRwd.Period-1)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, del1BtcStakedAmt, del1BtcStakedAmt, currRwd.Period-1)
 
 	// Now create the critical scenario:
 	// 1. FP becomes slashed
@@ -442,7 +442,7 @@ func TestCostakingFpSlashedAndBtcUnbondSameBlockPreventsDoubleSatsRemoval(t *tes
 	// Check the critical part: costaker active satoshis should be zero (removed once)
 	// and NOT negative (which would indicate double removal)
 	zero := sdkmath.ZeroInt()
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, zero, zero, currRwd.Period)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, zero, zero, currRwd.Period)
 }
 
 // TestCostakingFpVotingPowerLossAndBtcUnbondSameBlockPreventsDoubleSatsRemoval tests the specific case where
@@ -470,10 +470,10 @@ func TestCostakingFpVotingPowerLossAndBtcUnbondSameBlockPreventsDoubleSatsRemova
 
 	delegators := d.CreateNStakerAccounts(3)
 	del1 := delegators[0]
-	del1BabyDelegatedAmt := sdkmath.NewInt(20_000000)
+	del1NtkDelegatedAmt := sdkmath.NewInt(20_000000)
 
 	d.MintNativeTo(del1.Address(), 100_000000)
-	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1BabyDelegatedAmt)
+	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1NtkDelegatedAmt)
 
 	d.GenerateNewBlockAssertExecutionSuccess()
 	d.ProgressTillFirstBlockTheNextEpoch()
@@ -487,7 +487,7 @@ func TestCostakingFpVotingPowerLossAndBtcUnbondSameBlockPreventsDoubleSatsRemova
 	// Create BTC delegations for both FPs
 	// FP1 gets a smaller delegation initially
 	p := costkK.GetParams(d.Ctx())
-	del1BtcStakedAmtFp1 := del1BabyDelegatedAmt.Quo(p.ScoreRatioBtcByBaby)
+	del1BtcStakedAmtFp1 := del1NtkDelegatedAmt.Quo(p.ScoreRatioBtcByNtk)
 	del1MsgCreate := del1.CreatePreApprovalDelegation(
 		[]*anc.BIP340PubKey{fp1.BTCPublicKey()},
 		defaultStakingTime,
@@ -522,7 +522,7 @@ func TestCostakingFpVotingPowerLossAndBtcUnbondSameBlockPreventsDoubleSatsRemova
 	// Check that costaker rewards are properly set with active sats for FP1
 	currRwd, err := costkK.GetCurrentRewards(d.Ctx())
 	require.NoError(t, err)
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, del1BtcStakedAmtFp1, del1BtcStakedAmtFp1, currRwd.Period-1)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, del1BtcStakedAmtFp1, del1BtcStakedAmtFp1, currRwd.Period-1)
 
 	// Create another btc delegation with half of del1 voting power to fp1
 	del2 := delegators[1]
@@ -546,13 +546,13 @@ func TestCostakingFpVotingPowerLossAndBtcUnbondSameBlockPreventsDoubleSatsRemova
 	// Now create a larger delegation for fp2 that will push FP1 out of the active set
 	// Create a new delegator with more voting power
 	del3 := delegators[2]
-	del3BabyDelegatedAmt := del1BabyDelegatedAmt.MulRaw(2)
+	del3NtkDelegatedAmt := del1NtkDelegatedAmt.MulRaw(2)
 	d.MintNativeTo(del3.Address(), 100_000000)
-	d.TxWrappedDelegate(del3.SenderInfo, valAddr.String(), del3BabyDelegatedAmt)
+	d.TxWrappedDelegate(del3.SenderInfo, valAddr.String(), del3NtkDelegatedAmt)
 	d.GenerateNewBlockAssertExecutionSuccess()
 
 	// Create larger BTC delegation for fp2 to active fp2 and inactive fp1
-	del3BtcStakedAmtFp2 := del3BabyDelegatedAmt.Quo(p.ScoreRatioBtcByBaby)
+	del3BtcStakedAmtFp2 := del3NtkDelegatedAmt.Quo(p.ScoreRatioBtcByNtk)
 	del3.CreatePreApprovalDelegation(
 		[]*anc.BIP340PubKey{fp2.BTCPublicKey()},
 		defaultStakingTime,
@@ -607,11 +607,11 @@ func TestCostakingFpVotingPowerLossAndBtcUnbondSameBlockPreventsDoubleSatsRemova
 
 	// Check the critical part: FP1's (del1, del2) should have zero active satoshis
 	// and NOT negative (which would indicate double removal)
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, zeroInt, zeroInt, currRwd.Period+1)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, zeroInt, zeroInt, currRwd.Period+1)
 	d.CheckCostakerRewards(del2.Address(), zeroInt, zeroInt, zeroInt, currRwd.Period) // period is not updated as this guy never had score
 
 	// fp2's delegator should still have their correct active satoshis (unaffected)
-	d.CheckCostakerRewards(del3.Address(), del3BabyDelegatedAmt, del3BtcStakedAmtFp2, del3BtcStakedAmtFp2, currRwd.Period)
+	d.CheckCostakerRewards(del3.Address(), del3NtkDelegatedAmt, del3BtcStakedAmtFp2, del3BtcStakedAmtFp2, currRwd.Period)
 }
 
 func TestMainnetInflationDistributionAmount(t *testing.T) {
@@ -636,10 +636,10 @@ func TestMainnetInflationDistributionAmount(t *testing.T) {
 	// (2.35 / 5.5) ≈ 0.427272727 of total inflation to costakers
 	// percentageCostakers * remaining uanc ≈ 43.016949153 uanc
 
-	// (0.075 / 5.5) ≈ 0.013636364 of remaining inflation goes to baby validators
-	// percentageBabyValidators * remaining uanc ≈ 1.372881356 uanc
+	// (0.075 / 5.5) ≈ 0.013636364 of remaining inflation goes to ntk validators
+	// percentageNtkValidators * remaining uanc ≈ 1.372881356 uanc
 
-	// rest goes to baby stakers and validators ≈ 36.619414447 uanc
+	// rest goes to ntk stakers and validators ≈ 36.619414447 uanc
 	inflation := sdkmath.LegacyMustNewDecFromStr("5.5")
 
 	percentageBtcStakers := sdkmath.LegacyMustNewDecFromStr("1").Quo(inflation)
@@ -651,8 +651,8 @@ func TestMainnetInflationDistributionAmount(t *testing.T) {
 	percentageCostakers := sdkmath.LegacyMustNewDecFromStr("2.35").Quo(inflation)
 	require.Equal(t, "0.427272727272727273", percentageCostakers.String())
 
-	percentageBabyValDirect := sdkmath.LegacyMustNewDecFromStr("0.075").Quo(inflation)
-	require.Equal(t, "0.013636363636363636", percentageBabyValDirect.String())
+	percentageNtkValDirect := sdkmath.LegacyMustNewDecFromStr("0.075").Quo(inflation)
+	require.Equal(t, "0.013636363636363636", percentageNtkValDirect.String())
 
 	dstrModAcc := authtypes.NewModuleAddress(disttypes.ModuleName)
 	dstrModBalancesBefore := d.App.BankKeeper.GetAllBalances(d.Ctx(), dstrModAcc)
@@ -677,22 +677,22 @@ func TestMainnetInflationDistributionAmount(t *testing.T) {
 	require.False(t, actualCostakers.IsZero())
 	require.Equal(t, expectedCostakers.String(), actualCostakers.String())
 
-	expectedBabyVal, _ := sdk.NewDecCoinsFromCoins(amountMinted...).MulDecTruncate(percentageBabyValDirect).TruncateDecimal()
-	actualBabyVals := FindEventTypeValidatorDirectRewards(t, block.Events)
-	require.False(t, actualBabyVals.IsZero())
-	require.Equal(t, expectedBabyVal.String(), actualBabyVals.String())
+	expectedNtkVal, _ := sdk.NewDecCoinsFromCoins(amountMinted...).MulDecTruncate(percentageNtkValDirect).TruncateDecimal()
+	actualNtkVals := FindEventTypeValidatorDirectRewards(t, block.Events)
+	require.False(t, actualNtkVals.IsZero())
+	require.Equal(t, expectedNtkVal.String(), actualNtkVals.String())
 
-	// baby vals are not subtracted here, as the amount are transferred to the distribution module account as well
+	// ntk vals are not subtracted here, as the amount are transferred to the distribution module account as well
 	expectedDistributionModule := amountMinted.Sub(expectedBtcStaker...).Sub(expectedFpDirect...).Sub(expectedCostakers...)
 	actualDistributionModule := dstrModBalancesAfter.Sub(dstrModBalancesBefore...)
 	require.False(t, actualDistributionModule.IsZero())
 	require.Equal(t, expectedDistributionModule.String(), actualDistributionModule.String())
 }
 
-// TestCostakingRewardsUnbondAllBaby creates 1 fp and 1 btc delegation and a one baby delegations
-// getting rewards and later unbonding all this baby delegation, it will call the staking hook
+// TestCostakingRewardsUnbondAllNtk creates 1 fp and 1 btc delegation and a one ntk delegations
+// getting rewards and later unbonding all this ntk delegation, it will call the staking hook
 // BeforeDelegationRemoved.
-func TestCostakingRewardsUnbondAllBaby(t *testing.T) {
+func TestCostakingRewardsUnbondAllNtk(t *testing.T) {
 	t.Parallel()
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	d := NewAnonAppDriverTmpDir(r, t)
@@ -712,10 +712,10 @@ func TestCostakingRewardsUnbondAllBaby(t *testing.T) {
 
 	delegators := d.CreateNStakerAccounts(1)
 	del1 := delegators[0]
-	del1BabyDelegatedAmt := sdkmath.NewInt(20_000000)
+	del1NtkDelegatedAmt := sdkmath.NewInt(20_000000)
 
 	d.MintNativeTo(del1.Address(), 100_000000)
-	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1BabyDelegatedAmt)
+	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1NtkDelegatedAmt)
 
 	// gets the current rewards prior to the end of epoch as it will be starting point
 	rwd, err := costkK.GetCurrentRewards(d.Ctx())
@@ -724,14 +724,14 @@ func TestCostakingRewardsUnbondAllBaby(t *testing.T) {
 	d.GenerateNewBlockAssertExecutionSuccess()
 	d.ProgressTillFirstBlockTheNextEpoch()
 
-	// confirms that baby delegation was done properly
+	// confirms that ntk delegation was done properly
 	del, err := stkK.GetDelegation(d.Ctx(), del1.Address(), valAddr)
 	require.NoError(t, err)
 	require.Equal(t, del.DelegatorAddress, del1.Address().String())
 
-	// check that baby delegation reached costaking
+	// check that ntk delegation reached costaking
 	zero := sdkmath.ZeroInt()
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, zero, zero, rwd.Period)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, zero, zero, rwd.Period)
 
 	fps := d.CreateNFinalityProviderAccounts(1)
 	fp1 := fps[0]
@@ -739,9 +739,9 @@ func TestCostakingRewardsUnbondAllBaby(t *testing.T) {
 	d.GenerateNewBlockAssertExecutionSuccess()
 
 	p := costkK.GetParams(d.Ctx())
-	// costaking ratio of btc by baby is 200, so for every sat staked it needs to
-	// have 200 baby staked to take full account of the btcs in the score.
-	del1BtcStakedAmt := del1BabyDelegatedAmt.Quo(p.ScoreRatioBtcByBaby)
+	// costaking ratio of btc by ntk is 200, so for every sat staked it needs to
+	// have 200 ntk staked to take full account of the btcs in the score.
+	del1BtcStakedAmt := del1NtkDelegatedAmt.Quo(p.ScoreRatioBtcByNtk)
 	del1.CreatePreApprovalDelegation(
 		[]*anc.BIP340PubKey{fp1.BTCPublicKey()},
 		defaultStakingTime,
@@ -763,7 +763,7 @@ func TestCostakingRewardsUnbondAllBaby(t *testing.T) {
 	require.Len(t, activeFps, 0)
 
 	// zero active sats and score, because fp is not active
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, zero, zero, rwd.Period)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, zero, zero, rwd.Period)
 
 	// activate fp
 	fp1.CommitRandomness()
@@ -787,7 +787,7 @@ func TestCostakingRewardsUnbondAllBaby(t *testing.T) {
 
 	// score is the same as btc staked as del1 have 50 uanc to each sat
 	del1StartCumulativeRewardPeriod := rwd.Period
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, del1BtcStakedAmt, del1BtcStakedAmt, del1StartCumulativeRewardPeriod)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, del1BtcStakedAmt, del1BtcStakedAmt, del1StartCumulativeRewardPeriod)
 
 	// new period without rewards is created
 	d.CheckCostakingCurrentRewards(sdk.NewCoins(), rwd.Period+1, del1BtcStakedAmt)
@@ -822,7 +822,7 @@ func TestCostakingRewardsUnbondAllBaby(t *testing.T) {
 	err = stkK.SetParams(d.Ctx(), stkP)
 	require.NoError(t, err)
 
-	d.TxWrappedUndelegate(del1.SenderInfo, valAddr.String(), del1BabyDelegatedAmt)
+	d.TxWrappedUndelegate(del1.SenderInfo, valAddr.String(), del1NtkDelegatedAmt)
 	d.ProgressTillFirstBlockTheNextEpoch()
 
 	for i := 0; i < 10; i++ {
@@ -832,7 +832,7 @@ func TestCostakingRewardsUnbondAllBaby(t *testing.T) {
 	d.CheckCostakerRewards(del1.Address(), zero, del1BtcStakedAmt, zero, currentRwdPeriod+1)
 }
 
-// TestCostakingRewardsWithdraw creates 1 fp and 1 btc delegation and a one baby delegation
+// TestCostakingRewardsWithdraw creates 1 fp and 1 btc delegation and a one ntk delegation
 // getting rewards and later stop voting in btc staking so it doesn't earn rewards
 // and continue to earn rewards in costaking
 func TestCostakingRewardsWithdraw(t *testing.T) {
@@ -855,10 +855,10 @@ func TestCostakingRewardsWithdraw(t *testing.T) {
 
 	delegators := d.CreateNStakerAccounts(1)
 	del1 := delegators[0]
-	del1BabyDelegatedAmt := sdkmath.NewInt(20_000000)
+	del1NtkDelegatedAmt := sdkmath.NewInt(20_000000)
 
 	d.MintNativeTo(del1.Address(), 100_000000)
-	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1BabyDelegatedAmt)
+	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1NtkDelegatedAmt)
 
 	// gets the current rewards prior to the end of epoch as it will be starting point
 	rwd, err := costkK.GetCurrentRewards(d.Ctx())
@@ -867,14 +867,14 @@ func TestCostakingRewardsWithdraw(t *testing.T) {
 	d.GenerateNewBlockAssertExecutionSuccess()
 	d.ProgressTillFirstBlockTheNextEpoch()
 
-	// confirms that baby delegation was done properly
+	// confirms that ntk delegation was done properly
 	del, err := stkK.GetDelegation(d.Ctx(), del1.Address(), valAddr)
 	require.NoError(t, err)
 	require.Equal(t, del.DelegatorAddress, del1.Address().String())
 
-	// check that baby delegation reached costaking
+	// check that ntk delegation reached costaking
 	zero := sdkmath.ZeroInt()
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, zero, zero, rwd.Period)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, zero, zero, rwd.Period)
 
 	fps := d.CreateNFinalityProviderAccounts(1)
 	fp1 := fps[0]
@@ -882,9 +882,9 @@ func TestCostakingRewardsWithdraw(t *testing.T) {
 	d.GenerateNewBlockAssertExecutionSuccess()
 
 	p := costkK.GetParams(d.Ctx())
-	// costaking ratio of btc by baby is 200, so for every sat staked it needs to
-	// have 200 baby staked to take full account of the btcs in the score.
-	del1BtcStakedAmt := del1BabyDelegatedAmt.Quo(p.ScoreRatioBtcByBaby)
+	// costaking ratio of btc by ntk is 200, so for every sat staked it needs to
+	// have 200 ntk staked to take full account of the btcs in the score.
+	del1BtcStakedAmt := del1NtkDelegatedAmt.Quo(p.ScoreRatioBtcByNtk)
 	del1.CreatePreApprovalDelegation(
 		[]*anc.BIP340PubKey{fp1.BTCPublicKey()},
 		defaultStakingTime,
@@ -906,7 +906,7 @@ func TestCostakingRewardsWithdraw(t *testing.T) {
 	require.Len(t, activeFps, 0)
 
 	// zero active sats and score, because fp is not active
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, zero, zero, rwd.Period)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, zero, zero, rwd.Period)
 
 	// activate fp
 	fp1.CommitRandomness()
@@ -930,7 +930,7 @@ func TestCostakingRewardsWithdraw(t *testing.T) {
 
 	// score is the same as btc staked as del1 have 50 uanc to each sat
 	del1StartCumulativeRewardPeriod := rwd.Period
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, del1BtcStakedAmt, del1BtcStakedAmt, del1StartCumulativeRewardPeriod)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, del1BtcStakedAmt, del1BtcStakedAmt, del1StartCumulativeRewardPeriod)
 
 	// new period without rewards is created
 	d.CheckCostakingCurrentRewards(sdk.NewCoins(), rwd.Period+1, del1BtcStakedAmt)
@@ -978,9 +978,9 @@ func TestCostakingRewardsWithdraw(t *testing.T) {
 	require.Equal(t, resp.Coins.String(), costakerRewadsOneBlock.String())
 }
 
-// TestCostakingBabyBondUnbondAllBondAgain creates one baby delegation it unbonds in the same block
+// TestCostakingNtkBondUnbondAllBondAgain creates one ntk delegation it unbonds in the same block
 // and bond it again with an different value all in the same block
-func TestCostakingBabyBondUnbondAllBondAgain(t *testing.T) {
+func TestCostakingNtkBondUnbondAllBondAgain(t *testing.T) {
 	t.Parallel()
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	d := NewAnonAppDriverTmpDir(r, t)
@@ -999,10 +999,10 @@ func TestCostakingBabyBondUnbondAllBondAgain(t *testing.T) {
 
 	delegators := d.CreateNStakerAccounts(1)
 	del1 := delegators[0]
-	del1BabyDelegatedAmt := sdkmath.NewInt(20_000000)
+	del1NtkDelegatedAmt := sdkmath.NewInt(20_000000)
 
 	d.MintNativeTo(del1.Address(), 100_000000)
-	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1BabyDelegatedAmt)
+	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1NtkDelegatedAmt)
 	d.GenerateNewBlockAssertExecutionSuccess()
 
 	// gets the current rewards prior to the end of epoch as it will be starting point
@@ -1012,36 +1012,36 @@ func TestCostakingBabyBondUnbondAllBondAgain(t *testing.T) {
 	// goes until end of epoch
 	d.ProgressTillFirstBlockTheNextEpoch()
 
-	// confirms that baby delegation was done properly
+	// confirms that ntk delegation was done properly
 	del, err := stkK.GetDelegation(d.Ctx(), del1.Address(), valAddr)
 	require.NoError(t, err)
 	require.Equal(t, del.DelegatorAddress, del1.Address().String())
 
-	// check that baby delegation reached costaking
+	// check that ntk delegation reached costaking
 	zero := sdkmath.ZeroInt()
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmt, zero, zero, rwd.Period)
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmt, zero, zero, rwd.Period)
 
-	d.TxWrappedUndelegate(del1.SenderInfo, valAddr.String(), del1BabyDelegatedAmt)
+	d.TxWrappedUndelegate(del1.SenderInfo, valAddr.String(), del1NtkDelegatedAmt)
 
-	del1BabyDelegatedAmtAgain := sdkmath.NewInt(35_000000)
-	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1BabyDelegatedAmtAgain)
+	del1NtkDelegatedAmtAgain := sdkmath.NewInt(35_000000)
+	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1NtkDelegatedAmtAgain)
 
 	d.ProgressTillFirstBlockTheNextEpoch()
 
-	// confirms that baby delegation is still there
+	// confirms that ntk delegation is still there
 	del, err = stkK.GetDelegation(d.Ctx(), del1.Address(), valAddr)
 	require.NoError(t, err)
 	require.Equal(t, del.DelegatorAddress, del1.Address().String())
-	require.Equal(t, del.Shares.TruncateInt().String(), del1BabyDelegatedAmtAgain.String())
+	require.Equal(t, del.Shares.TruncateInt().String(), del1NtkDelegatedAmtAgain.String())
 
-	// verify that the amount of active baby is the second amount staked
-	d.CheckCostakerRewards(del1.Address(), del1BabyDelegatedAmtAgain, zero, zero, rwd.Period)
+	// verify that the amount of active ntk is the second amount staked
+	d.CheckCostakerRewards(del1.Address(), del1NtkDelegatedAmtAgain, zero, zero, rwd.Period)
 	// period doesn't change as the delegator has zero score
 }
 
-// TestBabyCoStaking creates 2 validators and jails one
+// TestNtkCoStaking creates 2 validators and jails one
 // Performs delegations to the jailed validator and makes corresponding checks
-func TestBabyCoStaking(t *testing.T) {
+func TestNtkCoStaking(t *testing.T) {
 	t.Parallel()
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	d := NewAnonAppDriverTmpDir(r, t)
@@ -1132,20 +1132,20 @@ func TestBabyCoStaking(t *testing.T) {
 	require.ErrorContains(t, err, "not found")
 
 	// delegate to new validator (val2)
-	del3BabyDelegatedAmtBeforeJailing := sdkmath.NewInt(1_000000)
-	d.TxWrappedDelegate(del3.SenderInfo, val2.OperatorAddress, del3BabyDelegatedAmtBeforeJailing)
+	del3NtkDelegatedAmtBeforeJailing := sdkmath.NewInt(1_000000)
+	d.TxWrappedDelegate(del3.SenderInfo, val2.OperatorAddress, del3NtkDelegatedAmtBeforeJailing)
 
-	del4BabyDelegatedAmt := sdkmath.NewInt(2_000000)
-	d.TxWrappedDelegate(del4.SenderInfo, val2.OperatorAddress, del4BabyDelegatedAmt)
+	del4NtkDelegatedAmt := sdkmath.NewInt(2_000000)
+	d.TxWrappedDelegate(del4.SenderInfo, val2.OperatorAddress, del4NtkDelegatedAmt)
 
-	del5BabyDelegatedAmt := sdkmath.NewInt(1_000000)
-	d.TxWrappedDelegate(del5.SenderInfo, val2.OperatorAddress, del5BabyDelegatedAmt)
+	del5NtkDelegatedAmt := sdkmath.NewInt(1_000000)
+	d.TxWrappedDelegate(del5.SenderInfo, val2.OperatorAddress, del5NtkDelegatedAmt)
 
-	del6BabyDelegatedAmt := sdkmath.NewInt(1_000000)
-	d.TxWrappedDelegate(del6.SenderInfo, val2.OperatorAddress, del6BabyDelegatedAmt)
+	del6NtkDelegatedAmt := sdkmath.NewInt(1_000000)
+	d.TxWrappedDelegate(del6.SenderInfo, val2.OperatorAddress, del6NtkDelegatedAmt)
 
-	del7BabyDelegatedAmt := sdkmath.NewInt(1_000000)
-	d.TxWrappedDelegate(del7.SenderInfo, val2.OperatorAddress, del7BabyDelegatedAmt)
+	del7NtkDelegatedAmt := sdkmath.NewInt(1_000000)
+	d.TxWrappedDelegate(del7.SenderInfo, val2.OperatorAddress, del7NtkDelegatedAmt)
 
 	// partial undelegate from val5 (currently in active set) to make it inactive
 	// val4 should take its place in the active set
@@ -1160,10 +1160,10 @@ func TestBabyCoStaking(t *testing.T) {
 	d.ProgressTillFirstBlockTheNextEpoch()
 
 	// check costaking trackers are created accordingly
-	d.CheckCostakerRewards(del3.Address(), del3BabyDelegatedAmtBeforeJailing, zeroInt, zeroInt, currentRwdPeriod)
-	d.CheckCostakerRewards(del4.Address(), del4BabyDelegatedAmt, zeroInt, zeroInt, currentRwdPeriod)
-	d.CheckCostakerRewards(del5.Address(), del5BabyDelegatedAmt, zeroInt, zeroInt, currentRwdPeriod)
-	d.CheckCostakerRewards(del6.Address(), del6BabyDelegatedAmt, zeroInt, zeroInt, currentRwdPeriod)
+	d.CheckCostakerRewards(del3.Address(), del3NtkDelegatedAmtBeforeJailing, zeroInt, zeroInt, currentRwdPeriod)
+	d.CheckCostakerRewards(del4.Address(), del4NtkDelegatedAmt, zeroInt, zeroInt, currentRwdPeriod)
+	d.CheckCostakerRewards(del5.Address(), del5NtkDelegatedAmt, zeroInt, zeroInt, currentRwdPeriod)
+	d.CheckCostakerRewards(del6.Address(), del6NtkDelegatedAmt, zeroInt, zeroInt, currentRwdPeriod)
 
 	// Check that val5 dropped from the active set and val4 entered
 	valset := d.AreValsInActiveSet(maxVals, val2Addr, val4Addr)
@@ -1195,14 +1195,14 @@ func TestBabyCoStaking(t *testing.T) {
 			// On slashing due to downtime, the SlashRedelegation func is called
 			// Redelegate to a validator that will remain active
 			// redelegate to a validator that will drop active set (due to unbonding) on same epoch that jailing is processed
-			d.TxWrappedBeginRedelegate(del6.SenderInfo, val2.OperatorAddress, val1.OperatorAddress, del6BabyDelegatedAmt)
+			d.TxWrappedBeginRedelegate(del6.SenderInfo, val2.OperatorAddress, val1.OperatorAddress, del6NtkDelegatedAmt)
 			d.AreValsInActiveSet(maxVals, val6Addr) // Check that the val6 is in active set
 			val6, err := stkK.GetValidator(d.Ctx(), val6Addr)
 			require.NoError(t, err)
 			require.True(t, val6.IsBonded(), "Validator 6 should be in Bonded status")
 
 			// redelegate to val6
-			d.TxWrappedBeginRedelegate(del7.SenderInfo, val2.OperatorAddress, val6Addr.String(), del7BabyDelegatedAmt)
+			d.TxWrappedBeginRedelegate(del7.SenderInfo, val2.OperatorAddress, val6Addr.String(), del7NtkDelegatedAmt)
 		}
 		d.GenerateNewBlockAssertExecutionSuccess()
 		height = d.Ctx().BlockHeight()
@@ -1252,12 +1252,12 @@ func TestBabyCoStaking(t *testing.T) {
 	require.NoError(d.t, err)
 
 	// Make a NEW delegation to validator
-	del2BabyDelegatedAmt := sdkmath.NewInt(1000000)
-	d.TxWrappedDelegate(del2.SenderInfo, val2.OperatorAddress, del2BabyDelegatedAmt)
+	del2NtkDelegatedAmt := sdkmath.NewInt(1000000)
+	d.TxWrappedDelegate(del2.SenderInfo, val2.OperatorAddress, del2NtkDelegatedAmt)
 
 	// Extend the existing del3 delegation
-	del3BabyDelegatedAmtAfterJailing := sdkmath.NewInt(500000)
-	d.TxWrappedDelegate(del3.SenderInfo, val2.OperatorAddress, del3BabyDelegatedAmtAfterJailing)
+	del3NtkDelegatedAmtAfterJailing := sdkmath.NewInt(500000)
+	d.TxWrappedDelegate(del3.SenderInfo, val2.OperatorAddress, del3NtkDelegatedAmtAfterJailing)
 
 	// The first delegation of del3 was slashed. Get the new delegation amount
 	del3Delegation, err := stkK.GetDelegation(d.Ctx(), del3.Address(), val2Addr)
@@ -1277,10 +1277,10 @@ func TestBabyCoStaking(t *testing.T) {
 	del5TotalAmtAfterSlashing := val2.TokensFromShares(del5Delegation.Shares).TruncateInt()
 
 	// Partially unbond a delegation with many msgs and re-delegate
-	del5BabyUnstakeAmt := sdkmath.NewInt(7)
-	d.TxWrappedUndelegate(del5.SenderInfo, val2.OperatorAddress, del5BabyUnstakeAmt)
-	d.TxWrappedUndelegate(del5.SenderInfo, val2.OperatorAddress, del5BabyUnstakeAmt)
-	d.TxWrappedDelegate(del5.SenderInfo, val2.OperatorAddress, del5BabyUnstakeAmt)
+	del5NtkUnstakeAmt := sdkmath.NewInt(7)
+	d.TxWrappedUndelegate(del5.SenderInfo, val2.OperatorAddress, del5NtkUnstakeAmt)
+	d.TxWrappedUndelegate(del5.SenderInfo, val2.OperatorAddress, del5NtkUnstakeAmt)
+	d.TxWrappedDelegate(del5.SenderInfo, val2.OperatorAddress, del5NtkUnstakeAmt)
 
 	// new validator should drop active set on same epoch that jailing is processed
 	// undelegate here enough tokens to drop active set
@@ -1309,7 +1309,7 @@ func TestBabyCoStaking(t *testing.T) {
 	d.ZeroCostakerRewards(del3.Address())
 	d.ZeroCostakerRewards(del5.Address())
 
-	// tokens were slashed, it might round up and miss calcs by one micro baby
+	// tokens were slashed, it might round up and miss calcs by one micro ntk
 	d.CheckCostakerRewardsInPointOnePercentMargin(del4.Address(), zeroInt, zeroInt, zeroInt)
 
 	// Trackers for val 1 delegators should be: self delegation unaffected, redelegation slashed amt
@@ -1328,7 +1328,7 @@ func TestBabyCoStaking(t *testing.T) {
 	// OPERATIONS AFTER VALIDATOR IS JAILED
 	// =================================================
 
-	// New delegation to already jailed validator (should continue as zero active baby)
+	// New delegation to already jailed validator (should continue as zero active ntk)
 	del3DelegatedAmtAfterJailing := sdkmath.NewInt(100000)
 	d.TxWrappedDelegate(del3.SenderInfo, val2.OperatorAddress, del3DelegatedAmtAfterJailing)
 
@@ -1367,7 +1367,7 @@ func TestBabyCoStaking(t *testing.T) {
 	// check unjailed validator is back in active set
 	d.AreValsInActiveSet(2, val2Addr)
 
-	// Check the active baby is properly set back for delegations to this validator
+	// Check the active ntk is properly set back for delegations to this validator
 	// NOTE: Consider that the ones that were slashed will be less than the original staking amount
 
 	// val2 self delegation was slashed
@@ -1375,20 +1375,20 @@ func TestBabyCoStaking(t *testing.T) {
 	require.NoError(t, err)
 	expSelfDelAmt := val2.TokensFromShares(selfDel.Shares).TruncateInt()
 	require.True(t, expSelfDelAmt.LT(newValSelfDelegatedAmt), "self delegation should be less than original amount due to slashing", expSelfDelAmt.String())
-	// active baby should be less than self delegation amount due to slashing
+	// active ntk should be less than self delegation amount due to slashing
 	d.CheckCostakerRewardsInPointOnePercentMargin(val2Oper.Address(), expSelfDelAmt, zeroInt, zeroInt)
 
-	expectedDel3ActiveBaby := del3FirstDelAmtAfterSlashing.Add(del3BabyDelegatedAmtAfterJailing).Add(del3DelegatedAmtAfterJailing)
-	d.CheckCostakerRewardsInPointOnePercentMargin(del3.Address(), expectedDel3ActiveBaby, zeroInt, zeroInt)
+	expectedDel3ActiveNtk := del3FirstDelAmtAfterSlashing.Add(del3NtkDelegatedAmtAfterJailing).Add(del3DelegatedAmtAfterJailing)
+	d.CheckCostakerRewardsInPointOnePercentMargin(del3.Address(), expectedDel3ActiveNtk, zeroInt, zeroInt)
 
 	// del4 fully unbonded so tracker should still be zero or one micro, might round up in calcs
 	d.CheckCostakerRewardsInPointOnePercentMargin(del4.Address(), zeroInt, zeroInt, zeroInt)
 
 	// del5 got slashed first and then partially unbonded with 2 msgs
-	// expected active baby is total delegation after slashing minus the unstake amount
+	// expected active ntk is total delegation after slashing minus the unstake amount
 	// There're 2 undelegate msgs of 7 uanc each, but after the second one, there's a re-delegation for same amount
-	expectedDel5ActiveBaby := del5TotalAmtAfterSlashing.Sub(del5BabyUnstakeAmt)
-	d.CheckCostakerRewardsInPointOnePercentMargin(del5.Address(), expectedDel5ActiveBaby, zeroInt, zeroInt)
+	expectedDel5ActiveNtk := del5TotalAmtAfterSlashing.Sub(del5NtkUnstakeAmt)
+	d.CheckCostakerRewardsInPointOnePercentMargin(del5.Address(), expectedDel5ActiveNtk, zeroInt, zeroInt)
 }
 
 func TestCostakingFpRemovalAndBtcUnbondSameBlockClearsActiveSats(t *testing.T) {
@@ -1406,7 +1406,7 @@ func TestCostakingFpRemovalAndBtcUnbondSameBlockClearsActiveSats(t *testing.T) {
 	err := finalityK.SetParams(d.Ctx(), fParams)
 	require.NoError(t, err)
 
-	// Validator / baby staking setup
+	// Validator / ntk staking setup
 	validators, err := stkK.GetAllValidators(d.Ctx())
 	require.NoError(t, err)
 	val := validators[0]
@@ -1415,14 +1415,14 @@ func TestCostakingFpRemovalAndBtcUnbondSameBlockClearsActiveSats(t *testing.T) {
 	delegators := d.CreateNStakerAccounts(2)
 	del1, del2 := delegators[0], delegators[1]
 
-	del1BabyDelegatedAmt := sdkmath.NewInt(20_000000)
-	del2BabyDelegatedAmt := sdkmath.NewInt(20_000000)
+	del1NtkDelegatedAmt := sdkmath.NewInt(20_000000)
+	del2NtkDelegatedAmt := sdkmath.NewInt(20_000000)
 
 	d.MintNativeTo(del1.Address(), 100_000000)
 	d.MintNativeTo(del2.Address(), 100_000000)
 
-	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1BabyDelegatedAmt)
-	d.TxWrappedDelegate(del2.SenderInfo, valAddr.String(), del2BabyDelegatedAmt)
+	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1NtkDelegatedAmt)
+	d.TxWrappedDelegate(del2.SenderInfo, valAddr.String(), del2NtkDelegatedAmt)
 
 	d.GenerateNewBlockAssertExecutionSuccess()
 	d.ProgressTillFirstBlockTheNextEpoch()
@@ -1436,7 +1436,7 @@ func TestCostakingFpRemovalAndBtcUnbondSameBlockClearsActiveSats(t *testing.T) {
 
 	// BTC delegations: fp1 has 2x power of fp2
 	p := costkK.GetParams(d.Ctx())
-	del1BtcStakedAmtFp1 := del1BabyDelegatedAmt.Quo(p.ScoreRatioBtcByBaby) // e.g. 100k sats
+	del1BtcStakedAmtFp1 := del1NtkDelegatedAmt.Quo(p.ScoreRatioBtcByNtk) // e.g. 100k sats
 	del2BtcStakedAmtFp2 := del1BtcStakedAmtFp1.QuoRaw(2)                   // e.g. 50k sats
 
 	del1MsgCreateFp1 := del1.CreatePreApprovalDelegation(
@@ -1478,7 +1478,7 @@ func TestCostakingFpRemovalAndBtcUnbondSameBlockClearsActiveSats(t *testing.T) {
 	trkBefore, err := costkK.GetCostakerRewards(d.Ctx(), del1.Address())
 	require.NoError(t, err)
 	require.Equal(t, trkBefore.ActiveSatoshis.Uint64(), del1BtcStakedAmtFp1.Uint64())
-	require.Equal(t, trkBefore.ActiveBaby.Uint64(), del1BabyDelegatedAmt.Uint64())
+	require.Equal(t, trkBefore.ActiveNtk.Uint64(), del1NtkDelegatedAmt.Uint64())
 
 	// Unbond the *entire* BTC delegation to fp1.
 	stakingTx := &wire.MsgTx{}
@@ -1531,7 +1531,7 @@ func TestCostakingFpRemovalAndBtcUnbondSameBlockClearsActiveSats(t *testing.T) {
 
 	require.True(t, trkAfter.ActiveSatoshis.IsZero(),
 		"costaker ActiveSatoshis must be zero after unbonding last delegation to fp1")
-	require.Equal(t, trkBefore.ActiveBaby.Uint64(), del1BabyDelegatedAmt.Uint64())
+	require.Equal(t, trkBefore.ActiveNtk.Uint64(), del1NtkDelegatedAmt.Uint64())
 }
 
 // TestCostakingFpBecomesActiveAndBtcUnbondSameBlockKeepsActiveSatsZero tests that when:
@@ -1553,7 +1553,7 @@ func TestCostakingFpBecomesActiveAndBtcUnbondSameBlockKeepsActiveSatsZero(t *tes
 	err := finalityK.SetParams(d.Ctx(), fParams)
 	require.NoError(t, err)
 
-	// Validator / baby staking setup
+	// Validator / ntk staking setup
 	validators, err := stkK.GetAllValidators(d.Ctx())
 	require.NoError(t, err)
 	val := validators[0]
@@ -1562,17 +1562,17 @@ func TestCostakingFpBecomesActiveAndBtcUnbondSameBlockKeepsActiveSatsZero(t *tes
 	delegators := d.CreateNStakerAccounts(3)
 	del1, del2, del3 := delegators[0], delegators[1], delegators[2]
 
-	del1BabyDelegatedAmt := sdkmath.NewInt(20_000000)
-	del2BabyDelegatedAmt := sdkmath.NewInt(20_000000)
-	del3BabyDelegatedAmt := sdkmath.NewInt(20_000000)
+	del1NtkDelegatedAmt := sdkmath.NewInt(20_000000)
+	del2NtkDelegatedAmt := sdkmath.NewInt(20_000000)
+	del3NtkDelegatedAmt := sdkmath.NewInt(20_000000)
 
 	d.MintNativeTo(del1.Address(), 100_000000)
 	d.MintNativeTo(del2.Address(), 100_000000)
 	d.MintNativeTo(del3.Address(), 100_000000)
 
-	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1BabyDelegatedAmt)
-	d.TxWrappedDelegate(del2.SenderInfo, valAddr.String(), del2BabyDelegatedAmt)
-	d.TxWrappedDelegate(del3.SenderInfo, valAddr.String(), del3BabyDelegatedAmt)
+	d.TxWrappedDelegate(del1.SenderInfo, valAddr.String(), del1NtkDelegatedAmt)
+	d.TxWrappedDelegate(del2.SenderInfo, valAddr.String(), del2NtkDelegatedAmt)
+	d.TxWrappedDelegate(del3.SenderInfo, valAddr.String(), del3NtkDelegatedAmt)
 
 	d.GenerateNewBlockAssertExecutionSuccess()
 	d.ProgressTillFirstBlockTheNextEpoch()
@@ -1587,7 +1587,7 @@ func TestCostakingFpBecomesActiveAndBtcUnbondSameBlockKeepsActiveSatsZero(t *tes
 	// BTC delegations: fp1 has 1.5x power of fp2
 	// fp1 will be active (more power), fp2 will be inactive
 	p := costkK.GetParams(d.Ctx())
-	del1BtcStakedAmtFp1 := del1BabyDelegatedAmt.Quo(p.ScoreRatioBtcByBaby) // e.g. 100k sats
+	del1BtcStakedAmtFp1 := del1NtkDelegatedAmt.Quo(p.ScoreRatioBtcByNtk) // e.g. 100k sats
 	del2BtcStakedAmtFp2 := del1BtcStakedAmtFp1.QuoRaw(2)                   // e.g. 50k sats
 	del3BtcStakedAmtFp2 := del2BtcStakedAmtFp2.QuoRaw(2)                   // e.g. 25K sats
 
@@ -1638,14 +1638,14 @@ func TestCostakingFpBecomesActiveAndBtcUnbondSameBlockKeepsActiveSatsZero(t *tes
 	require.NoError(t, err)
 	require.True(t, trkBefore.ActiveSatoshis.IsZero(),
 		"del2 ActiveSatoshis must be zero because fp2 is inactive")
-	require.Equal(t, trkBefore.ActiveBaby.Uint64(), del2BabyDelegatedAmt.Uint64())
+	require.Equal(t, trkBefore.ActiveNtk.Uint64(), del2NtkDelegatedAmt.Uint64())
 
 	// Precondition: del3 has zero active sats (fp2 is inactive)
 	trkBefore3, err := costkK.GetCostakerRewards(d.Ctx(), del3.Address())
 	require.NoError(t, err)
 	require.True(t, trkBefore3.ActiveSatoshis.IsZero(),
 		"del3 ActiveSatoshis must be zero because fp2 is inactive")
-	require.Equal(t, trkBefore3.ActiveBaby.Uint64(), del3BabyDelegatedAmt.Uint64())
+	require.Equal(t, trkBefore3.ActiveNtk.Uint64(), del3NtkDelegatedAmt.Uint64())
 
 	// Now unbond del1's BTC delegation to fp1, which will make fp1 inactive
 	// and fp2 will become active
@@ -1697,7 +1697,7 @@ func TestCostakingFpBecomesActiveAndBtcUnbondSameBlockKeepsActiveSatsZero(t *tes
 
 	require.True(t, del2TrkAfter.ActiveSatoshis.IsZero(),
 		"costaker ActiveSatoshis must remain zero - fp2 became active but del2 unbonded in same block")
-	require.Equal(t, del2TrkAfter.ActiveBaby.Uint64(), del2BabyDelegatedAmt.Uint64())
+	require.Equal(t, del2TrkAfter.ActiveNtk.Uint64(), del2NtkDelegatedAmt.Uint64())
 
 	// del3's ActiveSatoshis should now become > 0
 	// because fp2 is now active
@@ -1706,7 +1706,7 @@ func TestCostakingFpBecomesActiveAndBtcUnbondSameBlockKeepsActiveSatsZero(t *tes
 
 	require.Equal(t, del3TrkAfter.ActiveSatoshis, del3BtcStakedAmtFp2,
 		"costaker ActiveSatoshis must be greater than zero - fp2 is now active")
-	require.Equal(t, del3TrkAfter.ActiveBaby.Uint64(), del3BabyDelegatedAmt.Uint64())
+	require.Equal(t, del3TrkAfter.ActiveNtk.Uint64(), del3NtkDelegatedAmt.Uint64())
 
 	// del1 active sats should be zero as it unbonded its only delegation
 	del1TrkAfter, err := costkK.GetCostakerRewards(d.Ctx(), del1.Address())
@@ -1714,7 +1714,7 @@ func TestCostakingFpBecomesActiveAndBtcUnbondSameBlockKeepsActiveSatsZero(t *tes
 
 	require.True(t, del1TrkAfter.ActiveSatoshis.IsZero(),
 		"costaker ActiveSatoshis must be zero after unbonding last delegation to fp1")
-	require.Equal(t, del1TrkAfter.ActiveBaby.Uint64(), del1BabyDelegatedAmt.Uint64())
+	require.Equal(t, del1TrkAfter.ActiveNtk.Uint64(), del1NtkDelegatedAmt.Uint64())
 }
 
 func TestCostakingSlashedSteal(t *testing.T) {
@@ -1745,7 +1745,7 @@ func TestCostakingSlashedSteal(t *testing.T) {
 	d.GenerateNewBlockAssertExecutionSuccess()
 	d.ProgressTillFirstBlockTheNextEpoch() // executes the delegation at epoch end
 
-	// Sanity: costaking tracks del's A delegation as ActiveBaby = X (score is zero)
+	// Sanity: costaking tracks del's A delegation as ActiveNtk = X (score is zero)
 	currRwd, err := costkK.GetCurrentRewards(d.Ctx())
 	require.NoError(t, err)
 	d.CheckCostakerRewards(delegator.Address(), delAmtValA, zeroInt, zeroInt, currRwd.Period)
@@ -1777,25 +1777,25 @@ func TestCostakingSlashedSteal(t *testing.T) {
 	_, err = stkK.Slash(d.Ctx(), valBConsAddr, blkHeightSlashed, valBPower, sdkmath.LegacyMustNewDecFromStr("0.16"))
 	require.NoError(t, err)
 
-	// Snapshot A delegation tokens (this is what ActiveBaby should equal if B roundtrip is neutral)
+	// Snapshot A delegation tokens (this is what ActiveNtk should equal if B roundtrip is neutral)
 	valADel, err := stkK.GetDelegation(d.Ctx(), delegator.Address(), valAAddr)
 	require.NoError(t, err)
 	valAState, err := stkK.GetValidator(d.Ctx(), valAAddr)
 	require.NoError(t, err)
-	expActiveBabyFromA := valAState.TokensFromShares(valADel.Shares).TruncateInt()
-	require.Equal(t, expActiveBabyFromA.String(), delAmtValA.String(), "expected A delegation tokens to be at least X")
+	expActiveNtkFromA := valAState.TokensFromShares(valADel.Shares).TruncateInt()
+	require.Equal(t, expActiveNtkFromA.String(), delAmtValA.String(), "expected A delegation tokens to be at least X")
 
 	// Choose Y small so X >= Y and we get the "silent steal" (non-negative) case.
 	amtValB := sdkmath.NewInt(1_500000)
-	require.True(t, expActiveBabyFromA.GTE(amtValB), "precondition X >= Y should hold")
+	require.True(t, expActiveNtkFromA.GTE(amtValB), "precondition X >= Y should hold")
 
 	// Record the costaker tracker before interacting with B.
 	trkBefore, err := costkK.GetCostakerRewards(d.Ctx(), delegator.Address())
 	require.NoError(t, err)
-	activeBabyBefore := trkBefore.ActiveBaby
+	activeNtkBefore := trkBefore.ActiveNtk
 
 	// queue and execute a delegation to the slashed validator B.
-	// This creates a real staking delegation at epoch end, but costaking won't add ActiveBaby due to IsSlashed=true.
+	// This creates a real staking delegation at epoch end, but costaking won't add ActiveNtk due to IsSlashed=true.
 	d.TxWrappedDelegate(delegator.SenderInfo, valBAddr.String(), amtValB)
 	d.GenerateNewBlockAssertExecutionSuccess()
 	d.ProgressTillFirstBlockTheNextEpoch()
@@ -1805,7 +1805,7 @@ func TestCostakingSlashedSteal(t *testing.T) {
 	require.NoError(t, err)
 
 	// queue and execute a *full* undelegation from B (using current tokens-from-shares),
-	// which should remove the delegation and (incorrectly) subtract from the delegator's global ActiveBaby.
+	// which should remove the delegation and (incorrectly) subtract from the delegator's global ActiveNtk.
 	valBState, err := stkK.GetValidator(d.Ctx(), valBAddr)
 	require.NoError(t, err)
 	unbondAmt := valBState.TokensFromShares(delBDelegation.Shares).TruncateInt()
@@ -1824,23 +1824,23 @@ func TestCostakingSlashedSteal(t *testing.T) {
 	d.GenerateNewBlockAssertExecutionSuccess()
 	d.ProgressTillFirstBlockTheNextEpoch()
 
-	// AFTER FIX: ActiveBaby should equal A-only delegation (no steal from A).
+	// AFTER FIX: ActiveNtk should equal A-only delegation (no steal from A).
 	trk, err := costkK.GetCostakerRewards(d.Ctx(), delegator.Address())
 	require.NoError(t, err)
-	activeBabyAfter := trk.ActiveBaby
+	activeNtkAfter := trk.ActiveNtk
 
 	// Output the before/after values. Use `go test -v` to always show t.Logf output.
-	t.Logf("ActiveBaby before B delegate/undelegate: %s", activeBabyBefore.String())
-	t.Logf("ActiveBaby after B delegate/undelegate: %s", activeBabyAfter.String())
-	t.Logf("Expected ActiveBaby from A delegation: %s", expActiveBabyFromA.String())
+	t.Logf("ActiveNtk before B delegate/undelegate: %s", activeNtkBefore.String())
+	t.Logf("ActiveNtk after B delegate/undelegate: %s", activeNtkAfter.String())
+	t.Logf("Expected ActiveNtk from A delegation: %s", expActiveNtkFromA.String())
 
-	// After the fix: ActiveBaby should be unchanged (equal to A-only delegation)
-	// because the post-slash delegation to B was never added to ActiveBaby
+	// After the fix: ActiveNtk should be unchanged (equal to A-only delegation)
+	// because the post-slash delegation to B was never added to ActiveNtk
 	// and therefore shouldn't be subtracted when undelegating
-	require.False(t, trk.ActiveBaby.IsNegative(), "ActiveBaby should be non-negative")
-	require.True(t, trk.ActiveBaby.Equal(activeBabyBefore),
-		"ActiveBaby should be unchanged after delegate/undelegate to slashed validator. got=%s want=%s",
-		trk.ActiveBaby.String(), activeBabyBefore.String(),
+	require.False(t, trk.ActiveNtk.IsNegative(), "ActiveNtk should be non-negative")
+	require.True(t, trk.ActiveNtk.Equal(activeNtkBefore),
+		"ActiveNtk should be unchanged after delegate/undelegate to slashed validator. got=%s want=%s",
+		trk.ActiveNtk.String(), activeNtkBefore.String(),
 	)
 	d.CheckCostakerRewards(delegator.Address(), delAmtValA, zeroInt, zeroInt, currRwd.Period)
 }
@@ -1921,10 +1921,10 @@ func TestCostakingSlashingAndUnbondAll(t *testing.T) {
 	t.Logf("slash fraction: %s", slashedPortion.String())
 	t.Logf("slash slashP.SlashFractionDowntime: %s", slashP.SlashFractionDowntime.String())
 
-	// After slashing: ActiveBaby = (ValA 20 BABY) + (Val B 3BABY - slashed (3 * 0.01) ≃ 0.03) = 22.97
-	// BeforeValidatorSlashed hook reduces ActiveBaby by the slash fraction
-	expectedActiveBabyAfterSlash := delegateAmtValA.Add(amtValBDel1AfterSlash)
-	d.CheckCostakerRewards(delegator.Address(), expectedActiveBabyAfterSlash, zeroInt, zeroInt, currRwd.Period)
+	// After slashing: ActiveNtk = (ValA 20 NTK) + (Val B 3NTK - slashed (3 * 0.01) ≃ 0.03) = 22.97
+	// BeforeValidatorSlashed hook reduces ActiveNtk by the slash fraction
+	expectedActiveNtkAfterSlash := delegateAmtValA.Add(amtValBDel1AfterSlash)
+	d.CheckCostakerRewards(delegator.Address(), expectedActiveNtkAfterSlash, zeroInt, zeroInt, currRwd.Period)
 
 	// Undelegates all from ValB (it will only take effect after epoch ends)
 	d.TxWrappedUndelegate(delegator.SenderInfo, valBAddr.String(), unbondAmt)
@@ -1968,7 +1968,7 @@ func TestCostakingSlashingAndUnbondAll(t *testing.T) {
 	delegationAAmt := valAState.TokensFromShares(delADelegation.Shares).TruncateInt()
 	require.Equal(t, delegationAAmt.String(), delegateAmtValA.String())
 
-	// This check fails and shows the bug where the second full unbond of an slashed baby validator can cause the issue
+	// This check fails and shows the bug where the second full unbond of an slashed ntk validator can cause the issue
 	d.CheckCostakerRewards(delegator.Address(), delegateAmtValA, zeroInt, zeroInt, currRwd.Period)
 }
 
@@ -2007,8 +2007,8 @@ func TestCostakingSlashingAndUnbondSameEpoch(t *testing.T) {
 	d.GenerateNewBlockAssertExecutionSuccess()
 	d.ProgressTillFirstBlockTheNextEpoch()
 
-	currExpActiveBaby := delegateAmtToSlashVal.Add(delegateAmtToActiveVal)
-	d.CheckCostakerRewards(delStkAcc.Address(), currExpActiveBaby, zeroInt, zeroInt, 1)
+	currExpActiveNtk := delegateAmtToSlashVal.Add(delegateAmtToActiveVal)
+	d.CheckCostakerRewards(delStkAcc.Address(), currExpActiveNtk, zeroInt, zeroInt, 1)
 
 	// There is 2 vals and the new added val is in the current epoch valset
 	d.AreValsInActiveSet(2, valAddr)
@@ -2017,14 +2017,14 @@ func TestCostakingSlashingAndUnbondSameEpoch(t *testing.T) {
 	// and continues in the active valset until end of epoch
 	d.AreValsInActiveSet(2, valAddr)
 
-	// After slashing, ActiveBaby should be reduced by the slash fraction
-	// Get slash params to calculate expected ActiveBaby
+	// After slashing, ActiveNtk should be reduced by the slash fraction
+	// Get slash params to calculate expected ActiveNtk
 	slashP, err := slashK.GetParams(d.Ctx())
 	require.NoError(t, err)
 	slashedPortion := delegateAmtToSlashVal.ToLegacyDec().Mul(slashP.SlashFractionDowntime)
 	delegateAmtToSlashValAfterSlash := delegateAmtToSlashVal.Sub(slashedPortion.TruncateInt())
-	expectedActiveBabyAfterSlash := delegateAmtToActiveVal.Add(delegateAmtToSlashValAfterSlash)
-	d.CheckCostakerRewards(delStkAcc.Address(), expectedActiveBabyAfterSlash, zeroInt, zeroInt, 1)
+	expectedActiveNtkAfterSlash := delegateAmtToActiveVal.Add(delegateAmtToSlashValAfterSlash)
+	d.CheckCostakerRewards(delStkAcc.Address(), expectedActiveNtkAfterSlash, zeroInt, zeroInt, 1)
 
 	del, err := stkK.GetDelegation(d.Ctx(), delStkAcc.Address(), valAddr)
 	require.NoError(t, err)
@@ -2049,10 +2049,10 @@ func TestCostakingSlashingAndUnbondSameEpoch(t *testing.T) {
 	// reach the end of epoch
 	d.ProgressTillFirstBlockTheNextEpoch()
 	d.GenerateNewBlockAssertExecutionSuccess()
-	currExpActiveBaby = delegateAmtToActiveVal
+	currExpActiveNtk = delegateAmtToActiveVal
 
 	// after unbonding all from the slashed validator it still has the active amount from healthy validator
-	d.CheckCostakerRewards(delStkAcc.Address(), currExpActiveBaby, zeroInt, zeroInt, 1)
+	d.CheckCostakerRewards(delStkAcc.Address(), currExpActiveNtk, zeroInt, zeroInt, 1)
 
 	// Should be able to fully unbond from the active and healthy validator
 	d.TxWrappedUndelegate(delStkAcc.SenderInfo, d.ValAddress.String(), delegateAmtToActiveVal)
@@ -2063,6 +2063,6 @@ func TestCostakingSlashingAndUnbondSameEpoch(t *testing.T) {
 	_, err = stkK.GetDelegation(d.Ctx(), delStkAcc.Address(), d.ValAddress)
 	require.EqualError(t, err, "no delegation for (address, validator) tuple")
 
-	// Verify ActiveBaby is zerod out and correctly tracked after all operations
+	// Verify ActiveNtk is zerod out and correctly tracked after all operations
 	d.CheckCostakerRewards(delStkAcc.Address(), zeroInt, zeroInt, zeroInt, 1)
 }

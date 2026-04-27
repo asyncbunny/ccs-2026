@@ -9,7 +9,7 @@ approach.
 
 ### Wasm contract used for e2e testing
 
-Wasm contract located in `bytecode/anon_contract.wasm` is compiled from most recent commit `main` branch - https://github.com/anon-org/anon-contract
+Wasm contract located in `bytecode/anon_contract.wasm` is compiled from most recent commit `main` branch - #
 
 This contract uses feature specific to Anon, through Anon bindings library.
 

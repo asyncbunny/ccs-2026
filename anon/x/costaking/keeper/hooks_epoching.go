@@ -54,8 +54,8 @@ func (h HookEpoching) BeforeEpochEnds(ctx context.Context, epoch uint64) {
 
 // AfterEpochEnds is called after an epoch ends
 // It handles the transition of validators between active and inactive states:
-// - Newly active validators: add their delegators' baby tokens to ActiveBaby
-// - Newly inactive validators: remove their delegators' baby tokens from ActiveBaby
+// - Newly active validators: add their delegators' ntk tokens to ActiveNtk
+// - Newly inactive validators: remove their delegators' ntk tokens from ActiveNtk
 func (h HookEpoching) AfterEpochEnds(ctx context.Context, epoch uint64) {
 	// Get the validator set from the ending epoch (cached in stkCache)
 	prevValMap, err := h.k.stkCache.GetActiveValidatorSet(ctx, h.k.buildCurrEpochValSetMap)
@@ -86,9 +86,9 @@ func (h HookEpoching) AfterEpochEnds(ctx context.Context, epoch uint64) {
 	for _, valAddr := range newValAddrs {
 		valAddrStr := valAddr.String()
 		if _, found := prevValMap[valAddrStr]; !found {
-			// Newly active validator - add baby tokens for all delegators
-			if err := h.addBabyForDelegators(ctx, valAddrStr); err != nil {
-				h.k.Logger(ctx).Error("failed to add baby tokens for newly active validator", "validator", valAddrStr, "error", err)
+			// Newly active validator - add ntk tokens for all delegators
+			if err := h.addNtkForDelegators(ctx, valAddrStr); err != nil {
+				h.k.Logger(ctx).Error("failed to add ntk tokens for newly active validator", "validator", valAddrStr, "error", err)
 				return
 			}
 		}
@@ -97,10 +97,10 @@ func (h HookEpoching) AfterEpochEnds(ctx context.Context, epoch uint64) {
 	// Identify newly inactive validators (in prev set but not in new set)
 	for _, prevValAddr := range prevValAddrs {
 		if _, found := newValMap[prevValAddr]; !found {
-			// Newly inactive validator - remove baby tokens for all delegators
+			// Newly inactive validator - remove ntk tokens for all delegators
 			valAddr := sdk.MustValAddressFromBech32(prevValAddr)
-			if err := h.removeBabyForDelegators(ctx, valAddr); err != nil {
-				h.k.Logger(ctx).Error("failed to remove baby tokens for newly inactive validator", "validator", prevValAddr, "error", err)
+			if err := h.removeNtkForDelegators(ctx, valAddr); err != nil {
+				h.k.Logger(ctx).Error("failed to remove ntk tokens for newly inactive validator", "validator", prevValAddr, "error", err)
 				return
 			}
 		}
@@ -134,7 +134,7 @@ func (h HookEpoching) updateCoStkTrackerForDelegators(
 		// Get delegation tokens using truncated division to avoid precision loss
 		delTokens := val.TokensFromShares(del.Shares)
 
-		// Update ActiveBaby using the provided update function
+		// Update ActiveNtk using the provided update function
 		if err := h.k.costakerModified(ctx, delAddr, func(rwdTracker *types.CostakerRewardsTracker) {
 			updateFn(rwdTracker, delTokens.TruncateInt())
 		}); err != nil {
@@ -148,27 +148,27 @@ func (h HookEpoching) updateCoStkTrackerForDelegators(
 	return nil
 }
 
-// addBabyForDelegators adds baby tokens to all delegators of a newly active validator
-func (h HookEpoching) addBabyForDelegators(ctx context.Context, valAddrStr string) error {
+// addNtkForDelegators adds ntk tokens to all delegators of a newly active validator
+func (h HookEpoching) addNtkForDelegators(ctx context.Context, valAddrStr string) error {
 	valAddr := sdk.MustValAddressFromBech32(valAddrStr)
 	val, err := h.k.stkK.GetValidator(ctx, valAddr)
 	if err != nil {
 		return fmt.Errorf("failed to get validator %s: %w", valAddrStr, err)
 	}
 	return h.updateCoStkTrackerForDelegators(ctx, val, func(rwdTracker *types.CostakerRewardsTracker, amount math.Int) {
-		rwdTracker.ActiveBaby = rwdTracker.ActiveBaby.Add(amount)
+		rwdTracker.ActiveNtk = rwdTracker.ActiveNtk.Add(amount)
 	})
 }
 
-// removeBabyForDelegators removes baby tokens from all delegators of a newly inactive validator
-func (h HookEpoching) removeBabyForDelegators(ctx context.Context, valAddr sdk.ValAddress) error {
+// removeNtkForDelegators removes ntk tokens from all delegators of a newly inactive validator
+func (h HookEpoching) removeNtkForDelegators(ctx context.Context, valAddr sdk.ValAddress) error {
 	// Get validator from staking keeper to get updated shares
 	val, err := h.k.stkK.GetValidator(ctx, valAddr)
 	if err != nil {
 		return fmt.Errorf("failed to get validator %s: %w", valAddr.String(), err)
 	}
 	return h.updateCoStkTrackerForDelegators(ctx, val, func(rwdTracker *types.CostakerRewardsTracker, amount math.Int) {
-		rwdTracker.ActiveBaby = rwdTracker.ActiveBaby.Sub(amount)
+		rwdTracker.ActiveNtk = rwdTracker.ActiveNtk.Sub(amount)
 	})
 }
 

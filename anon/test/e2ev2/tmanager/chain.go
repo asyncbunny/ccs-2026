@@ -23,11 +23,11 @@ import (
 
 const (
 	CHAIN_ID_ANON = "anc"
-	CHAIN_ID_BSN     = "consumer-bsn"
+	CHAIN_ID_CSN     = "consumer-csn"
 )
 
 var (
-	BabyInitialBalance = sdkmath.NewInt(1_000_000_000000) // 1kk uanc
+	NtkInitialBalance = sdkmath.NewInt(1_000_000_000000) // 1kk uanc
 )
 
 // ChainConfig defines configuration for a blockchain
@@ -90,7 +90,7 @@ func NewChain(tm *TestManager, cfg *ChainConfig) *Chain {
 	}
 
 	initialTokens := datagen.GenRandomCoins(tm.R).MulInt(sdkmath.NewInt(10))
-	initialTokens = initialTokens.Add(sdk.NewCoin(appparams.DefaultBondDenom, BabyInitialBalance))
+	initialTokens = initialTokens.Add(sdk.NewCoin(appparams.DefaultBondDenom, NtkInitialBalance))
 
 	c := &Chain{
 		Nodes:      nodes,

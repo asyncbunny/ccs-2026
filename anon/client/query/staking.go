@@ -33,8 +33,8 @@ func (c *QueryClient) StakingParams() (*stakingtypes.QueryParamsResponse, error)
 	return resp, err
 }
 
-// QueryBabyValidators queries the active baby validators
-func (c *QueryClient) QueryBabyValidators(pagination *sdkquerytypes.PageRequest, status stakingtypes.BondStatus) (*stakingtypes.QueryValidatorsResponse, error) {
+// QueryNtkValidators queries the active ntk validators
+func (c *QueryClient) QueryNtkValidators(pagination *sdkquerytypes.PageRequest, status stakingtypes.BondStatus) (*stakingtypes.QueryValidatorsResponse, error) {
 	var resp *stakingtypes.QueryValidatorsResponse
 	err := c.QueryStaking(func(ctx context.Context, queryClient stakingtypes.QueryClient) error {
 		var err error
@@ -49,18 +49,18 @@ func (c *QueryClient) QueryBabyValidators(pagination *sdkquerytypes.PageRequest,
 	return resp, err
 }
 
-// QueryBabyValidatorsBonded queries the bonded baby validators
-func (c *QueryClient) QueryBabyValidatorsBonded(pagination *sdkquerytypes.PageRequest) (*stakingtypes.QueryValidatorsResponse, error) {
-	return c.QueryBabyValidators(pagination, stakingtypes.Bonded)
+// QueryNtkValidatorsBonded queries the bonded ntk validators
+func (c *QueryClient) QueryNtkValidatorsBonded(pagination *sdkquerytypes.PageRequest) (*stakingtypes.QueryValidatorsResponse, error) {
+	return c.QueryNtkValidators(pagination, stakingtypes.Bonded)
 }
 
-// QueryAllBabyValidatorsBonded queries all bonded validators by paginating through all pages
-func (c *QueryClient) QueryAllBabyValidatorsBonded() ([]stakingtypes.Validator, error) {
+// QueryAllNtkValidatorsBonded queries all bonded validators by paginating through all pages
+func (c *QueryClient) QueryAllNtkValidatorsBonded() ([]stakingtypes.Validator, error) {
 	var allValidators []stakingtypes.Validator
 
 	pagination := &sdkquerytypes.PageRequest{Limit: 100}
 	for {
-		resp, err := c.QueryBabyValidatorsBonded(pagination)
+		resp, err := c.QueryNtkValidatorsBonded(pagination)
 		if err != nil {
 			return nil, err
 		}

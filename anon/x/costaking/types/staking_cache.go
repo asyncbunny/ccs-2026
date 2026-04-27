@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// StakingCache used to cache the change of baby staking hooks
+// StakingCache used to cache the change of ntk staking hooks
 // BeforeDelegationSharesModified sets the value and
 // AfterDelegationModified to calculate the delta change.
 type StakingCache struct {

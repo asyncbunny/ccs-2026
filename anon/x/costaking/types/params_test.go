@@ -24,7 +24,7 @@ func TestParamsValidate(t *testing.T) {
 			name: "valid params with custom values",
 			params: types.Params{
 				CostakingPortion:    math.LegacyMustNewDecFromStr("0.5"),
-				ScoreRatioBtcByBaby: math.NewInt(100),
+				ScoreRatioBtcByNtk: math.NewInt(100),
 				ValidatorsPortion:   math.LegacyMustNewDecFromStr("0.001"),
 			},
 			expErr: nil,
@@ -33,7 +33,7 @@ func TestParamsValidate(t *testing.T) {
 			name: "valid params with minimum values",
 			params: types.Params{
 				CostakingPortion:    math.LegacyNewDec(0),
-				ScoreRatioBtcByBaby: math.OneInt(),
+				ScoreRatioBtcByNtk: math.OneInt(),
 				ValidatorsPortion:   math.LegacyNewDec(0),
 			},
 			expErr: nil,
@@ -42,7 +42,7 @@ func TestParamsValidate(t *testing.T) {
 			name: "valid params with maximum costaking portion",
 			params: types.Params{
 				CostakingPortion:    math.LegacyMustNewDecFromStr("0.5"),
-				ScoreRatioBtcByBaby: math.NewInt(50),
+				ScoreRatioBtcByNtk: math.NewInt(50),
 				ValidatorsPortion:   math.LegacyMustNewDecFromStr("0.4"),
 			},
 			expErr: nil,
@@ -51,7 +51,7 @@ func TestParamsValidate(t *testing.T) {
 			name: "nil costaking portion",
 			params: types.Params{
 				CostakingPortion:    math.LegacyDec{},
-				ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+				ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 				ValidatorsPortion:   types.DefaultValidatorsPortion,
 			},
 			expErr: types.ErrInvalidPercentage,
@@ -60,7 +60,7 @@ func TestParamsValidate(t *testing.T) {
 			name: "costaking portion equal to 1",
 			params: types.Params{
 				CostakingPortion:    math.LegacyOneDec(),
-				ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+				ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 				ValidatorsPortion:   types.DefaultValidatorsPortion,
 			},
 			expErr: types.ErrPercentageTooHigh,
@@ -69,7 +69,7 @@ func TestParamsValidate(t *testing.T) {
 			name: "costaking portion greater than 1",
 			params: types.Params{
 				CostakingPortion:    math.LegacyMustNewDecFromStr("1.5"),
-				ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+				ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 				ValidatorsPortion:   types.DefaultValidatorsPortion,
 			},
 			expErr: types.ErrPercentageTooHigh,
@@ -78,34 +78,34 @@ func TestParamsValidate(t *testing.T) {
 			name: "negative costaking portion",
 			params: types.Params{
 				CostakingPortion:    math.LegacyMustNewDecFromStr("-0.1"),
-				ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+				ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 				ValidatorsPortion:   types.DefaultValidatorsPortion,
 			},
 			expErr: types.ErrInvalidPercentage.Wrap("lower than zero"),
 		},
 		{
-			name: "nil score ratio btc by baby",
+			name: "nil score ratio btc by ntk",
 			params: types.Params{
 				CostakingPortion:    types.DefaultCostakingPortion,
-				ScoreRatioBtcByBaby: math.Int{},
+				ScoreRatioBtcByNtk: math.Int{},
 				ValidatorsPortion:   types.DefaultValidatorsPortion,
 			},
-			expErr: types.ErrInvalidScoreRatioBtcByBaby,
+			expErr: types.ErrInvalidScoreRatioBtcByNtk,
 		},
 		{
-			name: "score ratio btc by baby less than 1",
+			name: "score ratio btc by ntk less than 1",
 			params: types.Params{
 				CostakingPortion:    types.DefaultCostakingPortion,
-				ScoreRatioBtcByBaby: math.ZeroInt(),
+				ScoreRatioBtcByNtk: math.ZeroInt(),
 				ValidatorsPortion:   types.DefaultValidatorsPortion,
 			},
 			expErr: types.ErrScoreRatioTooLow,
 		},
 		{
-			name: "negative score ratio btc by baby",
+			name: "negative score ratio btc by ntk",
 			params: types.Params{
 				CostakingPortion:    types.DefaultCostakingPortion,
-				ScoreRatioBtcByBaby: math.NewInt(-10),
+				ScoreRatioBtcByNtk: math.NewInt(-10),
 				ValidatorsPortion:   types.DefaultValidatorsPortion,
 			},
 			expErr: types.ErrScoreRatioTooLow,
@@ -114,7 +114,7 @@ func TestParamsValidate(t *testing.T) {
 			name: "both fields invalid",
 			params: types.Params{
 				CostakingPortion:    math.LegacyDec{},
-				ScoreRatioBtcByBaby: math.Int{},
+				ScoreRatioBtcByNtk: math.Int{},
 				ValidatorsPortion:   types.DefaultValidatorsPortion,
 			},
 			expErr: types.ErrInvalidPercentage,
@@ -123,7 +123,7 @@ func TestParamsValidate(t *testing.T) {
 			name: "nil validators portion",
 			params: types.Params{
 				CostakingPortion:    types.DefaultCostakingPortion,
-				ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+				ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 				ValidatorsPortion:   math.LegacyDec{},
 			},
 			expErr: types.ErrInvalidPercentage,
@@ -132,7 +132,7 @@ func TestParamsValidate(t *testing.T) {
 			name: "validators portion equal to 1",
 			params: types.Params{
 				CostakingPortion:    types.DefaultCostakingPortion,
-				ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+				ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 				ValidatorsPortion:   math.LegacyOneDec(),
 			},
 			expErr: types.ErrPercentageTooHigh,
@@ -141,7 +141,7 @@ func TestParamsValidate(t *testing.T) {
 			name: "validators portion greater than 1",
 			params: types.Params{
 				CostakingPortion:    types.DefaultCostakingPortion,
-				ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+				ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 				ValidatorsPortion:   math.LegacyMustNewDecFromStr("1.5"),
 			},
 			expErr: types.ErrPercentageTooHigh,
@@ -150,7 +150,7 @@ func TestParamsValidate(t *testing.T) {
 			name: "negative validators portion",
 			params: types.Params{
 				CostakingPortion:    types.DefaultCostakingPortion,
-				ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+				ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 				ValidatorsPortion:   math.LegacyMustNewDecFromStr("-0.01"),
 			},
 			expErr: types.ErrInvalidPercentage.Wrap("lower than zero"),
@@ -159,7 +159,7 @@ func TestParamsValidate(t *testing.T) {
 			name: "costaking + validators portion equal to 1",
 			params: types.Params{
 				CostakingPortion:    math.LegacyMustNewDecFromStr("0.5"),
-				ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+				ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 				ValidatorsPortion:   math.LegacyMustNewDecFromStr("0.5"),
 			},
 			expErr: types.ErrPercentageTooHigh,
@@ -168,7 +168,7 @@ func TestParamsValidate(t *testing.T) {
 			name: "costaking + validators portion greater than 1",
 			params: types.Params{
 				CostakingPortion:    math.LegacyMustNewDecFromStr("0.6"),
-				ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+				ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 				ValidatorsPortion:   math.LegacyMustNewDecFromStr("0.5"),
 			},
 			expErr: types.ErrPercentageTooHigh,
@@ -192,7 +192,7 @@ func TestDefaultParams(t *testing.T) {
 	params := types.DefaultParams()
 
 	require.Equal(t, types.DefaultCostakingPortion, params.CostakingPortion)
-	require.Equal(t, types.DefaultScoreRatioBtcByBaby, params.ScoreRatioBtcByBaby)
+	require.Equal(t, types.DefaultScoreRatioBtcByNtk, params.ScoreRatioBtcByNtk)
 	require.Equal(t, types.DefaultValidatorsPortion, params.ValidatorsPortion)
 
 	err := params.Validate()

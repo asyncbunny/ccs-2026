@@ -604,7 +604,7 @@ func StartEotsManagers(
 	// create EOTS clients
 	for i := 0; i < len(fpCfgs); i++ {
 		// wait for EOTS servers to start
-		// see https://github.com/anon/finality-provider/pull/517
+		// see #
 		var eotsCli *eotsclient.EOTSManagerGRPCClient
 		var err error
 		require.Eventually(t, func() bool {

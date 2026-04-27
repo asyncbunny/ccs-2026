@@ -127,13 +127,6 @@ during startup and will not proceed if the signer is not ready.
 
 ![Covenant Architecture](./static/covenant.png)
 
-## Covenant Emulator Stack Setup
-To set up your covenant emulator stack,
-please follow the instructions in the following documents
-(in sequence):
-1. [Covenant Signer Setup](./docs/covenant-signer-setup.md)
-2. [Covenant Emulator Setup](./docs/covenant-emulator-setup.md)
-
 ## Important Limitations
 
 **Keyring Backend**: The covenant emulator only supports the `test` 

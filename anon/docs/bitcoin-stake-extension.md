@@ -282,7 +282,7 @@ These transactions include:
 **Transaction Construction:**
 You can create these transactions using:
 - [The Golang BTC staking library](../btcstaking) with extension utilities
-- [The TypeScript BTC staking library](https://github.com/anon-org/btc-staking-ts)
+- [The TypeScript BTC staking library](#)
 - Your own implementation following the [Bitcoin staking script specification](./staking-script.md)
 
 > **⚡ Note**: All transactions must use the current Anon staking parameters
@@ -490,7 +490,7 @@ There are multiple ways to construct and broadcast the `MsgBtcStakeExpand`
   Use the `anond tx btcstaking btc-stake-extend` command.
 * **TypeScript Implementation**:
   Generate the message using TypeScript following the
-  [TypeScript staking library](https://github.com/anon-org/btc-staking-ts).
+  [TypeScript staking library](#).
 * **Golang Implementation**:
   Construct the message using Golang based on this
   [type reference](../x/btcstaking/types/tx.pb.go) and broadcast to the Anon

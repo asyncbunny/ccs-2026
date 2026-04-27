@@ -45,8 +45,8 @@ holders to *trustlessly* stake their bitcoins, in order to provide economic
 security to the Anon chain and other Proof-of-Stake (PoS) blockchains. The
 protocol composes a PoS blockchain with an off-the-shelf *finality voting round*
 run by a set of [finality
-providers](https://github.com/anon-org/finality-provider) who receive *BTC
-delegations* from [BTC stakers](https://github.com/anon-org/btc-staker). The
+providers](#) who receive *BTC
+delegations* from [BTC stakers](#). The
 finality providers and BTC delegations are maintained by Anon's [BTC Staking
 module](../btcstaking/README.md), and the Finality module is responsible for
 maintaining the finality voting round.
@@ -56,7 +56,7 @@ maintaining the finality voting round.
 the CometBFT ledger receives *finality votes* from a set of finality providers.
 A finality vote is a signature under the [*Extractable One-Time Signature
 (EOTS)*
-primitive](https://docs.anon.io/assets/files/btc_staking_litepaper-32bfea0c243773f0bfac63e148387aef.pdf).
+primitive](#).
 A block is considered finalized if it receives a quorum, i.e., votes from
 finality providers with more than 2/3 voting power at its height.
 
@@ -101,7 +101,7 @@ needs to interact with Anon as follows:
   provider's secret key and slash it.
 
 Anon has implemented a [BTC staking
-tracker](https://github.com/anon-org/vigilante) daemon program that
+tracker](#) daemon program that
 subscribes to equivocation evidences in the Finality module, and slashes BTC
 delegations under equivocating finality providers by sending their slashing
 transactions to the Bitcoin network.
@@ -313,7 +313,7 @@ The message handlers are defined at
 The `MsgCommitPubRandList` message is used for committing a merkle tree
 constructed by a list of EOTS public randomness that will be used by a finality
 provider in the future. It is typically submitted by a finality provider via the
-[finality provider](https://github.com/anon-org/finality-provider) program.
+[finality provider](#) program.
 
 ```protobuf
 // MsgCommitPubRandList defines a message for committing a list of public randomness for EOTS
@@ -353,7 +353,7 @@ Upon `MsgCommitPubRandList`, a Anon node will execute as follows:
 The `MsgAddFinalitySig` message is used for submitting a finality vote, i.e., an
 EOTS signature over a block signed by a finality provider. It is typically
 submitted by a finality provider via the [finality
-provider](https://github.com/anon-org/finality-provider) program.
+provider](#) program.
 
 ```protobuf
 // MsgAddFinalitySig defines a message for adding a finality vote
@@ -519,5 +519,5 @@ string public_key = 1;
 
 The Finality module provides a set of queries about finality signatures on each
 block, listed at
-[docs.anon.io](https://docs.anon.io/docs/developer-guides/grpcrestapi#tag/Finality).
+the project documentation.
 <!-- TODO: update Anon doc website -->

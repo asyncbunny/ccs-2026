@@ -18,34 +18,34 @@ func TestIBCTransfer(t *testing.T) {
 	tm := tmanager.NewTmWithIbc(t)
 	tm.Start()
 
-	anc, bsn := tm.ChainNodes()
+	anc, csn := tm.ChainNodes()
 
-	t.Log("Testing IBC transfer from BSN to ANC...")
-	bsnSender := bsn.CreateWallet("bsn_sender")
-	bsnSender.VerifySentTx = true
+	t.Log("Testing IBC transfer from CSN to ANC...")
+	csnSender := csn.CreateWallet("csn_sender")
+	csnSender.VerifySentTx = true
 
 	ibcTransferCoin := sdk.NewCoin(appparams.DefaultBondDenom, sdkmath.NewInt(1_000000))
 	senderCoins := sdk.NewCoins(ibcTransferCoin)
 
-	bsn.DefaultWallet().VerifySentTx = true
-	bsn.SendCoins(bsnSender.Addr(), senderCoins.MulInt(sdkmath.NewInt(5)))
+	csn.DefaultWallet().VerifySentTx = true
+	csn.SendCoins(csnSender.Addr(), senderCoins.MulInt(sdkmath.NewInt(5)))
 
-	bsn.UpdateWalletAccSeqNumber(bsnSender.KeyName)
+	csn.UpdateWalletAccSeqNumber(csnSender.KeyName)
 
-	bsnChannels := bsn.QueryIBCChannels()
-	bsnChannel := bsnChannels.Channels[0]
+	csnChannels := csn.QueryIBCChannels()
+	csnChannel := csnChannels.Channels[0]
 	ancRecipient := datagen.GenRandomAddress().String()
 
-	bsnSenderBalancesBefore := bsn.QueryAllBalances(bsnSender.Addr())
+	csnSenderBalancesBefore := csn.QueryAllBalances(csnSender.Addr())
 	ancRecipientBalancesBefore := anc.QueryAllBalances(ancRecipient)
-	t.Logf("Before transfer - Sender balance: %s, Recipient balance: %s", bsnSenderBalancesBefore.String(), ancRecipientBalancesBefore.String())
+	t.Logf("Before transfer - Sender balance: %s, Recipient balance: %s", csnSenderBalancesBefore.String(), ancRecipientBalancesBefore.String())
 
-	ibcTxHash := bsn.SendIBCTransfer(bsnSender, ancRecipient, ibcTransferCoin, bsnChannel.ChannelId, "test transfer")
+	ibcTxHash := csn.SendIBCTransfer(csnSender, ancRecipient, ibcTransferCoin, csnChannel.ChannelId, "test transfer")
 	t.Logf("IBC transfer submitted successfully with tx hash: %s", ibcTxHash)
 
 	// Compute the expected IBC denom on Anon side
-	// When tokens are transferred from BSN to ANC, the denom gets prefixed with transfer/channel-X and latter hashed to ibc/
-	hop := transfertypes.NewHop(bsnChannel.Counterparty.PortId, bsnChannel.Counterparty.ChannelId)
+	// When tokens are transferred from CSN to ANC, the denom gets prefixed with transfer/channel-X and latter hashed to ibc/
+	hop := transfertypes.NewHop(csnChannel.Counterparty.PortId, csnChannel.Counterparty.ChannelId)
 	denomTrace := transfertypes.NewDenom(ibcTransferCoin.Denom, hop)
 	expectedIBCDenom := denomTrace.IBCDenom()
 	t.Logf("Expected IBC denom on Anon: %s", expectedIBCDenom)
@@ -58,10 +58,10 @@ func TestIBCTransfer(t *testing.T) {
 		return ancRecipientBalancesAfter.Equal(expAfterBalances)
 	}, 30*time.Second, 2*time.Second, "IBC transfer should complete within 30 seconds")
 
-	bsnSenderBalancesAfter := bsn.QueryAllBalances(bsnSender.Addr())
-	ibcTxResp := bsn.QueryTxByHash(ibcTxHash)
+	csnSenderBalancesAfter := csn.QueryAllBalances(csnSender.Addr())
+	ibcTxResp := csn.QueryTxByHash(ibcTxHash)
 
 	fees := ibcTxResp.Tx.GetFee()
-	expBsnSendBalances := bsnSenderBalancesBefore.Sub(fees...).Sub(ibcTransferCoin)
-	require.Equal(t, expBsnSendBalances.String(), bsnSenderBalancesAfter.String(), "Sender should have %s, but has %s, fees %s, ibcTransferCoin: %s", expBsnSendBalances.String(), bsnSenderBalancesAfter.String(), fees.String(), ibcTransferCoin.String())
+	expCsnSendBalances := csnSenderBalancesBefore.Sub(fees...).Sub(ibcTransferCoin)
+	require.Equal(t, expCsnSendBalances.String(), csnSenderBalancesAfter.String(), "Sender should have %s, but has %s, fees %s, ibcTransferCoin: %s", expCsnSendBalances.String(), csnSenderBalancesAfter.String(), fees.String(), ibcTransferCoin.String())
 }

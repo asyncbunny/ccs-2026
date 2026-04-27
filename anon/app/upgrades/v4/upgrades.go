@@ -100,7 +100,7 @@ func CreateUpgradeHandler(mm *module.Manager, configurator module.Configurator, 
 }
 
 // InitializeCoStakerRwdsTracker initializes the costaker rewards tracker
-// It creates trackers for all BTC stakers, BABY stakers, and combined stakers
+// It creates trackers for all BTC stakers, NTK stakers, and combined stakers
 func InitializeCoStakerRwdsTracker(
 	ctx context.Context,
 	cdc codec.BinaryCodec,
@@ -116,8 +116,8 @@ func InitializeCoStakerRwdsTracker(
 		return err
 	}
 
-	// Update co-staker rwd tracker with all BABY stakers
-	totalScore, err := saveBABYStakersRwdTracker(ctx, cdc, costkStoreService, stkKeeper, dp)
+	// Update co-staker rwd tracker with all NTK stakers
+	totalScore, err := saveNTKStakersRwdTracker(ctx, cdc, costkStoreService, stkKeeper, dp)
 	if err != nil {
 		return err
 	}
@@ -130,21 +130,21 @@ func InitializeCoStakerRwdsTracker(
 	return coStkKeeper.UpdateCurrentRewardsTotalScore(ctx, totalScore)
 }
 
-// saveBABYStakersRwdTracker retrieves all active BABY stakers with pagination and saves them to the costaker rewards tracker
+// saveNTKStakersRwdTracker retrieves all active NTK stakers with pagination and saves them to the costaker rewards tracker
 // Returns the total score of the co-staker rewards tracker
-func saveBABYStakersRwdTracker(ctx context.Context, cdc codec.BinaryCodec, costkStoreService corestoretypes.KVStoreService, stkKeeper *stkkeeper.Keeper, params costktypes.Params) (math.Int, error) {
+func saveNTKStakersRwdTracker(ctx context.Context, cdc codec.BinaryCodec, costkStoreService corestoretypes.KVStoreService, stkKeeper *stkkeeper.Keeper, params costktypes.Params) (math.Int, error) {
 	totalScore := math.ZeroInt()
-	// Get all BABY stakers that are staking to an active validator
-	babyStakers, err := getAllBABYStakers(ctx, stkKeeper)
+	// Get all NTK stakers that are staking to an active validator
+	ntkStakers, err := getAllNTKStakers(ctx, stkKeeper)
 	if err != nil {
-		return totalScore, fmt.Errorf("failed to get all BABY stakers: %w", err)
+		return totalScore, fmt.Errorf("failed to get all NTK stakers: %w", err)
 	}
 
-	// Save BABY stakers to costaker rewards tracker
-	for addr, totalBaby := range babyStakers {
-		rt, err := upsertCostakerRewardsTracker(ctx, cdc, costkStoreService, addr, math.ZeroInt(), totalBaby, params)
+	// Save NTK stakers to costaker rewards tracker
+	for addr, totalNtk := range ntkStakers {
+		rt, err := upsertCostakerRewardsTracker(ctx, cdc, costkStoreService, addr, math.ZeroInt(), totalNtk, params)
 		if err != nil {
-			return totalScore, fmt.Errorf("failed to upsert costaker rewards tracker for BABY staker %s: %w", addr, err)
+			return totalScore, fmt.Errorf("failed to upsert costaker rewards tracker for NTK staker %s: %w", addr, err)
 		}
 
 		totalScore = totalScore.Add(rt.TotalScore)
@@ -153,15 +153,15 @@ func saveBABYStakersRwdTracker(ctx context.Context, cdc codec.BinaryCodec, costk
 	return totalScore, nil
 }
 
-// getAllBABYStakers retrieves all BABY stakers by iterating only over active validators
-func getAllBABYStakers(ctx context.Context, stkKeeper *stkkeeper.Keeper) (map[string]math.Int, error) {
+// getAllNTKStakers retrieves all NTK stakers by iterating only over active validators
+func getAllNTKStakers(ctx context.Context, stkKeeper *stkkeeper.Keeper) (map[string]math.Int, error) {
 	stkQuerier := stkkeeper.NewQuerier(stkKeeper)
-	babyStakers := make(map[string]math.Int)
+	ntkStakers := make(map[string]math.Int)
 
 	// Iterate directly over active validators (last validator powers)
 	err := stkKeeper.IterateLastValidatorPowers(ctx, func(valAddr sdk.ValAddress, power int64) bool {
 		// Get all delegations for this active validator
-		if err := getValidatorDelegations(ctx, stkQuerier, valAddr.String(), babyStakers); err != nil {
+		if err := getValidatorDelegations(ctx, stkQuerier, valAddr.String(), ntkStakers); err != nil {
 			// Return true to stop iteration on error
 			return true
 		}
@@ -172,11 +172,11 @@ func getAllBABYStakers(ctx context.Context, stkKeeper *stkkeeper.Keeper) (map[st
 		return nil, fmt.Errorf("failed to iterate active validators: %w", err)
 	}
 
-	return babyStakers, nil
+	return ntkStakers, nil
 }
 
 // getValidatorDelegations gets all delegations for a specific validator
-func getValidatorDelegations(ctx context.Context, stkQuerier stkkeeper.Querier, validatorAddr string, babyStakers map[string]math.Int) error {
+func getValidatorDelegations(ctx context.Context, stkQuerier stkkeeper.Querier, validatorAddr string, ntkStakers map[string]math.Int) error {
 	var nextKey []byte
 
 	for {
@@ -196,10 +196,10 @@ func getValidatorDelegations(ctx context.Context, stkQuerier stkkeeper.Querier, 
 			delegatorAddr := delegation.Delegation.DelegatorAddress
 			amount := delegation.Balance.Amount
 
-			if existing, found := babyStakers[delegatorAddr]; found {
-				babyStakers[delegatorAddr] = existing.Add(amount)
+			if existing, found := ntkStakers[delegatorAddr]; found {
+				ntkStakers[delegatorAddr] = existing.Add(amount)
 			} else {
-				babyStakers[delegatorAddr] = amount
+				ntkStakers[delegatorAddr] = amount
 			}
 		}
 
@@ -274,7 +274,7 @@ func upsertCostakerRewardsTracker(
 	costkStoreService corestoretypes.KVStoreService,
 	stakerAddr string,
 	btcAmount math.Int,
-	babyAmount math.Int,
+	ntkAmount math.Int,
 	params costktypes.Params,
 ) (*costktypes.CostakerRewardsTracker, error) {
 	sb := collections.NewSchemaBuilder(costkStoreService)
@@ -301,18 +301,18 @@ func upsertCostakerRewardsTracker(
 		rt = costktypes.NewCostakerRewardsTracker(
 			1,
 			btcAmount,
-			babyAmount,
+			ntkAmount,
 			math.ZeroInt(),
 		)
 	} else {
 		// Update existing tracker
 		rt = existing
 		rt.ActiveSatoshis = rt.ActiveSatoshis.Add(btcAmount)
-		rt.ActiveBaby = rt.ActiveBaby.Add(babyAmount)
+		rt.ActiveNtk = rt.ActiveNtk.Add(ntkAmount)
 	}
 
 	// Update score
-	rt.UpdateScore(params.ScoreRatioBtcByBaby)
+	rt.UpdateScore(params.ScoreRatioBtcByNtk)
 
 	// Save tracker
 	if err := rwdTrackers.Set(ctx, addrKey, rt); err != nil {

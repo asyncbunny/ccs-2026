@@ -52,7 +52,7 @@ func (k Keeper) CostakerRewardsTracker(ctx context.Context, req *types.QueryCost
 	return &types.QueryCostakerRewardsTrackerResponse{
 		StartPeriodCumulativeReward: tracker.StartPeriodCumulativeReward,
 		ActiveSatoshis:              tracker.ActiveSatoshis,
-		ActiveBaby:                  tracker.ActiveBaby,
+		ActiveNtk:                  tracker.ActiveNtk,
 		TotalScore:                  tracker.TotalScore,
 	}, nil
 }

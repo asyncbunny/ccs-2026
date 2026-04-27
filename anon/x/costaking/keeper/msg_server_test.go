@@ -27,7 +27,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    math.LegacyMustNewDecFromStr("0.5"),
-						ScoreRatioBtcByBaby: math.NewInt(100),
+						ScoreRatioBtcByNtk: math.NewInt(100),
 						ValidatorsPortion:   math.LegacyMustNewDecFromStr("0.001"),
 					},
 				}
@@ -61,7 +61,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    math.LegacyDec{},
-						ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+						ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 						ValidatorsPortion:   types.DefaultValidatorsPortion,
 					},
 				}
@@ -75,7 +75,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    math.LegacyMustNewDecFromStr("1.5"),
-						ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+						ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 						ValidatorsPortion:   types.DefaultValidatorsPortion,
 					},
 				}
@@ -89,7 +89,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    math.LegacyOneDec(),
-						ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+						ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 						ValidatorsPortion:   types.DefaultValidatorsPortion,
 					},
 				}
@@ -97,13 +97,13 @@ func TestMsgUpdateParams(t *testing.T) {
 			expErr: govtypes.ErrInvalidProposalMsg,
 		},
 		{
-			name: "nil score ratio btc by baby",
+			name: "nil score ratio btc by ntk",
 			setupMsg: func() *types.MsgUpdateParams {
 				return &types.MsgUpdateParams{
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    types.DefaultCostakingPortion,
-						ScoreRatioBtcByBaby: math.Int{},
+						ScoreRatioBtcByNtk: math.Int{},
 						ValidatorsPortion:   types.DefaultValidatorsPortion,
 					},
 				}
@@ -117,7 +117,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    types.DefaultCostakingPortion,
-						ScoreRatioBtcByBaby: math.ZeroInt(),
+						ScoreRatioBtcByNtk: math.ZeroInt(),
 						ValidatorsPortion:   types.DefaultValidatorsPortion,
 					},
 				}
@@ -131,7 +131,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    types.DefaultCostakingPortion,
-						ScoreRatioBtcByBaby: math.NewInt(-10),
+						ScoreRatioBtcByNtk: math.NewInt(-10),
 						ValidatorsPortion:   types.DefaultValidatorsPortion,
 					},
 				}
@@ -145,7 +145,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    math.LegacyNewDec(0),
-						ScoreRatioBtcByBaby: math.OneInt(),
+						ScoreRatioBtcByNtk: math.OneInt(),
 						ValidatorsPortion:   math.LegacyNewDec(0),
 					},
 				}
@@ -159,7 +159,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    math.LegacyMustNewDecFromStr("0.9"),
-						ScoreRatioBtcByBaby: math.NewInt(50),
+						ScoreRatioBtcByNtk: math.NewInt(50),
 						ValidatorsPortion:   math.LegacyMustNewDecFromStr("0.099"),
 					},
 				}
@@ -173,7 +173,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    math.LegacyMustNewDecFromStr("0.5"),
-						ScoreRatioBtcByBaby: math.OneInt(),
+						ScoreRatioBtcByNtk: math.OneInt(),
 						ValidatorsPortion:   math.LegacyMustNewDecFromStr("0.5"),
 					},
 				}
@@ -187,7 +187,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    math.LegacyMustNewDecFromStr("0.6"),
-						ScoreRatioBtcByBaby: math.OneInt(),
+						ScoreRatioBtcByNtk: math.OneInt(),
 						ValidatorsPortion:   math.LegacyMustNewDecFromStr("0.5"),
 					},
 				}
@@ -201,7 +201,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    types.DefaultCostakingPortion,
-						ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+						ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 						ValidatorsPortion:   math.LegacyDec{},
 					},
 				}
@@ -215,7 +215,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    types.DefaultCostakingPortion,
-						ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+						ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 						ValidatorsPortion:   math.LegacyOneDec(),
 					},
 				}
@@ -229,7 +229,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    types.DefaultCostakingPortion,
-						ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+						ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 						ValidatorsPortion:   math.LegacyMustNewDecFromStr("1.5"),
 					},
 				}
@@ -243,7 +243,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    types.DefaultCostakingPortion,
-						ScoreRatioBtcByBaby: types.DefaultScoreRatioBtcByBaby,
+						ScoreRatioBtcByNtk: types.DefaultScoreRatioBtcByNtk,
 						ValidatorsPortion:   math.LegacyMustNewDecFromStr("-0.01"),
 					},
 				}
@@ -257,7 +257,7 @@ func TestMsgUpdateParams(t *testing.T) {
 					Authority: appparams.AccGov.String(),
 					Params: types.Params{
 						CostakingPortion:    math.LegacyMustNewDecFromStr("0.5"),
-						ScoreRatioBtcByBaby: math.OneInt(),
+						ScoreRatioBtcByNtk: math.OneInt(),
 						ValidatorsPortion:   math.LegacyMustNewDecFromStr("0.4"),
 					},
 				}
@@ -294,7 +294,7 @@ func TestMsgUpdateParams(t *testing.T) {
 
 			updatedParams := k.GetParams(ctx)
 			require.Equal(t, msg.Params.CostakingPortion, updatedParams.CostakingPortion)
-			require.Equal(t, msg.Params.ScoreRatioBtcByBaby, updatedParams.ScoreRatioBtcByBaby)
+			require.Equal(t, msg.Params.ScoreRatioBtcByNtk, updatedParams.ScoreRatioBtcByNtk)
 			require.Equal(t, msg.Params.ValidatorsPortion, updatedParams.ValidatorsPortion)
 		})
 	}

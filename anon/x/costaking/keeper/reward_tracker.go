@@ -35,7 +35,7 @@ func (k Keeper) costakerModified(ctx context.Context, costaker sdk.AccAddress, m
 
 	modifyCostaker(rwdTracker)
 	// sanitize and validate the costaker tracker
-	// this is necessary because the ActiveBaby can be -1 due to rounding when the validator
+	// this is necessary because the ActiveNtk can be -1 due to rounding when the validator
 	// lost its 1:1 ratio between shares and tokens due to slashing
 	rwdTracker.Sanitize()
 	if err := rwdTracker.Validate(); err != nil {
@@ -43,7 +43,7 @@ func (k Keeper) costakerModified(ctx context.Context, costaker sdk.AccAddress, m
 	}
 
 	params := k.GetParams(ctx)
-	deltaScoreChange := rwdTracker.UpdateScore(params.ScoreRatioBtcByBaby)
+	deltaScoreChange := rwdTracker.UpdateScore(params.ScoreRatioBtcByNtk)
 
 	if deltaScoreChange.IsZero() {
 		// if there is no change from previous score, just update the costaker tracker and return
@@ -53,7 +53,7 @@ func (k Keeper) costakerModified(ctx context.Context, costaker sdk.AccAddress, m
 	// if there is change on the score, calls the costaker modified score and set the updated tracker
 	// Note: the costaker tracker must be updated after incrementing the period and calculating the rewards
 	return k.costakerModifiedScoreWithPreInitalization(ctx, costaker, func(ctx context.Context, costaker sdk.AccAddress) error {
-		// Save the tracker back to storage since ActiveSatoshis/ActiveBaby changed
+		// Save the tracker back to storage since ActiveSatoshis/ActiveNtk changed
 		err = k.setCostakerRewardsTracker(ctx, costaker, *rwdTracker)
 		if err != nil {
 			return err
@@ -74,12 +74,12 @@ func (k Keeper) costakerModified(ctx context.Context, costaker sdk.AccAddress, m
 	})
 }
 
-// costakerModifiedActiveAmounts anytime an costaker changes his amount of btc or baby staked this function
+// costakerModifiedActiveAmounts anytime an costaker changes his amount of btc or ntk staked this function
 // should be called, for activation of new staking or unbonding of the previous, his score might change and then it should
 // also update the total score of the pool of current rewards
-func (k Keeper) costakerModifiedActiveAmounts(ctx context.Context, costaker sdk.AccAddress, newActiveSatoshi, newActiveBaby sdkmath.Int) error {
+func (k Keeper) costakerModifiedActiveAmounts(ctx context.Context, costaker sdk.AccAddress, newActiveSatoshi, newActiveNtk sdkmath.Int) error {
 	return k.costakerModified(ctx, costaker, func(rwdTracker *types.CostakerRewardsTracker) {
-		rwdTracker.ActiveBaby = newActiveBaby
+		rwdTracker.ActiveNtk = newActiveNtk
 		rwdTracker.ActiveSatoshis = newActiveSatoshi
 	})
 }
@@ -93,7 +93,7 @@ func (k Keeper) costakerWithdrawRewards(ctx context.Context, costaker sdk.AccAdd
 }
 
 // costakerModifiedScoreWithPreInitalization does the procedure when a Costaker has
-// some modification in its total amount of score (btc or baby staked). This function
+// some modification in its total amount of score (btc or ntk staked). This function
 // increments the global current rewards period (that creates a new historical) with
 // the ended period, calculates the costaker reward and send to the gauge
 // and calls a function prior (preInitializeCostaker) to initialize a new
@@ -257,7 +257,7 @@ func (k Keeper) calculateCoStakerRewardsBetween(
 // costaker using the cumulative rewards at the end of the *previous* period.
 // This should be called immediately after the costaker’s rewards are withdrawn
 // (i.e., sent to the reward gauge), or after any change to the costaker’s
-// staking amount (sat or baby), which requires withdrawing rewards and resetting
+// staking amount (sat or ntk), which requires withdrawing rewards and resetting
 // the tracker.
 //
 // Precondition: the global rewards period has already been incremented before

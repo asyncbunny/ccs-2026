@@ -20,15 +20,15 @@ import (
 
 // TestUpgradeV43 creates the scenario where an misscalculation in costaking
 // reward tracker in version v4.2.2 where one delegator:
-// 1. Creates two healthy baby delegations (A and B)
+// 1. Creates two healthy ntk delegations (A and B)
 // 2. Some epoch starts
 // 3. Validator B gets slashed
 // 4. Delegator unbonds from B
 // 5. Delegator delegates again to B
 // 6. Delegator unbonds again from B
 // 7. Epoch ends
-// Results in misscalculation of active baby, the upgrade to v4.3 should
-// recalculate all the active baby and score in the system
+// Results in misscalculation of active ntk, the upgrade to v4.3 should
+// recalculate all the active ntk and score in the system
 func TestUpgradeV43(t *testing.T) {
 	t.Parallel()
 	tm := tmanager.NewTmWithUpgrade(t, 0, "")
@@ -83,22 +83,22 @@ func TestUpgradeV43(t *testing.T) {
 	n.WrappedDelegate(delegator.KeyName, validator.Wallet.ValidatorAddress, amtHealthyDel)
 	n.WrappedDelegate(delegator.KeyName, valSlashAddr, amtSlashDel)
 
-	n.WaitForEpochEnd() // to process the new baby delegations
+	n.WaitForEpochEnd() // to process the new ntk delegations
 
 	fp.AddFinalityVoteUntilCurrentHeight()
 
 	costkP := n.QueryCostkParams()
 
 	expSat := sdkmath.NewInt(int64(btcDel.TotalSat))
-	expBaby := amtHealthyDel.Add(amtSlashDel)
-	expScore := costktypes.CalculateScore(costkP.ScoreRatioBtcByBaby, expBaby, expSat)
+	expNtk := amtHealthyDel.Add(amtSlashDel)
+	expScore := costktypes.CalculateScore(costkP.ScoreRatioBtcByNtk, expNtk, expSat)
 
 	costkRwdTracker := n.QueryCostkRwdTrckCli(delegator.Address)
-	require.Equal(t, expBaby.String(), costkRwdTracker.ActiveBaby.String())
+	require.Equal(t, expNtk.String(), costkRwdTracker.ActiveNtk.String())
 	require.Equal(t, expSat.String(), costkRwdTracker.ActiveSatoshis.String())
 	require.Equal(t, expScore.String(), costkRwdTracker.TotalScore.String())
 
-	n.WaitForEpochEnd() // to process the new baby delegations
+	n.WaitForEpochEnd() // to process the new ntk delegations
 
 	slashedVal := n.QueryValidator(valSlashAddr)
 	require.False(t, slashedVal.Jailed)
@@ -120,11 +120,11 @@ func TestUpgradeV43(t *testing.T) {
 	// costk is in an bad state created by the bug in v4.2.2
 	// 2 stakes, val slash, unbond, bond, unbond again
 	costkRwdTrackerBeforeUpgrade := n.QueryCostkRwdTrckCli(delegator.Address)
-	t.Logf("costaker reward tracker is in bad state where it should have the amount %s, but has %s due to bug", amtHealthyDel.String(), costkRwdTrackerBeforeUpgrade.ActiveBaby.String())
-	require.True(t, amtHealthyDel.GT(costkRwdTrackerBeforeUpgrade.ActiveBaby))
+	t.Logf("costaker reward tracker is in bad state where it should have the amount %s, but has %s due to bug", amtHealthyDel.String(), costkRwdTrackerBeforeUpgrade.ActiveNtk.String())
+	require.True(t, amtHealthyDel.GT(costkRwdTrackerBeforeUpgrade.ActiveNtk))
 	require.Equal(t, expSat.String(), costkRwdTrackerBeforeUpgrade.ActiveSatoshis.String())
 
-	expScoreAfterSlash := costktypes.CalculateScore(costkP.ScoreRatioBtcByBaby, costkRwdTrackerBeforeUpgrade.ActiveBaby, expSat)
+	expScoreAfterSlash := costktypes.CalculateScore(costkP.ScoreRatioBtcByNtk, costkRwdTrackerBeforeUpgrade.ActiveNtk, expSat)
 	require.Equal(t, expScoreAfterSlash.String(), costkRwdTrackerBeforeUpgrade.TotalScore.String())
 
 	currRwdBeforeUpgrade := n.QueryCostkCurrRwdCli()
@@ -147,11 +147,11 @@ func TestUpgradeV43(t *testing.T) {
 	btcDelsResp := validator.QueryBTCDelegations(bstypes.BTCDelegationStatus_ACTIVE)
 	require.Len(t, btcDelsResp, 1)
 
-	expScore = costktypes.CalculateScore(costkP.ScoreRatioBtcByBaby, amtHealthyDel, expSat)
+	expScore = costktypes.CalculateScore(costkP.ScoreRatioBtcByNtk, amtHealthyDel, expSat)
 
-	// The costaking should reflect the actual amount of baby staked to the healthy validator
+	// The costaking should reflect the actual amount of ntk staked to the healthy validator
 	costkRwdTrackerAfterUpgrade := n.QueryCostkRwdTrckCli(delegator.Address)
-	require.Equal(t, amtHealthyDel.String(), costkRwdTrackerAfterUpgrade.ActiveBaby.String())
+	require.Equal(t, amtHealthyDel.String(), costkRwdTrackerAfterUpgrade.ActiveNtk.String())
 	require.Equal(t, expSat.String(), costkRwdTrackerAfterUpgrade.ActiveSatoshis.String())
 	require.Equal(t, expScore.String(), costkRwdTrackerAfterUpgrade.TotalScore.String())
 

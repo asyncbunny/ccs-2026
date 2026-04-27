@@ -8,7 +8,7 @@ import (
 )
 
 // AddKeysCommands adds all the keys-related commands to the provided command.
-// The keys commands are generic to {Anon, Cosmos BSN, rollup BSN} finality providers
+// The keys commands are generic to {Anon, Cosmos CSN, rollup CSN} finality providers
 func AddKeysCommands(cmd *cobra.Command) {
 	cmd.AddCommand(CommandKeys())
 }

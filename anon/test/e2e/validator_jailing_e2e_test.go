@@ -209,20 +209,20 @@ func (s *ValidatorJailingTestSuite) TestValidatorJailingWithExtraDelegation() {
 	s.T().Log("Co-staking trackers BEFORE jailing:")
 	trackersBefore := s.getCostakingTrackers(nonValidatorNode, delegatorsList)
 
-	// Verify that all delegators have the expected active baby before jailing
-	for delegator, activeBaby := range trackersBefore {
-		// Calculate expected active baby (sum of delegations to both validators)
-		expectedBaby := sdkmath.ZeroInt()
+	// Verify that all delegators have the expected active ntk before jailing
+	for delegator, activeNtk := range trackersBefore {
+		// Calculate expected active ntk (sum of delegations to both validators)
+		expectedNtk := sdkmath.ZeroInt()
 		if amt, ok := val1Delegators[delegator]; ok {
-			expectedBaby = expectedBaby.Add(amt)
+			expectedNtk = expectedNtk.Add(amt)
 		}
 		if amt, ok := val2Delegators[delegator]; ok {
-			expectedBaby = expectedBaby.Add(amt)
+			expectedNtk = expectedNtk.Add(amt)
 		}
 
-		s.T().Logf("Delegator %s expected active baby: %s", delegator, expectedBaby.String())
-		s.Require().Equal(expectedBaby, activeBaby,
-			"Delegator %s should have active baby equal to total delegations before jailing", delegator)
+		s.T().Logf("Delegator %s expected active ntk: %s", delegator, expectedNtk.String())
+		s.Require().Equal(expectedNtk, activeNtk,
+			"Delegator %s should have active ntk equal to total delegations before jailing", delegator)
 	}
 
 	// Query slashing parameters to know how many blocks need to be missed
@@ -307,35 +307,35 @@ func (s *ValidatorJailingTestSuite) TestValidatorJailingWithExtraDelegation() {
 	trackersAfter := s.getCostakingTrackers(nonValidatorNode, delegatorsList)
 
 	// Verify the co-staking tracker changes based on delegation pattern
-	for delegator, activeBabyAfter := range trackersAfter {
-		activeBabyBefore := trackersBefore[delegator]
+	for delegator, activeNtkAfter := range trackersAfter {
+		activeNtkBefore := trackersBefore[delegator]
 		val1Amount, hasVal1Delegation := val1Delegators[delegator]
 		val2Amount, hasVal2Delegation := val2Delegators[delegator]
 
-		// Calculate expected active baby after jailing (only val1 delegations should remain active)
-		expectedBabyAfter := sdkmath.ZeroInt()
+		// Calculate expected active ntk after jailing (only val1 delegations should remain active)
+		expectedNtkAfter := sdkmath.ZeroInt()
 		if hasVal1Delegation {
-			expectedBabyAfter = expectedBabyAfter.Add(val1Amount)
+			expectedNtkAfter = expectedNtkAfter.Add(val1Amount)
 		}
 
 		s.T().Logf("Delegator %s:", delegator)
 		s.T().Logf("  - Val1 delegation: %s (active: %v)", val1Amount.String(), hasVal1Delegation)
 		s.T().Logf("  - Val2 delegation: %s (active: %v, now jailed)", val2Amount.String(), hasVal2Delegation)
-		s.T().Logf("  - Active baby before jailing: %s", activeBabyBefore.String())
-		s.T().Logf("  - Active baby after jailing: %s", activeBabyAfter.String())
-		s.T().Logf("  - Expected active baby after: %s", expectedBabyAfter.String())
+		s.T().Logf("  - Active ntk before jailing: %s", activeNtkBefore.String())
+		s.T().Logf("  - Active ntk after jailing: %s", activeNtkAfter.String())
+		s.T().Logf("  - Expected active ntk after: %s", expectedNtkAfter.String())
 
 		// Verify expected amount within margin of error 1 uanc
-		s.T().Logf("Delegator %s active baby after jailing should equal only val1 delegation amount", delegator)
-		coins.RequireIntDiffInPointOnePercentMargin(s.T(), expectedBabyAfter, activeBabyAfter)
+		s.T().Logf("Delegator %s active ntk after jailing should equal only val1 delegation amount", delegator)
+		coins.RequireIntDiffInPointOnePercentMargin(s.T(), expectedNtkAfter, activeNtkAfter)
 
 		// Additional specific checks based on delegation pattern
 		if hasVal2Delegation && !hasVal1Delegation {
-			s.T().Logf("  ✓ Delegator only to val2: active baby correctly decreased to zero")
+			s.T().Logf("  ✓ Delegator only to val2: active ntk correctly decreased to zero")
 		} else if hasVal1Delegation && !hasVal2Delegation {
-			s.T().Logf("  ✓ Delegator only to val1: active baby correctly remained unchanged")
+			s.T().Logf("  ✓ Delegator only to val1: active ntk correctly remained unchanged")
 		} else if hasVal1Delegation && hasVal2Delegation {
-			s.T().Logf("  ✓ Delegator to both: active baby correctly decreased by val2 amount")
+			s.T().Logf("  ✓ Delegator to both: active ntk correctly decreased by val2 amount")
 		}
 	}
 
@@ -352,9 +352,9 @@ func (s *ValidatorJailingTestSuite) TestValidatorJailingWithExtraDelegation() {
 	s.T().Logf("  - Validator 2 stopped signing and missed %d blocks", afterStopSigningInfo.MissedBlocksCounter)
 	s.T().Logf("  - Validator 2 was automatically jailed by the slashing module")
 	s.T().Logf("  - Co-staking trackers verified for %d unique delegators", len(delegatorsList))
-	s.T().Logf("  - Delegators only to val2 (jailed): active baby decreased to zero")
-	s.T().Logf("  - Delegators only to val1 (not jailed): active baby remained unchanged")
-	s.T().Logf("  - Delegators to both validators: active baby decreased proportionally")
+	s.T().Logf("  - Delegators only to val2 (jailed): active ntk decreased to zero")
+	s.T().Logf("  - Delegators only to val1 (not jailed): active ntk remained unchanged")
+	s.T().Logf("  - Delegators to both validators: active ntk decreased proportionally")
 	s.T().Logf("  - Chain continued operating with single validator (>66%% threshold)")
 }
 
@@ -375,7 +375,7 @@ func (s *ValidatorJailingTestSuite) waitForHeight(node *chain.NodeConfig, target
 	s.FailNow("Timeout waiting for height %d", targetHeight)
 }
 
-// getCostakingTrackers returns a map of delegator addresses to their co-staking tracker ActiveBaby amounts
+// getCostakingTrackers returns a map of delegator addresses to their co-staking tracker ActiveNtk amounts
 // Skips delegators that don't have a co-staking tracker (e.g., validators self-delegating)
 func (s *ValidatorJailingTestSuite) getCostakingTrackers(
 	node *chain.NodeConfig,
@@ -391,8 +391,8 @@ func (s *ValidatorJailingTestSuite) getCostakingTrackers(
 			s.T().Logf("  - Co-staking tracker not found (skipping): %v", err)
 			continue
 		}
-		trackers[delegator] = tracker.ActiveBaby
-		s.T().Logf("  - Active Baby: %s", tracker.ActiveBaby.String())
+		trackers[delegator] = tracker.ActiveNtk
+		s.T().Logf("  - Active Ntk: %s", tracker.ActiveNtk.String())
 		s.T().Logf("  - Active Satoshis: %s", tracker.ActiveSatoshis.String())
 		s.T().Logf("  - Total Score: %s", tracker.TotalScore.String())
 	}

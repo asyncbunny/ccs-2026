@@ -16,13 +16,13 @@ type HookStaking struct {
 	k Keeper
 }
 
-// AfterDelegationModified handles Baby token delegation modification events.
+// AfterDelegationModified handles Ntk token delegation modification events.
 // This hook is triggered when an existing cosmos staking delegation amount is changed
-// (increased or decreased). It updates the costaker's Baby token amount accordingly.
+// (increased or decreased). It updates the costaker's Ntk token amount accordingly.
 //
 // State Changes:
-// - ActiveBaby += (new_amount - old_amount)
-// - If difference is negative, ActiveBaby is subtracted
+// - ActiveNtk += (new_amount - old_amount)
+// - If difference is negative, ActiveNtk is subtracted
 //
 // Note: This hook uses a cache to track previous delegation amounts to calculate the delta.
 // Defer: Deletes the value from cache after reading it to avoid cases where an (del, val) pair has more than one action
@@ -30,7 +30,7 @@ type HookStaking struct {
 //
 // We track all operations normally, even for jailed validators.
 // Any accounting discrepancies will be corrected at epoch boundary when the
-// validator leaves the active set and removeBabyForDelegators zeros out ActiveBaby.
+// validator leaves the active set and removeNtkForDelegators zeros out ActiveNtk.
 func (h HookStaking) AfterDelegationModified(ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
 	defer h.k.stkCache.Delete(delAddr, valAddr)
 	// Check if validator is in the active set
@@ -56,13 +56,13 @@ func (h HookStaking) AfterDelegationModified(ctx context.Context, delAddr sdk.Ac
 	infoBefore := h.k.stkCache.GetStakedInfo(delAddr, valAddr)
 	delTokenChange := delTokens.Sub(infoBefore.Amount).TruncateInt()
 
-	// Update ActiveBaby if validator is in active set
+	// Update ActiveNtk if validator is in active set
 	return h.k.costakerModified(ctx, delAddr, func(rwdTracker *types.CostakerRewardsTracker) {
-		rwdTracker.ActiveBaby = rwdTracker.ActiveBaby.Add(delTokenChange)
+		rwdTracker.ActiveNtk = rwdTracker.ActiveNtk.Add(delTokenChange)
 	})
 }
 
-// BeforeDelegationRemoved This hook is called when an baby delegation removes his entire baby delegation from one validator.
+// BeforeDelegationRemoved This hook is called when an ntk delegation removes his entire ntk delegation from one validator.
 // The AfterDelegationModified hooks is not called in this case as there is no delegation after is modified, so in costaking
 // it should remove all tokens that this pair (del, val) had staked. This value can be achieved by caching the tokens
 // prior to BeforeDelegationRemoved hook call, which is done by BeforeDelegationSharesModified.
@@ -72,7 +72,7 @@ func (h HookStaking) AfterDelegationModified(ctx context.Context, delAddr sdk.Ac
 //
 // We track all operations normally, even for jailed validators.
 // Any accounting discrepancies will be corrected at epoch boundary when the
-// validator leaves the active set and removeBabyForDelegators zeros out ActiveBaby.
+// validator leaves the active set and removeNtkForDelegators zeros out ActiveNtk.
 func (h HookStaking) BeforeDelegationRemoved(ctx context.Context, delAddr sdk.AccAddress, valAddr sdk.ValAddress) error {
 	defer h.k.stkCache.Delete(delAddr, valAddr)
 
@@ -101,9 +101,9 @@ func (h HookStaking) BeforeDelegationRemoved(ctx context.Context, delAddr sdk.Ac
 		return nil
 	}
 
-	// Subtract from ActiveBaby if validator is in active set
+	// Subtract from ActiveNtk if validator is in active set
 	return h.k.costakerModified(ctx, delAddr, func(rwdTracker *types.CostakerRewardsTracker) {
-		rwdTracker.ActiveBaby = rwdTracker.ActiveBaby.Sub(delTokenChange)
+		rwdTracker.ActiveNtk = rwdTracker.ActiveNtk.Sub(delTokenChange)
 	})
 }
 
@@ -142,18 +142,18 @@ func (h HookStaking) BeforeDelegationSharesModified(ctx context.Context, delAddr
 }
 
 // BeforeValidatorSlashed implements types.StakingHooks.
-// It reduces the ActiveBaby amount for all delegators by the slash fraction.
+// It reduces the ActiveNtk amount for all delegators by the slash fraction.
 //
 // Important: This hook is called from x/staking at the moment the validator is slashed,
 // NOT at the epoch boundary. The flow is:
-//  1. Validator is slashed during the epoch -> this hook reduces ActiveBaby immediately
+//  1. Validator is slashed during the epoch -> this hook reduces ActiveNtk immediately
 //  2. Validator remains in the active set for epoching (even if jailed)
 //  3. At epoch boundary, if the slashed validator leaves the active set,
-//     removeBabyForDelegators in AfterEpochEnds will reduce ActiveBaby again for all delegations
+//     removeNtkForDelegators in AfterEpochEnds will reduce ActiveNtk again for all delegations
 //
 // This design avoids storing "slash events" that would need to be processed at epoch end.
 // The validator's voting power is kept constant during the epoch per the epoching mechanism,
-// but ActiveBaby is adjusted immediately when slashing occurs.
+// but ActiveNtk is adjusted immediately when slashing occurs.
 func (h HookStaking) BeforeValidatorSlashed(ctx context.Context, valAddr sdk.ValAddress, fraction math.LegacyDec) error {
 	// Check if validator is in the active set
 	active, err := h.isActiveValidator(ctx, valAddr)
@@ -161,7 +161,7 @@ func (h HookStaking) BeforeValidatorSlashed(ctx context.Context, valAddr sdk.Val
 		return err
 	}
 	if !active {
-		// Validator not in active set, no ActiveBaby to reduce
+		// Validator not in active set, no ActiveNtk to reduce
 		return nil
 	}
 
@@ -177,22 +177,22 @@ func (h HookStaking) BeforeValidatorSlashed(ctx context.Context, valAddr sdk.Val
 		return err
 	}
 
-	// For each delegator, reduce their ActiveBaby by the slash fraction
+	// For each delegator, reduce their ActiveNtk by the slash fraction
 	for _, del := range delegations {
 		delAddr := sdk.MustAccAddressFromBech32(del.DelegatorAddress)
 
 		// Calculate delegation tokens (before slash)
 		delTokens := val.TokensFromShares(del.Shares).TruncateInt()
 
-		// Calculate the amount to slash from ActiveBaby
+		// Calculate the amount to slash from ActiveNtk
 		slashAmount := fraction.MulInt(delTokens).TruncateInt()
 
-		// Reduce ActiveBaby by the slash amount
+		// Reduce ActiveNtk by the slash amount
 		if err := h.k.costakerModified(ctx, delAddr, func(rwdTracker *types.CostakerRewardsTracker) {
-			rwdTracker.ActiveBaby = rwdTracker.ActiveBaby.Sub(slashAmount)
+			rwdTracker.ActiveNtk = rwdTracker.ActiveNtk.Sub(slashAmount)
 		}); err != nil {
 			h.k.Logger(ctx).Error(
-				"failed to reduce ActiveBaby for slashed validator",
+				"failed to reduce ActiveNtk for slashed validator",
 				"delegator", delAddr.String(),
 				"validator", valAddr.String(),
 				"slash_amount", slashAmount.String(),

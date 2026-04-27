@@ -579,9 +579,9 @@ func (n *Node) QueryLatestEpochHeaderCLI(consumerID string) string {
 	return outBuf.String()
 }
 
-// QueryBSNLastSentSegmentCLI retrieves the last sent segment information for the specified consumer ID using CLI
-func (n *Node) QueryBSNLastSentSegmentCLI(consumerID string) string {
-	cmd := []string{"anond", "query", "zc", "bsn-last-sent-seg", consumerID, "--output=json", "--node", n.GetRpcEndpoint()}
+// QueryCSNLastSentSegmentCLI retrieves the last sent segment information for the specified consumer ID using CLI
+func (n *Node) QueryCSNLastSentSegmentCLI(consumerID string) string {
+	cmd := []string{"anond", "query", "zc", "csn-last-sent-seg", consumerID, "--output=json", "--node", n.GetRpcEndpoint()}
 	outBuf, _, err := n.Tm.ContainerManager.ExecCmd(n.T(), n.Container.Name, cmd, "")
 	require.NoError(n.T(), err)
 	return outBuf.String()

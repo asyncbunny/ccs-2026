@@ -28,9 +28,9 @@ import (
 )
 
 const (
-	flagHomeBaby           = "baby-home"
-	flagKeyNameBaby        = "baby-key-name"
-	flagKeyringBackendBaby = "baby-keyring-backend"
+	flagHomeNtk           = "ntk-home"
+	flagKeyNameNtk        = "ntk-key-name"
+	flagKeyringBackendNtk = "ntk-keyring-backend"
 	flagMessage            = "message"
 	flagOutputFile         = "output-file"
 )
@@ -39,34 +39,34 @@ func init() {
 	ancparams.SetAddressPrefixes()
 }
 
-// PoPExport the data needed to prove ownership of the eots and baby key pairs.
+// PoPExport the data needed to prove ownership of the eots and ntk key pairs.
 type PoPExport struct {
 	// Btc public key is the EOTS PK *anctypes.BIP340PubKey marshal hex
 	EotsPublicKey string `json:"eotsPublicKey"`
-	// Baby public key is the *secp256k1.PubKey marshal hex
-	BabyPublicKey string `json:"babyPublicKey"`
+	// Ntk public key is the *secp256k1.PubKey marshal hex
+	NtkPublicKey string `json:"ntkPublicKey"`
 
 	// Anon key pair signs EOTS public key as hex
-	BabySignEotsPk string `json:"babySignEotsPk"`
-	// Schnorr signature of EOTS private key over the SHA256(Baby address)
-	EotsSignBaby string `json:"eotsSignBaby"`
+	NtkSignEotsPk string `json:"ntkSignEotsPk"`
+	// Schnorr signature of EOTS private key over the SHA256(Ntk address)
+	EotsSignNtk string `json:"eotsSignNtk"`
 
 	// Anon address ex.: anc1f04czxeqprn0s9fe7kdzqyde2e6nqj63dllwsm
-	BabyAddress string `json:"babyAddress"`
+	NtkAddress string `json:"ntkAddress"`
 }
 
 // PoPExportDelete the data needed to delete an ownership previously created.
 type PoPExportDelete struct {
 	// Btc public key is the EOTS PK *anctypes.BIP340PubKey marshal hex
 	EotsPublicKey string `json:"eotsPublicKey"`
-	// Baby public key is the *secp256k1.PubKey marshal hex
-	BabyPublicKey string `json:"babyPublicKey"`
+	// Ntk public key is the *secp256k1.PubKey marshal hex
+	NtkPublicKey string `json:"ntkPublicKey"`
 
 	// Anon key pair signs message
-	BabySignature string `json:"babySignature"`
+	NtkSignature string `json:"ntkSignature"`
 
 	// Anon address ex.: anc1f04czxeqprn0s9fe7kdzqyde2e6nqj63dllwsm
-	BabyAddress string `json:"babyAddress"`
+	NtkAddress string `json:"ntkAddress"`
 }
 
 func NewPopCmd() *cobra.Command {
@@ -87,12 +87,12 @@ func NewPopCmd() *cobra.Command {
 func NewPopExportCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "export",
-		Short: "Exports the Proof of Possession by (1) signing over the BABY address with the EOTS private key and (2) signing over the EOTS public key with the BABY private key.",
-		Long: `Parse the address from the BABY keyring, load the address, hash it with
+		Short: "Exports the Proof of Possession by (1) signing over the NTK address with the EOTS private key and (2) signing over the EOTS public key with the NTK private key.",
+		Long: `Parse the address from the NTK keyring, load the address, hash it with
 		sha256 and sign based on the EOTS key associated with the key-name or eots-pk flag.
 		If the both flags are supplied, eots-pk takes priority. Use the generated signature
-		to build a Proof of Possession. For the creation of the BABY signature over the eots pk,
-		it loads the BABY key pair and signs the eots-pk hex and exports it.`,
+		to build a Proof of Possession. For the creation of the NTK signature over the eots pk,
+		it loads the NTK key pair and signs the eots-pk hex and exports it.`,
 		RunE: exportPop,
 	}
 
@@ -103,9 +103,9 @@ func NewPopExportCmd() *cobra.Command {
 	f.String(eotsPkFlag, "", "EOTS public key of the finality-provider")
 	f.String(sdkflags.FlagKeyringBackend, keyring.BackendTest, "EOTS backend of the keyring")
 
-	f.String(flagHomeBaby, "", "BABY home directory")
-	f.String(flagKeyNameBaby, "", "BABY key name")
-	f.String(flagKeyringBackendBaby, keyring.BackendTest, "BABY backend of the keyring")
+	f.String(flagHomeNtk, "", "NTK home directory")
+	f.String(flagKeyNameNtk, "", "NTK key name")
+	f.String(flagKeyringBackendNtk, keyring.BackendTest, "NTK backend of the keyring")
 
 	f.String(flagOutputFile, "", "Path to output JSON file")
 
@@ -129,7 +129,7 @@ func NewPopDeleteCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete",
 		Short: "Generate the delete data for removing a proof of possession previously created.",
-		Long: `Parse the message from the flag --message and sign with the BABY keyring, it also loads
+		Long: `Parse the message from the flag --message and sign with the NTK keyring, it also loads
 		the EOTS public key based on the EOTS key associated with the key-name or eots-pk flag.
 		If the both flags are supplied, eots-pk takes priority.`,
 		RunE: deletePop,
@@ -142,9 +142,9 @@ func NewPopDeleteCmd() *cobra.Command {
 	f.String(eotsPkFlag, "", "EOTS public key of the finality-provider")
 	f.String(sdkflags.FlagKeyringBackend, keyring.BackendTest, "EOTS backend of the keyring")
 
-	f.String(flagHomeBaby, "", "BABY home directory")
-	f.String(flagKeyNameBaby, "", "BABY key name")
-	f.String(flagKeyringBackendBaby, keyring.BackendTest, "BABY backend of the keyring")
+	f.String(flagHomeNtk, "", "NTK home directory")
+	f.String(flagKeyNameNtk, "", "NTK key name")
+	f.String(flagKeyringBackendNtk, keyring.BackendTest, "NTK backend of the keyring")
 
 	f.String(flagMessage, "", "Message to be signed")
 
@@ -187,12 +187,12 @@ func exportPop(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	babyHomePath, babyKeyName, babyKeyringBackend, err := babyFlags(cmd)
+	ntkHomePath, ntkKeyName, ntkKeyringBackend, err := ntkFlags(cmd)
 	if err != nil {
 		return err
 	}
 
-	babyKeyring, babyPubKey, ancAddr, err := babyKeyring(babyHomePath, babyKeyName, babyKeyringBackend, cmd.InOrStdin())
+	ntkKeyring, ntkPubKey, ancAddr, err := ntkKeyring(ntkHomePath, ntkKeyName, ntkKeyringBackend, cmd.InOrStdin())
 	if err != nil {
 		return err
 	}
@@ -205,25 +205,25 @@ func exportPop(cmd *cobra.Command, _ []string) error {
 
 	ancAddrStr := ancAddr.String()
 	hashOfMsgToSign := tmhash.Sum([]byte(ancAddrStr))
-	schnorrSigOverBabyAddr, eotsPk, err := eotsSignMsg(eotsManager, eotsKeyName, eotsFpPubKeyStr, hashOfMsgToSign)
+	schnorrSigOverNtkAddr, eotsPk, err := eotsSignMsg(eotsManager, eotsKeyName, eotsFpPubKeyStr, hashOfMsgToSign)
 	if err != nil {
 		return fmt.Errorf("failed to sign address %s: %w", ancAddrStr, err)
 	}
 
 	eotsPkHex := eotsPk.MarshalHex()
-	babySignature, err := SignCosmosAdr36(babyKeyring, babyKeyName, ancAddrStr, []byte(eotsPkHex))
+	ntkSignature, err := SignCosmosAdr36(ntkKeyring, ntkKeyName, ancAddrStr, []byte(eotsPkHex))
 	if err != nil {
 		return err
 	}
 
 	out := PoPExport{
 		EotsPublicKey: eotsPkHex,
-		BabyPublicKey: base64.StdEncoding.EncodeToString(babyPubKey.Bytes()),
+		NtkPublicKey: base64.StdEncoding.EncodeToString(ntkPubKey.Bytes()),
 
-		BabyAddress: ancAddrStr,
+		NtkAddress: ancAddrStr,
 
-		EotsSignBaby:   base64.StdEncoding.EncodeToString(schnorrSigOverBabyAddr.Serialize()),
-		BabySignEotsPk: base64.StdEncoding.EncodeToString(babySignature),
+		EotsSignNtk:   base64.StdEncoding.EncodeToString(schnorrSigOverNtkAddr.Serialize()),
+		NtkSignEotsPk: base64.StdEncoding.EncodeToString(ntkSignature),
 	}
 
 	return handleOutputJSON(cmd, out)
@@ -235,12 +235,12 @@ func deletePop(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	babyHomePath, babyKeyName, babyKeyringBackend, err := babyFlags(cmd)
+	ntkHomePath, ntkKeyName, ntkKeyringBackend, err := ntkFlags(cmd)
 	if err != nil {
 		return err
 	}
 
-	babyKeyring, babyPubKey, ancAddr, err := babyKeyring(babyHomePath, babyKeyName, babyKeyringBackend, cmd.InOrStdin())
+	ntkKeyring, ntkPubKey, ancAddr, err := ntkKeyring(ntkHomePath, ntkKeyName, ntkKeyringBackend, cmd.InOrStdin())
 	if err != nil {
 		return err
 	}
@@ -262,44 +262,44 @@ func deletePop(cmd *cobra.Command, _ []string) error {
 	}
 
 	ancAddrStr := ancAddr.String()
-	babySignature, err := SignCosmosAdr36(babyKeyring, babyKeyName, ancAddrStr, []byte(interpretedMsg))
+	ntkSignature, err := SignCosmosAdr36(ntkKeyring, ntkKeyName, ancAddrStr, []byte(interpretedMsg))
 	if err != nil {
 		return err
 	}
 
 	out := PoPExportDelete{
 		EotsPublicKey: btcPubKey.MarshalHex(),
-		BabyPublicKey: base64.StdEncoding.EncodeToString(babyPubKey.Bytes()),
+		NtkPublicKey: base64.StdEncoding.EncodeToString(ntkPubKey.Bytes()),
 
-		BabyAddress: ancAddrStr,
+		NtkAddress: ancAddrStr,
 
-		BabySignature: base64.StdEncoding.EncodeToString(babySignature),
+		NtkSignature: base64.StdEncoding.EncodeToString(ntkSignature),
 	}
 
 	return handleOutputJSON(cmd, out)
 }
 
-// babyFlags returns the values of flagHomeBaby, flagKeyNameBaby and
-// flagKeyringBackendBaby respectively or error if something fails
-func babyFlags(cmd *cobra.Command) (string, string, string, error) {
+// ntkFlags returns the values of flagHomeNtk, flagKeyNameNtk and
+// flagKeyringBackendNtk respectively or error if something fails
+func ntkFlags(cmd *cobra.Command) (string, string, string, error) {
 	f := cmd.Flags()
 
-	babyHomePath, err := getCleanPath(cmd, flagHomeBaby)
+	ntkHomePath, err := getCleanPath(cmd, flagHomeNtk)
 	if err != nil {
-		return "", "", "", fmt.Errorf("failed to load baby home flag: %w", err)
+		return "", "", "", fmt.Errorf("failed to load ntk home flag: %w", err)
 	}
 
-	babyKeyName, err := f.GetString(flagKeyNameBaby)
+	ntkKeyName, err := f.GetString(flagKeyNameNtk)
 	if err != nil {
-		return "", "", "", fmt.Errorf("failed to get baby key name: %w", err)
+		return "", "", "", fmt.Errorf("failed to get ntk key name: %w", err)
 	}
 
-	babyKeyringBackend, err := f.GetString(flagKeyringBackendBaby)
+	ntkKeyringBackend, err := f.GetString(flagKeyringBackendNtk)
 	if err != nil {
-		return "", "", "", fmt.Errorf("failed to get baby keyring backend: %w", err)
+		return "", "", "", fmt.Errorf("failed to get ntk keyring backend: %w", err)
 	}
 
-	return babyHomePath, babyKeyName, babyKeyringBackend, nil
+	return ntkHomePath, ntkKeyName, ntkKeyringBackend, nil
 }
 
 // eotsFlags returns the values of FlagHome, keyNameFlag,
@@ -383,27 +383,27 @@ func handleOutputJSON(cmd *cobra.Command, out any) error {
 	return nil
 }
 
-func babyKeyring(
-	babyHomePath, babyKeyName, babyKeyringBackend string,
+func ntkKeyring(
+	ntkHomePath, ntkKeyName, ntkKeyringBackend string,
 	userInput io.Reader,
 ) (keyring.Keyring, *secp256k1.PubKey, sdk.AccAddress, error) {
 	cdc := codec.MakeCodec()
-	babyKeyring, err := keyring.New("baby", babyKeyringBackend, babyHomePath, userInput, cdc)
+	ntkKeyring, err := keyring.New("ntk", ntkKeyringBackend, ntkHomePath, userInput, cdc)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("failed to create keyring: %w", err)
 	}
 
-	babyKeyRecord, err := babyKeyring.Key(babyKeyName)
+	ntkKeyRecord, err := ntkKeyring.Key(ntkKeyName)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to get baby keyring: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to get ntk keyring: %w", err)
 	}
 
-	babyPubKey, err := babyPk(babyKeyRecord)
+	ntkPubKey, err := ntkPk(ntkKeyRecord)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("failed to get baby public key: %w", err)
+		return nil, nil, nil, fmt.Errorf("failed to get ntk public key: %w", err)
 	}
 
-	return babyKeyring, babyPubKey, sdk.AccAddress(babyPubKey.Address().Bytes()), nil
+	return ntkKeyring, ntkPubKey, sdk.AccAddress(ntkPubKey.Address().Bytes()), nil
 }
 
 func loadEotsManager(eotsHomePath, eotsFpPubKeyStr, eotsKeyName, eotsKeyringBackend string) (*eotsmanager.LocalEOTSManager, error) {
@@ -454,7 +454,7 @@ func SignCosmosAdr36(
 
 	bz := sdk.MustSortJSON(marshaled)
 
-	babySignBytes, _, err := kr.Sign(
+	ntkSignBytes, _, err := kr.Sign(
 		keyName,
 		bz,
 		signing.SignMode_SIGN_MODE_DIRECT,
@@ -464,30 +464,30 @@ func SignCosmosAdr36(
 		return nil, fmt.Errorf("failed to sign btc address bytes: %w", err)
 	}
 
-	return babySignBytes, nil
+	return ntkSignBytes, nil
 }
 
 func ValidPopExport(pop PoPExport) (bool, error) {
-	valid, err := ValidEotsSignBaby(pop.EotsPublicKey, pop.BabyAddress, pop.EotsSignBaby)
+	valid, err := ValidEotsSignNtk(pop.EotsPublicKey, pop.NtkAddress, pop.EotsSignNtk)
 	if err != nil || !valid {
 		return false, err
 	}
 
-	return ValidBabySignEots(
-		pop.BabyPublicKey,
-		pop.BabyAddress,
+	return ValidNtkSignEots(
+		pop.NtkPublicKey,
+		pop.NtkAddress,
 		pop.EotsPublicKey,
-		pop.BabySignEotsPk,
+		pop.NtkSignEotsPk,
 	)
 }
 
-func ValidEotsSignBaby(eotsPk, babyAddr, eotsSigOverBabyAddr string) (bool, error) {
+func ValidEotsSignNtk(eotsPk, ntkAddr, eotsSigOverNtkAddr string) (bool, error) {
 	eotsPubKey, err := anctypes.NewBIP340PubKeyFromHex(eotsPk)
 	if err != nil {
 		return false, fmt.Errorf("failed to parse eots public key: %w", err)
 	}
 
-	schnorrSigBase64, err := base64.StdEncoding.DecodeString(eotsSigOverBabyAddr)
+	schnorrSigBase64, err := base64.StdEncoding.DecodeString(eotsSigOverNtkAddr)
 	if err != nil {
 		return false, fmt.Errorf("failed to decode signature: %w", err)
 	}
@@ -496,19 +496,19 @@ func ValidEotsSignBaby(eotsPk, babyAddr, eotsSigOverBabyAddr string) (bool, erro
 	if err != nil {
 		return false, fmt.Errorf("failed to parse schnorr signature: %w", err)
 	}
-	sha256Addr := tmhash.Sum([]byte(babyAddr))
+	sha256Addr := tmhash.Sum([]byte(ntkAddr))
 
 	return schnorrSig.Verify(sha256Addr, eotsPubKey.MustToBTCPK()), nil
 }
 
-func ValidBabySignEots(babyPk, babyAddr, eotsPkHex, babySigOverEotsPk string) (bool, error) {
-	babyPubKeyBz, err := base64.StdEncoding.DecodeString(babyPk)
+func ValidNtkSignEots(ntkPk, ntkAddr, eotsPkHex, ntkSigOverEotsPk string) (bool, error) {
+	ntkPubKeyBz, err := base64.StdEncoding.DecodeString(ntkPk)
 	if err != nil {
-		return false, fmt.Errorf("failed to parse baby public key: %w", err)
+		return false, fmt.Errorf("failed to parse ntk public key: %w", err)
 	}
 
-	babyPubKey := &secp256k1.PubKey{
-		Key: babyPubKeyBz,
+	ntkPubKey := &secp256k1.PubKey{
+		Key: ntkPubKeyBz,
 	}
 
 	eotsPk, err := anctypes.NewBIP340PubKeyFromHex(eotsPkHex)
@@ -516,28 +516,28 @@ func ValidBabySignEots(babyPk, babyAddr, eotsPkHex, babySigOverEotsPk string) (b
 		return false, fmt.Errorf("failed to parse eots public key: %w", err)
 	}
 
-	babySignEots := []byte(eotsPk.MarshalHex())
-	base64Bytes := base64.StdEncoding.EncodeToString(babySignEots)
-	babySignBtcDoc := NewCosmosSignDoc(babyAddr, base64Bytes)
-	babySignBtcMarshaled, err := json.Marshal(babySignBtcDoc)
+	ntkSignEots := []byte(eotsPk.MarshalHex())
+	base64Bytes := base64.StdEncoding.EncodeToString(ntkSignEots)
+	ntkSignBtcDoc := NewCosmosSignDoc(ntkAddr, base64Bytes)
+	ntkSignBtcMarshaled, err := json.Marshal(ntkSignBtcDoc)
 	if err != nil {
 		return false, fmt.Errorf("failed to marshal sign doc: %w", err)
 	}
 
-	babySignEotsBz := sdk.MustSortJSON(babySignBtcMarshaled)
+	ntkSignEotsBz := sdk.MustSortJSON(ntkSignBtcMarshaled)
 
-	secp256SigBase64, err := base64.StdEncoding.DecodeString(babySigOverEotsPk)
+	secp256SigBase64, err := base64.StdEncoding.DecodeString(ntkSigOverEotsPk)
 	if err != nil {
-		return false, fmt.Errorf("failed to parse baby signature: %w", err)
+		return false, fmt.Errorf("failed to parse ntk signature: %w", err)
 	}
 
-	return babyPubKey.VerifySignature(babySignEotsBz, secp256SigBase64), nil
+	return ntkPubKey.VerifySignature(ntkSignEotsBz, secp256SigBase64), nil
 }
 
-func babyPk(babyRecord *keyring.Record) (*secp256k1.PubKey, error) {
-	pubKey, err := babyRecord.GetPubKey()
+func ntkPk(ntkRecord *keyring.Record) (*secp256k1.PubKey, error) {
+	pubKey, err := ntkRecord.GetPubKey()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get baby public key: %w", err)
+		return nil, fmt.Errorf("failed to get ntk public key: %w", err)
 	}
 
 	switch v := pubKey.(type) {

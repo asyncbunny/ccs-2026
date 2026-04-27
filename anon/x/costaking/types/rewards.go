@@ -17,11 +17,11 @@ func NewCostakerRewardsTrackerBasic(startPeriod uint64, totalScore sdkmath.Int) 
 	}
 }
 
-func NewCostakerRewardsTracker(startPeriod uint64, activeSats, activeBaby, totalScore sdkmath.Int) CostakerRewardsTracker {
+func NewCostakerRewardsTracker(startPeriod uint64, activeSats, activeNtk, totalScore sdkmath.Int) CostakerRewardsTracker {
 	return CostakerRewardsTracker{
 		StartPeriodCumulativeReward: startPeriod,
 		ActiveSatoshis:              activeSats,
-		ActiveBaby:                  activeBaby,
+		ActiveNtk:                  activeNtk,
 		TotalScore:                  totalScore,
 	}
 }
@@ -90,8 +90,8 @@ func (crt CostakerRewardsTracker) Validate() error {
 	if !crt.TotalScore.IsNil() && crt.TotalScore.IsNegative() {
 		return ErrInvalidCostakerRwdTracker.Wrapf("has negative total score %s", crt.TotalScore.String())
 	}
-	if !crt.ActiveBaby.IsNil() && crt.ActiveBaby.IsNegative() {
-		return ErrInvalidCostakerRwdTracker.Wrapf("has negative active baby %s", crt.ActiveBaby.String())
+	if !crt.ActiveNtk.IsNil() && crt.ActiveNtk.IsNegative() {
+		return ErrInvalidCostakerRwdTracker.Wrapf("has negative active ntk %s", crt.ActiveNtk.String())
 	}
 	if !crt.ActiveSatoshis.IsNil() && crt.ActiveSatoshis.IsNegative() {
 		return ErrInvalidCostakerRwdTracker.Wrapf("has negative active sats %s", crt.ActiveSatoshis.String())
@@ -100,9 +100,9 @@ func (crt CostakerRewardsTracker) Validate() error {
 }
 
 func (crt *CostakerRewardsTracker) Sanitize() {
-	// Handle the case where ActiveBaby is -1 due to rounding when the validator
+	// Handle the case where ActiveNtk is -1 due to rounding when the validator
 	// lost its 1:1 ratio between shares and tokens due to slashing
-	if crt.ActiveBaby.Equal(sdkmath.NewInt(-1)) {
-		crt.ActiveBaby = sdkmath.ZeroInt()
+	if crt.ActiveNtk.Equal(sdkmath.NewInt(-1)) {
+		crt.ActiveNtk = sdkmath.ZeroInt()
 	}
 }

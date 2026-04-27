@@ -117,7 +117,7 @@ onto the chain:
   (i.e., for Anon Genesis mainnet use the same key as with the Phase-1 mainnet).
   More details on how to register a Finality Provider or migrate the Phase-1
   EOTS key to Anon Genesis can be found
-  [here](https://github.com/anon-org/finality-provider).
+  [here](#).
 * **BTC Stake Registration** Bitcoin stakes for which their hash
   is included in the allow-list and the Finality Provider to which
   they have been delegated to has registered
@@ -177,7 +177,7 @@ anond query btcstaking params --node <rpcnode>
 
 * through an LCD/API node connection (you can find one
   for the Anon Genesis public networks
-  [here](https://github.com/anon-org/networks))
+  [here](#))
 * by parsing through the upgrade handler responsible for specifying it
   (e.g., for testnet)
 
@@ -188,7 +188,7 @@ app/upgrades/v1/testnet/btcstaking_params.go
 **Retrieving the Allow-list of Staking Transaction Hashes**
 The transaction hashes in the allow-list are hardcoded in
 the codebase for each different deployed
-[network](https://github.com/anon-org/networks).
+[network](#).
 For example, the testnet allow-list transaction
 hashes can be found here:
 

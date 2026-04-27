@@ -10,14 +10,14 @@ var (
 	// balances will go to costakers. Reminder that incentives gets
 	// his portion first, than costaking than the rest goes to distribution.
 	DefaultCostakingPortion = math.LegacyMustNewDecFromStr("0.531073446")
-	// DefaultScoreRatioBtcByBaby defines the min number of baby staked to
+	// DefaultScoreRatioBtcByNtk defines the min number of ntk staked to
 	// make one BTC count as score. Each BTC staked should have at least 20k
-	// BABY staked. Tranlating that into sats and uanc the ratio should be
-	// (20k * conversion baby to uanc / conversion BTC to sats)
+	// NTK staked. Tranlating that into sats and uanc the ratio should be
+	// (20k * conversion ntk to uanc / conversion BTC to sats)
 	// 20_000 * 1_000_000 uanc / 100_000_000 sats= 200 uanc per sat
-	DefaultScoreRatioBtcByBaby = math.NewInt(200)
+	DefaultScoreRatioBtcByNtk = math.NewInt(200)
 	// DefaultValidatorsPortion defines how much of the fee_collector
-	// remaining balances will go directly to baby validators
+	// remaining balances will go directly to ntk validators
 	DefaultValidatorsPortion = math.LegacyMustNewDecFromStr("0.016949153")
 )
 
@@ -25,7 +25,7 @@ var (
 func DefaultParams() Params {
 	return Params{
 		CostakingPortion:    DefaultCostakingPortion,
-		ScoreRatioBtcByBaby: DefaultScoreRatioBtcByBaby,
+		ScoreRatioBtcByNtk: DefaultScoreRatioBtcByNtk,
 		ValidatorsPortion:   DefaultValidatorsPortion,
 	}
 }
@@ -43,11 +43,11 @@ func (p Params) Validate() error {
 		return errorsmod.Wrapf(err, "invalid total portion; costaking (%s) + validators (%s)", p.CostakingPortion, p.ValidatorsPortion)
 	}
 
-	if p.ScoreRatioBtcByBaby.IsNil() {
-		return ErrInvalidScoreRatioBtcByBaby
+	if p.ScoreRatioBtcByNtk.IsNil() {
+		return ErrInvalidScoreRatioBtcByNtk
 	}
 
-	if p.ScoreRatioBtcByBaby.LT(math.OneInt()) {
+	if p.ScoreRatioBtcByNtk.LT(math.OneInt()) {
 		return ErrScoreRatioTooLow
 	}
 

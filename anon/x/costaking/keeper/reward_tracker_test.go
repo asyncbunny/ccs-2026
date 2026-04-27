@@ -384,23 +384,23 @@ func TestCostakerModifiedActiveAmounts(t *testing.T) {
 	k, ctx := NewKeeperWithMockIncentiveKeeper(t, nil)
 
 	dp := types.DefaultParams()
-	dp.ScoreRatioBtcByBaby = sdkmath.NewInt(50)
+	dp.ScoreRatioBtcByNtk = sdkmath.NewInt(50)
 	err := k.SetParams(ctx, dp)
 	require.NoError(t, err)
 
 	// costaker still doesn't exist
 	costaker := datagen.GenRandomAddress()
 	activeSats := sdkmath.NewInt(1000)
-	activeBaby := sdkmath.NewInt(150)
+	activeNtk := sdkmath.NewInt(150)
 
-	err = k.costakerModifiedActiveAmounts(ctx, costaker, activeSats, activeBaby)
+	err = k.costakerModifiedActiveAmounts(ctx, costaker, activeSats, activeNtk)
 	require.NoError(t, err)
 
 	// min(1000, 150/50) = 3
 	actCostaker, err := k.GetCostakerRewards(ctx, costaker)
 	require.NoError(t, err)
 	require.Equal(t, actCostaker.StartPeriodCumulativeReward, uint64(1)) // periods always starts at 1
-	require.Equal(t, actCostaker.ActiveBaby, activeBaby)
+	require.Equal(t, actCostaker.ActiveNtk, activeNtk)
 	require.Equal(t, actCostaker.ActiveSatoshis, activeSats)
 	require.Equal(t, actCostaker.TotalScore, sdkmath.NewInt(3))
 
@@ -413,12 +413,12 @@ func TestCostakerModifiedActiveAmounts(t *testing.T) {
 	// simulate new active sats, but since it is less than the the previous the total score doesn't change
 	// also the period doesn't need to change
 	newActiveSats := sdkmath.NewInt(500)
-	err = k.costakerModifiedActiveAmounts(ctx, costaker, newActiveSats, activeBaby)
+	err = k.costakerModifiedActiveAmounts(ctx, costaker, newActiveSats, activeNtk)
 	require.NoError(t, err)
 	newActCostaker, err := k.GetCostakerRewards(ctx, costaker)
 	require.NoError(t, err)
 	require.Equal(t, newActCostaker.StartPeriodCumulativeReward, uint64(1))
-	require.Equal(t, newActCostaker.ActiveBaby, activeBaby)
+	require.Equal(t, newActCostaker.ActiveNtk, activeNtk)
 	require.Equal(t, newActCostaker.ActiveSatoshis, newActiveSats)
 	require.Equal(t, newActCostaker.TotalScore, actCostaker.TotalScore)
 
@@ -428,15 +428,15 @@ func TestCostakerModifiedActiveAmounts(t *testing.T) {
 	require.Equal(t, newCurrRwd.TotalScore, currRwd.TotalScore)
 	require.Equal(t, newCurrRwd.Rewards.String(), currRwd.Rewards.String())
 
-	// simulate a change in the baby and sats amount
-	newActiveBaby := sdkmath.NewInt(45000)
+	// simulate a change in the ntk and sats amount
+	newActiveNtk := sdkmath.NewInt(45000)
 	newActiveSats = sdkmath.NewInt(500)
-	err = k.costakerModifiedActiveAmounts(ctx, costaker, newActiveSats, newActiveBaby)
+	err = k.costakerModifiedActiveAmounts(ctx, costaker, newActiveSats, newActiveNtk)
 	require.NoError(t, err)
 	newActCostaker1, err := k.GetCostakerRewards(ctx, costaker)
 	require.NoError(t, err)
 	require.Equal(t, newActCostaker1.StartPeriodCumulativeReward, newCurrRwd.Period)
-	require.Equal(t, newActCostaker1.ActiveBaby, newActiveBaby)
+	require.Equal(t, newActCostaker1.ActiveNtk, newActiveNtk)
 	require.Equal(t, newActCostaker1.ActiveSatoshis, newActiveSats)
 	// min(500, 45000/50) = 500
 	expTotalScore := sdkmath.NewInt(500)
@@ -457,15 +457,15 @@ func TestCostakerModifiedActiveAmounts(t *testing.T) {
 	// second costaker comes in with score of 250
 	costakr2 := datagen.GenRandomAddress()
 	activeSatsCo2 := sdkmath.NewInt(500)
-	activeBabyCo2 := sdkmath.NewInt(12500)
+	activeNtkCo2 := sdkmath.NewInt(12500)
 
 	// min(500, 12500/50) = 250
-	err = k.costakerModifiedActiveAmounts(ctx, costakr2, activeSatsCo2, activeBabyCo2)
+	err = k.costakerModifiedActiveAmounts(ctx, costakr2, activeSatsCo2, activeNtkCo2)
 	require.NoError(t, err)
 	actCostaker2, err := k.GetCostakerRewards(ctx, costakr2)
 	require.NoError(t, err)
 	require.Equal(t, actCostaker2.StartPeriodCumulativeReward, uint64(3))
-	require.Equal(t, actCostaker2.ActiveBaby, activeBabyCo2)
+	require.Equal(t, actCostaker2.ActiveNtk, activeNtkCo2)
 	require.Equal(t, actCostaker2.ActiveSatoshis, activeSatsCo2)
 	require.Equal(t, actCostaker2.TotalScore, sdkmath.NewInt(250))
 
@@ -492,7 +492,7 @@ func TestGetCostakerRewardsOrInitialize(t *testing.T) {
 	emptyInitialized, err := k.GetCostakerRewardsOrInitialize(ctx, costaker)
 	require.NoError(t, err)
 	require.Equal(t, emptyInitialized.StartPeriodCumulativeReward, uint64(1)) // current reward
-	require.Equal(t, emptyInitialized.ActiveBaby, sdkmath.ZeroInt())
+	require.Equal(t, emptyInitialized.ActiveNtk, sdkmath.ZeroInt())
 	require.Equal(t, emptyInitialized.ActiveSatoshis, sdkmath.ZeroInt())
 	require.Equal(t, emptyInitialized.TotalScore, sdkmath.ZeroInt())
 
@@ -503,7 +503,7 @@ func TestGetCostakerRewardsOrInitialize(t *testing.T) {
 	act, err := k.GetCostakerRewardsOrInitialize(ctx, costaker)
 	require.NoError(t, err)
 	require.Equal(t, act.StartPeriodCumulativeReward, exp.StartPeriodCumulativeReward)
-	require.Equal(t, act.ActiveBaby.String(), exp.ActiveBaby.String())
+	require.Equal(t, act.ActiveNtk.String(), exp.ActiveNtk.String())
 	require.Equal(t, act.ActiveSatoshis.String(), exp.ActiveSatoshis.String())
 	require.Equal(t, act.TotalScore.String(), exp.TotalScore.String())
 }

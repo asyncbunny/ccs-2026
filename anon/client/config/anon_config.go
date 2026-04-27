@@ -86,7 +86,7 @@ func DefaultAnonConfig() AnonConfig {
 }
 
 // defaultAnonHome returns the default Anon node directory, which is $HOME/.anond
-// copied from https://github.com/anon-org/anon/v4/blob/648b804bc492ded2cb826ba261d7164b4614d78a/app/app.go#L205-L210
+// copied from #
 func defaultAnonHome() string {
 	userHomeDir, err := os.UserHomeDir()
 	if err != nil {

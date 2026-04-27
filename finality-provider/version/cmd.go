@@ -8,7 +8,7 @@ import (
 )
 
 // AddVersionCommands adds all the version-related commands to the provided command.
-// The version commands are generic to {Anon, Cosmos BSN, rollup BSN} finality providers
+// The version commands are generic to {Anon, Cosmos CSN, rollup CSN} finality providers
 func AddVersionCommands(cmd *cobra.Command, binaryName string) {
 	cmd.AddCommand(CommandVersion(binaryName))
 }

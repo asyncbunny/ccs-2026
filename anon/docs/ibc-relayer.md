@@ -71,7 +71,7 @@ anond query btccheckpoint params
 ```
 
 For RPC and LCD endpoints for different networks, refer to
-the [Anon Networks Repository](https://github.com/anon-org/networks/tree/main/anc-test-6).
+the [Anon Networks Repository](#).
 
 ## Relayer Configuration
 
@@ -131,4 +131,4 @@ For detailed steps on how to submit an IBC client recovery proposal, refer to
 the [IBC Governance Proposals Guide](https://ibc.cosmos.network/main/ibc/proposals.html#steps).
 For more information about submitting governance proposals on Anon, including
 parameters and requirements, see
-the [Anon Governance Guide](https://docs.anon.io/guides/governance/).
+the [Anon Governance Guide](#).

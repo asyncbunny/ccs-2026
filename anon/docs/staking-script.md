@@ -12,25 +12,16 @@
 
 ## 1. Introduction
 
-The Anon BTC Staking protocol turns Bitcoin into a staking asset,
-aiming to onboard both the asset and its holders to the
-Bitcoin Supercharged Networks (BSNs) ecosystem and the Anon Genesis
-chain (the first BSN).
+This document specifies the structure of the Bitcoin transactions
+involved in the BTC Staking protocol. Bitcoin holders stake their
+BTC by locking it using a special transaction on the Bitcoin network;
+the locked BTC contributes to the economic security of one or more
+Consumer Secured Networks (CSNs).
 
-Bitcoin holders can stake their BTC by locking it using a
-special transaction on the Bitcoin network.
-Once locked, the Bitcoin contributes to the economic security of
-BSNs selected to be secured,
-which in turn enables new opportunities for stakers,
-such as earning staking yields.
-
-This document specifies the structure of the transactions involved
-in the BTC Staking protocol.
-These transactions must conform to a defined format and
-commit to specific Taproot scripts.
-The values in these scripts are governed by
-parameters defined on the Anon Genesis chain and
-the staker's selections.
+These transactions must conform to a defined format and commit to
+specific Taproot scripts. The values in these scripts are governed
+by parameters defined on the Anon Genesis chain and the staker's
+selections.
 
 > ⚡ For information on retrieving Anon Genesis parameters and
 > registering valid staking transactions,
@@ -64,18 +55,18 @@ The Bitcoin Staking protocol involves the following stakeholders:
   to a finality provider.
   A finality provider is identified by their EOTS public
   key (`<FinalityProviderPk>`) and participates in the finality
-  voting round of a specific BSN.
+  voting round of a specific CSN.
   The selection of a finality provider also implicitly determines
-  the BSN they secure, as each provider may only secure one BSN.
+  the CSN they secure, as each provider may only secure one CSN.
   Bitcoin stakers specify their chosen finality provider by including
   their EOTS key in the staking script.
   > ⚠️ Currently, only a single finality provider securing the Anon Genesis chain
-  > can be selected. Future protocol versions will support additional BSNs and allow
+  > can be selected. Future protocol versions will support additional CSNs and allow
   > BTC stakers to delegate to providers securing those networks.
 * **Covenant Committee**:
   The role of the covenant committee (identified
   by the Bitcoin public keys of its members `CovenantPk1..CovenantPkN`)
-  is to protect BSNs against attacks from the BTC stakers and finality providers.
+  is to protect CSNs against attacks from the BTC stakers and finality providers.
   It achieves this by representing itself as an M-out-of-N multi-signature
   that co-signs BTC transactions with the BTC staker. Through co-signing,
   the covenant committee enforces spending rules on the staked Bitcoin,
@@ -85,10 +76,10 @@ The Bitcoin Staking protocol involves the following stakeholders:
   There's no way the covenant committee can act against the stakers,
   except rejecting their staking requests.
 * **Anon Genesis chain**:
-  The Anon Genesis chain is the first BSN and acts as the control layer
+  The Anon Genesis chain is the first CSN and acts as the control layer
   for the BTC staking protocol. All Bitcoin stakes and finality providers
   must be registered on the Anon Genesis chain.
-  It is also responsible for propagating staking-related data to other BSNs.
+  It is also responsible for propagating staking-related data to other CSNs.
 
 > ⚠️ Staking scripts must not contain duplicate keys.
 > The public keys for `StakerPk`, `FinalityProviderPk`, and each `CovenantPk`

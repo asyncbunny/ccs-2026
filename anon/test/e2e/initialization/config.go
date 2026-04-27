@@ -172,7 +172,7 @@ func initGenesis(
 		}
 
 		if chain.chainMeta.Id == ChainAID {
-			// add random coins to test bsn rewards
+			// add random coins to test csn rewards
 			r := rand.New(rand.NewSource(time.Now().Unix()))
 			initialFundsA := datagen.GenRandomCoins(r).MulInt(sdkmath.NewInt(10))
 			initialFundsA = initialFundsA.Add(sdk.NewCoin(AnonDenom, sdkmath.NewInt(AnonBalanceA)))

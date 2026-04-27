@@ -1,7 +1,7 @@
 # Stub test contract
 
 This folder contains bogus test contract which just exposes public api from
-example contract from anon bindings repo - https://github.com/anon-org/bindings/tree/main/contracts/example
+example contract from anon bindings repo - #
 
 This approach enables us to specify which branch from bindings library we want to test/use.
 

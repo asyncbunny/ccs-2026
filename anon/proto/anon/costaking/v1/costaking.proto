@@ -16,11 +16,11 @@ message Params {
     (gogoproto.customtype) = "cosmossdk.io/math.LegacyDec",
     (gogoproto.nullable) = false
   ];
-  // ScoreRatioBtcByBaby defines the amount of uanc necessary for the
+  // ScoreRatioBtcByNtk defines the amount of uanc necessary for the
   // sats staked to count as score in the formula.
   // score: min(costakers_sats_staked, (costakers_uanc_staked /
-  // score_ratio_btc_by_baby))
-  bytes score_ratio_btc_by_baby = 2 [
+  // score_ratio_btc_by_ntk))
+  bytes score_ratio_btc_by_ntk = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false

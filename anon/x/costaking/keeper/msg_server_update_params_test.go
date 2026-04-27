@@ -34,19 +34,19 @@ func TestMsgUpdateParamsUpdateAllCostakersScore(t *testing.T) {
 	initialRatio := sdkmath.NewInt(50)
 
 	dp := types.DefaultParams()
-	dp.ScoreRatioBtcByBaby = initialRatio
+	dp.ScoreRatioBtcByNtk = initialRatio
 	err := k.SetParams(ctx, dp)
 	require.NoError(t, err)
 
-	// Costaker 1: 5000 sats, 50000 baby -> score = min(5000, 50000/50) = 1000
+	// Costaker 1: 5000 sats, 50000 ntk -> score = min(5000, 50000/50) = 1000
 	err = k.costakerModifiedActiveAmounts(ctx, costk1, sdkmath.NewInt(5000), sdkmath.NewInt(50000))
 	require.NoError(t, err)
 
-	// Costaker 2: 10000 sats, 100000 baby -> score = min(10000, 100000/50) = 2000
+	// Costaker 2: 10000 sats, 100000 ntk -> score = min(10000, 100000/50) = 2000
 	err = k.costakerModifiedActiveAmounts(ctx, costk2, sdkmath.NewInt(10000), sdkmath.NewInt(100000))
 	require.NoError(t, err)
 
-	// Costaker 3: 5000 sats, 0 baby -> score = min(5000, 0/50) = 0
+	// Costaker 3: 5000 sats, 0 ntk -> score = min(5000, 0/50) = 0
 	err = k.costakerModifiedActiveAmounts(ctx, costk3, sdkmath.NewInt(5000), sdkmath.ZeroInt())
 	require.NoError(t, err)
 
@@ -80,7 +80,7 @@ func TestMsgUpdateParamsUpdateAllCostakersScore(t *testing.T) {
 	// This changes the ratio from 50 to 25, doubling scores for these costakers
 	newRatio := sdkmath.NewInt(25)
 	t.Logf("\n=== GOVERNANCE PARAMETER UPDATE ===")
-	t.Logf("ScoreRatioBtcByBaby: 50 -> 25")
+	t.Logf("ScoreRatioBtcByNtk: 50 -> 25")
 
 	ictvK.EXPECT().AccumulateRewardGaugeForCostaker(gomock.Any(), costk1, cost1RewardsBefore).Times(1)
 	bankK.EXPECT().SendCoinsFromModuleToModule(gomock.Any(), types.ModuleName, ictvtypes.ModuleName, cost1RewardsBefore).Times(1)

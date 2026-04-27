@@ -25,7 +25,7 @@ RUN addgroup --gid 1137 --system anon && adduser --uid 1137 --gid 1137 --system 
 RUN apt-get update && apt-get install -y bash curl jq wget
 
 # Label should match your github repo
-LABEL org.opencontainers.image.source="https://github.com/anon-org/anond:${VERSION}"
+LABEL org.opencontainers.image.source="#:${VERSION}"
 
 # Install libraries
 # Cosmwasm - Download correct libwasmvm version

@@ -108,7 +108,7 @@ mechanism of the Staking module.
 In addition, the Staking module enforces the "21-day unbonding rule": unbonding
 validators and delegations will become unbonded after 21 days (in the default
 case). The long unbonding period aims to circumvent the [long-range
-attack](https://medium.com/anon-org/why-are-unbonding-periods-so-long-on-proof-of-stake-d44e863c5cb8),
+attack](#),
 at the cost of capital efficiency. Anon departs from Cosmos SDK by employing
 Bitcoin-assisted unbonding, where unbonding validators and delegations become
 unbonded once the corresponding epoch has been checkpointed on Bitcoin. Anon
@@ -150,7 +150,7 @@ removed.
 **Staking module Migrations.** Since the staking module msg server
 was not registered in the app routes, the function of staking `AppModule`
 that register the migrations and the query server are in the
-[`app.go`](https://github.com/anon-org/anon/blob/cf6c0e3873133331d95267a58da06c04a3e2c601/app/app.go#L608). If a new
+[`app.go`](#). If a new
 version of the cosmos-sdk is released and there is a new migration,
 it is needed to register the migration there too.
 
@@ -305,7 +305,7 @@ In Cosmos SDK, the routing of messages is registered by each `AppModule`,
 to avoid bypassing the epoching validator set update by some special case
 like CosmWasm or `x/authz` module `MsgExec` the entire routing of `x/staking`
 is never registered, this is done at
-[RegisterServicesWithoutStaking](https://github.com/anon-org/anon/blob/b9ac09b85b904816167741039e2e27ddb876429d/app/app.go#L590).
+[RegisterServicesWithoutStaking](#).
 
 ### Epoched staking messages
 
@@ -576,5 +576,5 @@ message EventWrappedStakingUpdateParams {
 
 The Epoching module provides a set of queries about epochs, validators and
 delegations, listed at
-[docs.anon.io](https://docs.anon.io/docs/developer-guides/modules/epoching).
+the project documentation.
 <!-- TODO: update Anon doc website -->

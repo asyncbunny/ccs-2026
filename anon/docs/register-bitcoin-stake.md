@@ -38,9 +38,9 @@ The document is structured as follows:
 readers that intend to implement their own methods for registering Bitcoin stakes
 (either ones already on Bitcoin or new ones). Alternative methods of staking
 including (or hosting a staking platform) include using the front-end CLI
-(running the [simple staking](https://github.com/anon-org/simple-staking)
+(running the [simple staking](#)
 reference implementation) or using the
-[Staker CLI program](https://github.com/anon-org/btc-staker).
+[Staker CLI program](#).
 
 ## 2. Bitcoin Stake Registration Methods
 
@@ -129,7 +129,7 @@ giving the staker the required assurance for moving on with broadcasting
 their BTC staking transaction. After the transaction is confirmed in
 a Bitcoin block that is `k`-deep, the staker
 (or an automated service like the
-[vigilante watcher](https://github.com/anon-org/vigilante))
+[vigilante watcher](#))
 submits a proof of inclusion to finalize the registration
 and lead to stake activation.
 
@@ -152,7 +152,7 @@ Steps:
 4. **BTC Staking Submission**: Following verification, the staker signs and broadcasts
    the BTC Staking transaction to the Bitcoin network.
 5. **Monitor for Bitcoin Inclusion**: The
-   [Vigilante Watcher](https://github.com/anon-org/vigilante) (or the staker)
+   [Vigilante Watcher](#) (or the staker)
    monitors Bitcoin for transaction confirmation and `k`-deep inclusion.
 6. **Confirm `k`-deep Inclusion**:
    The vigilante watcher will identify that the transaction is k-deep in the Bitcoin chain.
@@ -323,7 +323,7 @@ These transactions include:
 
 You can create these transactions using:
 * [The Golang BTC staking library](../btcstaking)
-* [The TypeScript BTC staking library](https://github.com/anon-org/btc-staking-ts)
+* [The TypeScript BTC staking library](#)
 * Your own implementation following the
   [Bitcoin staking script specification](./staking-script.md).
 
@@ -524,8 +524,8 @@ message MsgCreateBTCDelegation {
     (recursively), in order to trace up to obtain the merkle root of the block, deepest
     pairing first. Some resources on constructing the proof:
     * [Merkle Proof specification](https://electrumx.readthedocs.io/en/latest/protocol-methods.html#blockchain-transaction-get-merkle)
-    * [Golang implementation](https://github.com/anon-org/btc-staker/blob/v0.15.1/anonclient/utils.go#L10)
-    * [TypeScript implementation](https://github.com/anon-org/btc-staking-ts/blob/de1d1cff3ef4ad45b5c61f0d7b11fd4479de278a/src/staking/manager.ts#L760)
+    * [Golang implementation](#)
+    * [TypeScript implementation](#)
 * `slashing_tx` / `delegator_slashing_sig`:
   The slashing transaction that spends the BTC staking transaction through the
   slashing path and the staker's BIP-340 (Schnorr) signature for it.
@@ -566,7 +566,7 @@ message to the Anon network:
 * **TypeScript Implementation**:
   Generate the message using TypeScript following
   this [reference implementation](
-  https://github.com/anon-org/simple-staking/blob/2b9682c4f779ab39562951930bc3d023e5467461/src/app/hooks/services/useTransactionService.ts#L672-L679)
+  #)
   and broadcast to the Anon network.
 * **Golang Implementation**:
   Construct the message using Golang based on this
@@ -617,13 +617,13 @@ follow these steps:
 For a practical example of how to construct the add the signatures
 to construct a fully signed unbonding transaction,
 refer to:
-* [the TypeScript library documentation](https://github.com/anon-org/btc-staking-ts?tab=readme-ov-file#create-unbonding-transaction)
+* [the TypeScript library documentation](#?tab=readme-ov-file#create-unbonding-transaction)
 * [the Golang staking library utils](../btcstaking/witness_utils.go)
 
 > **⚡ Note: Unbonding notification on the Anon chain**
 >
 > The Anon system employs
-> the [Vigilante Unbonding Watcher](https://github.com/anon-org/vigilante),
+> the [Vigilante Unbonding Watcher](#),
 > a service that monitors the Bitcoin ledger for **on-demand unbonding transactions**
 > and reports them back to the Anon chain. Once the unbonding transaction
 > is included Bitcoin, the vigilante detects it and notifies Anon,
@@ -644,7 +644,7 @@ The process involves the following steps:
 
 For a practical example of how to construct the withdrawal transaction,
 refer to:
-* [the TypeScript library documentation](https://github.com/anon-org/btc-staking-ts?tab=readme-ov-file#withdrawing)
+* [the TypeScript library documentation](#?tab=readme-ov-file#withdrawing)
 * [the Golang staking library utils](../btcstaking/witness_utils.go)
 
 ### 4.3. Withdrawing Remaining Funds after Slashing
@@ -678,7 +678,7 @@ The rewards are distributed as follows:
 * The minted rewards are allocated among four groups:
   * Native stakers
   * Bitcoin stakers
-  * Costakers (BTC + BABY stakers, see [Section 5.2](#52-costaking-rewards))
+  * Costakers (BTC + NTK stakers, see [Section 5.2](#52-costaking-rewards))
   * Community pool
 
   The allocation is controlled by specific parameters:
@@ -701,46 +701,46 @@ The rewards are distributed as follows:
 
 ### 5.2. Costaking Rewards
 
-Costaking enables earning additional rewards by staking both Bitcoin and BABY
+Costaking enables earning additional rewards by staking both Bitcoin and NTK
 tokens simultaneously. The Anon address receiving BTC staking rewards and
-the address used for BABY delegations must be the same for costaking rewards
+the address used for NTK delegations must be the same for costaking rewards
 to be earned.
 
 For costaking one must have both active BTC delegations (via finality providers)
-and BABY delegations (via validators). There is no limit to the number of BTC
-and BABY delegations one can have, and all active delegations contribute to
+and NTK delegations (via validators). There is no limit to the number of BTC
+and NTK delegations one can have, and all active delegations contribute to
 the costaking rewards.
 
 Costaking rewards are calculated using a user score based on your combined
-stake amounts. The score is based on `min(active_btc_satoshis, active_baby_tokens / score_ratio)`.
+stake amounts. The score is based on `min(active_btc_satoshis, active_ntk_tokens / score_ratio)`.
 The `score_ratio` is a parameter defined in the `x/incentive` module that
-determines the relative weight of BABY tokens to Bitcoin in the scoring.
+determines the relative weight of NTK tokens to Bitcoin in the scoring.
 
 **Algorithm**
 
 Each user's costaking reward is proportional to their score relative to all
 costakers:
-* `user_score = min(active_btc_satoshis, active_baby_tokens / score_ratio)`
+* `user_score = min(active_btc_satoshis, active_ntk_tokens / score_ratio)`
 * `user_reward = total_costaking_rewards × (user_score / sum_of_all_scores)`
 
-The `score_ratio` parameter determines the conversion rate between BABY and BTC
+The `score_ratio` parameter determines the conversion rate between NTK and BTC
 for costaking rewards eligibility. This governance-adjustable parameter defines
-how many BABY tokens are equivalent to 1 BTC in the scoring calculation. Only
-BTC staked to active finality providers counts toward costaking. All BABY
+how many NTK tokens are equivalent to 1 BTC in the scoring calculation. Only
+BTC staked to active finality providers counts toward costaking. All NTK
 delegations count regardless of validator status.
 
 For example, if the score_ratio parameter was set to 20,000, Alice stakes 6
-BTC and 50,000 BABY, giving her a score of min(6, 50,000/20,000) = 2.5. Bob
-stakes 6 BTC and 150,000 BABY, giving him a score of min(6, 150,000/20,000) =
-6. If the total costaking reward is 10,000 BABY and they are the only
-costakers, Alice would receive 2,941 BABY and Bob would receive 7,059 BABY.
+BTC and 50,000 NTK, giving her a score of min(6, 50,000/20,000) = 2.5. Bob
+stakes 6 BTC and 150,000 NTK, giving him a score of min(6, 150,000/20,000) =
+6. If the total costaking reward is 10,000 NTK and they are the only
+costakers, Alice would receive 2,941 NTK and Bob would receive 7,059 NTK.
 
 **Finality Providers and Validators**
 
 Active finality providers receive 0.075% of total inflation distributed
 proportionally based on their BTC delegation size. Active CometBFT validators
 receive 0.075% of total inflation distributed proportionally based on their
-BABY delegation size. These allocations compensate for the inability to charge
+NTK delegation size. These allocations compensate for the inability to charge
 commission on co-staking rewards due to Cosmos SDK limitations. These different
 reward types can be withdrawn separately using the appropriate message types
 in `MsgWithdrawReward`.
@@ -782,7 +782,7 @@ Rewards can be withdrawn by:
 * Submitting the `MsgWithdrawReward` via any RPC/LCD node
 * Using the CLI `anond tx incentive withdraw-reward <type>`
 * You can claim rewards programmatically using the
-  TypeScript implementation. Please refer to the [TypeScript claim rewards implementation](https://github.com/anon-org/simple-staking/blob/main/src/app/hooks/services/useRewardsService.ts#L49).
+  TypeScript implementation. Please refer to the [TypeScript claim rewards implementation](#).
 
 **Querying for available rewards**:
 Rewards can be checked using the `x/incentive` module:
@@ -792,4 +792,4 @@ Rewards can be checked using the `x/incentive` module:
 * **via the CLI command**
   `anond query incentive reward-gauges <bech32-address>`
 * **via TypeScript**: You can use the TypeScript implementation to query rewards.
-  Please refer to the [TypeScript library documentation](https://github.com/anon-org/simple-staking/blob/main/src/app/hooks/client/rpc/queries/useAncQuery.ts).
+  Please refer to the [TypeScript library documentation](#).

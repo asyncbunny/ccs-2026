@@ -27,14 +27,14 @@ const (
 
 func (d *AnonAppDriver) CheckCostakerRewards(
 	addr sdk.AccAddress,
-	expActiveBaby, expActiveSats, expTotalScore sdkmath.Int,
+	expActiveNtk, expActiveSats, expTotalScore sdkmath.Int,
 	expStartPeriod uint64,
 ) {
 	costkK := d.App.CostakingKeeper
 
 	del, err := costkK.GetCostakerRewards(d.Ctx(), addr)
 	require.NoError(d.t, err)
-	require.Equal(d.t, expActiveBaby.String(), del.ActiveBaby.String(), "active baby")
+	require.Equal(d.t, expActiveNtk.String(), del.ActiveNtk.String(), "active ntk")
 	require.Equal(d.t, expActiveSats.String(), del.ActiveSatoshis.String(), "active sats")
 	require.Equal(d.t, expStartPeriod, del.StartPeriodCumulativeReward, "start period cumulative rewards exp %d != %d act", expStartPeriod, del.StartPeriodCumulativeReward)
 	require.Equal(d.t, expTotalScore.String(), del.TotalScore.String(), "total score")
@@ -42,13 +42,13 @@ func (d *AnonAppDriver) CheckCostakerRewards(
 
 func (d *AnonAppDriver) CheckCostakerRewardsInPointOnePercentMargin(
 	addr sdk.AccAddress,
-	expActiveBaby, expActiveSats, expTotalScore sdkmath.Int,
+	expActiveNtk, expActiveSats, expTotalScore sdkmath.Int,
 ) {
 	costkK := d.App.CostakingKeeper
 
 	del, err := costkK.GetCostakerRewards(d.Ctx(), addr)
 	require.NoError(d.t, err)
-	coins.RequireIntDiffInPointOnePercentMargin(d.t, expActiveBaby, del.ActiveBaby, "active baby")
+	coins.RequireIntDiffInPointOnePercentMargin(d.t, expActiveNtk, del.ActiveNtk, "active ntk")
 	coins.RequireIntDiffInPointOnePercentMargin(d.t, expActiveSats, del.ActiveSatoshis, "active sats")
 	coins.RequireIntDiffInPointOnePercentMargin(d.t, expTotalScore, del.TotalScore, "total score")
 }
@@ -58,7 +58,7 @@ func (d *AnonAppDriver) ZeroCostakerRewards(addr sdk.AccAddress) {
 
 	del, err := costkK.GetCostakerRewards(d.Ctx(), addr)
 	require.NoError(d.t, err)
-	require.Truef(d.t, del.ActiveBaby.IsZero(), "active baby should be zero %s", del.ActiveBaby.String())
+	require.Truef(d.t, del.ActiveNtk.IsZero(), "active ntk should be zero %s", del.ActiveNtk.String())
 	require.Truef(d.t, del.ActiveSatoshis.IsZero(), "active sats should be zero %s", del.ActiveSatoshis.String())
 	require.Truef(d.t, del.TotalScore.IsZero(), "active score should be zero %s", del.TotalScore.String())
 }

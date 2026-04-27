@@ -59,12 +59,12 @@ The following actors interact with the BTC staking module:
   remainder of their operations (voting, submitting public randomness),
   finality providers interact with the [`x/finality`](../x/finality) module.
 - **Covenant emulators** who serve as
-  [covenants](https://covenants.info) to enforce spending conditions on bitcoin
+  [covenants](https://example.com) to enforce spending conditions on bitcoin
   staked on Anon.
-  [Covenant emulators](https://github.com/anon-org/covenant-emulator)
+  [Covenant emulators](#)
   interact with the `x/btcstaking` module to submit covenant signatures for the
   slashing, unbonding, and unbonding slashing transactions.
-- **Vigilantes**: [Vigilante BTC Staking Trackers](https://github.com/anon-org/vigilante)
+- **Vigilantes**: [Vigilante BTC Staking Trackers](#)
   monitor the Bitcoin staking ledger to identify whether staking transactions have been unbonded
   or whether a staking transaction the staker intended to create has been included and confirmed
   in the Bitcoin ledger.
@@ -125,7 +125,7 @@ The EOI procedure works as follows:
    [MsgAddBTCDelegationInclusionProof](#msgaddbtcdelegationinclusionproof)
    with the inclusion proof for the stake receiving sufficient confirmations.
    The stake is now active. In the case the staker does not monitor the Bitcoin
-   ledger for confirmation, the [Vigilante BTC Staking Tracker](https://github.com/anon-org/vigilante)
+   ledger for confirmation, the [Vigilante BTC Staking Tracker](#)
    will pick it up and submit the inclusion proof to Anon.
  
 ### Voting Power and Finality
@@ -140,7 +140,7 @@ delegations under culpable finality providers.
 A BTC staker can unbond early by signing the unbonding transaction and
 submitting it to Bitcoin. The BTC Staking module identifies unbonding requests
 through this signature reported by the [BTC staking tracker
-daemon](https://github.com/anon-org/vigilante), and will consider the BTC
+daemon](#), and will consider the BTC
 delegation unbonded immediately upon such a signature.
 
 ## States
@@ -378,7 +378,7 @@ The message handlers are defined at
 
 The `MsgCreateFinalityProvider` message is used for creating a finality
 provider. It is typically submitted by a finality provider via the [finality
-provider](https://github.com/anon-org/finality-provider) program.
+provider](#) program.
 
 ```protobuf
 // MsgCreateFinalityProvider is the message for creating a finality provider
@@ -475,7 +475,7 @@ Upon `MsgEditFinalityProvider`, a Anon node will execute as follows:
 
 The `MsgCreateBTCDelegation` message is used for delegating some bitcoin to a
 finality provider. It is typically submitted by a BTC delegator via the [BTC
-staker](https://github.com/anon-org/btc-staker) program.
+staker](#) program.
 
 ```protobuf
 // MsgCreateBTCDelegation is the message for creating a BTC delegation
@@ -610,7 +610,7 @@ node will execute as follows:
 The `MsgAddCovenantSigs` message is used for submitting signatures on a BTC
 delegation signed by a covenant committee member. It is typically submitted by a
 covenant committee member via the [covenant
-emulator](https://github.com/anon-org/covenant-emulator) program.
+emulator](#) program.
 
 ```protobuf
 // MsgAddCovenantSigs is the message for handling signatures from a covenant member
@@ -655,7 +655,7 @@ Upon `AddCovenantSigs`, a Anon node will execute as follows:
 
 The `MsgBTCUndelegate` message is used for unbonding bitcoin from a given
 finality provider. It is typically reported by the [BTC staking
-tracker](https://github.com/anon-org/vigilante/tree/main/btcstaking-tracker)
+tracker](#)
 program which proactively monitors unbonding transactions on Bitcoin.
 
 ```protobuf
@@ -750,7 +750,7 @@ Upon `MsgSelectiveSlashingEvidence`, a Anon node will execute as follows:
    this.
 
 The `MsgSelectiveSlashingEvidence` is typically reported by the [BTC staking
-tracker](https://github.com/anon-org/vigilante/tree/main/btcstaking-tracker)
+tracker](#)
 program. It keeps monitoring for slashing transactions on Bitcoin. Upon each
 slashing transaction, it will try to extract the finality provider's secret key.
 If successful, it will construct a `MsgSelectiveSlashingEvidence` message and
@@ -976,6 +976,6 @@ Endpoint: `/anon/btcstaking/v1/btc_delegation/{staking_tx_hash_hex}`
 Description: Retrieves a specific BTC delegation by its corresponding staking transaction hash.
 
 Additional Information:
-For further details on how to use these queries and additional documentation, please refer to docs.anon.io.
+For further details on how to use these queries and additional documentation, please refer to the project documentation.
 
 <!-- TODO: update Anon doc website -->

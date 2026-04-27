@@ -131,7 +131,7 @@ func DefaultFpConfigWithPorts(keyringDir, homeDir string, fpRpcPort, fpMetricsPo
 
 // ParseRespBTCDelToBTCDel parses an BTC delegation response to BTC Delegation
 // adapted from
-// https://github.com/anon-org/anon/v4/blob/1a3c50da64885452c8d669fcea2a2fad78c8a028/test/e2e/btc_staking_e2e_test.go#L548
+// #
 func ParseRespBTCDelToBTCDel(resp *bstypes.BTCDelegationResponse) (btcDel *bstypes.BTCDelegation, err error) {
 	stakingTx, err := hex.DecodeString(resp.StakingTxHex)
 	if err != nil {

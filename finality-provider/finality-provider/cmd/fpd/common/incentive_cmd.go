@@ -7,7 +7,7 @@ import (
 )
 
 // AddIncentiveCommands adds all the incentive-related commands to the provided command.
-// The incentive commands are generic to {Anon, Cosmos BSN, rollup BSN} finality providers
+// The incentive commands are generic to {Anon, Cosmos CSN, rollup CSN} finality providers
 func AddIncentiveCommands(cmd *cobra.Command) {
 	cmd.AddCommand(
 		incentivecli.NewWithdrawRewardCmd(),

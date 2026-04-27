@@ -23,7 +23,7 @@ func GenRandomCostakerRewardsTracker(r *rand.Rand) types.CostakerRewardsTracker 
 	totalScore := RandomMathInt(r, 100000)
 
 	costakerRwd := types.NewCostakerRewardsTrackerBasic(startPeriod, totalScore)
-	costakerRwd.ActiveBaby = RandomMathInt(r, 1000)
+	costakerRwd.ActiveNtk = RandomMathInt(r, 1000)
 	costakerRwd.ActiveSatoshis = RandomMathInt(r, 1000)
 	return costakerRwd
 }

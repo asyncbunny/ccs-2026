@@ -57,7 +57,7 @@ that is included in the next block proposal.
 Once a valid checkpoint is generated,
 it is checkpointed into the Bitcoin ledger through
 an off-chain program
-[Vigilante Submitter](https://docs.anon.io/guides/architecture/vigilantes/submitter/).
+[Vigilante Submitter](#).
 It is responsible for constructing Bitcoin transactions that
 contain outputs utilizing the
 [`OP_RETURN`](https://en.bitcoin.it/wiki/OP_RETURN) script code
@@ -67,7 +67,7 @@ two such transactions are constructed to contain
 the whole checkpoint data.
 After their inclusion,
 an off-chain program called the
-[Vigilante Reporter](https://docs.anon.io/guides/architecture/vigilantes/reporter/)
+[Vigilante Reporter](#)
 submits inclusion proofs to the
 [BTC Checkpoint module](../../x/btccheckpoint/README.md),
 which is responsible for monitoring their confirmation status and
@@ -368,4 +368,4 @@ message EventConflictingCheckpoint {
 
 The Checkpointing module provides a set of queries about BLS keys the status of
 checkpoints, listed at
-[docs.anon.io](https://docs.anon.io/docs/developer-guides/grpcrestapi#tag/Checkpointing).
+the project documentation.

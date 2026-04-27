@@ -55,8 +55,8 @@ import (
 const (
 	mainnet                      = "mainnet"
 	testDataDir                  = "testdata"
-	mainnetBabyDelegationsFile   = "mainnet-baby-delegations.json"
-	testnetBabyDelegationsFile   = "testnet-baby-delegations.json"
+	mainnetNtkDelegationsFile   = "mainnet-ntk-delegations.json"
+	testnetNtkDelegationsFile   = "testnet-ntk-delegations.json"
 	btcDelegationsFile           = "btc-delegations.json.test" // Note: ".test" suffix to avoid accidental git add of large file
 	mainnetCostakerAddressesFile = "mainnet-costaker-addresses.txt"
 	testnetCostakerAddressesFile = "testnet-costaker-addresses.txt"
@@ -150,9 +150,9 @@ func TestInitializeCoStakerRwdsTracker_WithoutPowerDistCache(t *testing.T) {
 	// Create BTC delegation
 	createTestBTCDelegation(t, r, ctx, btcStkKeeper, stakerAddr, 50000)
 
-	// Create baby staking delegation
-	babyAmount := math.NewInt(25000)
-	createBabyDelegation(t, ctx, stkKeeper, stakerAddr, babyAmount)
+	// Create ntk staking delegation
+	ntkAmount := math.NewInt(25000)
+	createNtkDelegation(t, ctx, stkKeeper, stakerAddr, ntkAmount)
 
 	// Execute upgrade function
 	err := v4.InitializeCoStakerRwdsTracker(
@@ -160,8 +160,8 @@ func TestInitializeCoStakerRwdsTracker_WithoutPowerDistCache(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// Verify co-staker was created with zero active sats (baby staking only)
-	verifyCoStakerCreated(t, ctx, cdc, storeService, stakerAddr, math.ZeroInt(), babyAmount)
+	// Verify co-staker was created with zero active sats (ntk staking only)
+	verifyCoStakerCreated(t, ctx, cdc, storeService, stakerAddr, math.ZeroInt(), ntkAmount)
 }
 
 func TestInitializeCoStakerRwdsTracker_FpNotActive(t *testing.T) {
@@ -179,9 +179,9 @@ func TestInitializeCoStakerRwdsTracker_FpNotActive(t *testing.T) {
 	// Create BTC delegation
 	createTestBTCDelegation(t, r, ctx, btcStkKeeper, stakerAddr, 50000)
 
-	// Create baby staking delegation
-	babyAmount := math.NewInt(25000)
-	createBabyDelegation(t, ctx, stkKeeper, stakerAddr, babyAmount)
+	// Create ntk staking delegation
+	ntkAmount := math.NewInt(25000)
+	createNtkDelegation(t, ctx, stkKeeper, stakerAddr, ntkAmount)
 
 	// seed voting power dist cache with different FP (not the one the staker is delegating to)
 	vp, _, err := datagen.GenRandomVotingPowerDistCache(r, 10)
@@ -195,8 +195,8 @@ func TestInitializeCoStakerRwdsTracker_FpNotActive(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// Verify co-staker was created with zero active sats (baby staking only, FP not active)
-	verifyCoStakerCreated(t, ctx, cdc, storeService, stakerAddr, math.ZeroInt(), babyAmount)
+	// Verify co-staker was created with zero active sats (ntk staking only, FP not active)
+	verifyCoStakerCreated(t, ctx, cdc, storeService, stakerAddr, math.ZeroInt(), ntkAmount)
 }
 
 func TestInitializeCoStakerRwdsTracker_ValidatorNotActive(t *testing.T) {
@@ -214,20 +214,20 @@ func TestInitializeCoStakerRwdsTracker_ValidatorNotActive(t *testing.T) {
 	// Create BTC delegation
 	btcDel := createTestBTCDelegation(t, r, ctx, btcStkKeeper, stakerAddr, 50000)
 
-	// Create baby staking delegation to an INACTIVE validator (not in LastValidatorPowers)
+	// Create ntk staking delegation to an INACTIVE validator (not in LastValidatorPowers)
 	validatorAddr := datagen.GenRandomValidatorAddress()
-	babyAmount := math.NewInt(25000)
+	ntkAmount := math.NewInt(25000)
 	delegation := stktypes.Delegation{
 		DelegatorAddress: stakerAddr.String(),
 		ValidatorAddress: validatorAddr.String(),
-		Shares:           math.LegacyNewDecFromInt(babyAmount),
+		Shares:           math.LegacyNewDecFromInt(ntkAmount),
 	}
 
 	// Create validator but DON'T add to LastValidatorPowers (making it inactive)
 	validator := stktypes.Validator{
 		OperatorAddress: validatorAddr.String(),
-		Tokens:          babyAmount,
-		DelegatorShares: math.LegacyNewDecFromInt(babyAmount),
+		Tokens:          ntkAmount,
+		DelegatorShares: math.LegacyNewDecFromInt(ntkAmount),
 		Status:          stktypes.Unbonded, // Inactive validator
 	}
 	require.NoError(t, stkKeeper.SetValidator(ctx, validator))
@@ -243,7 +243,7 @@ func TestInitializeCoStakerRwdsTracker_ValidatorNotActive(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// Verify co-staker was created with zero active baby (validator not active, BTC only)
+	// Verify co-staker was created with zero active ntk (validator not active, BTC only)
 	verifyCoStakerCreated(t, ctx, cdc, storeService, stakerAddr, math.NewIntFromUint64(btcDel.TotalSat), math.ZeroInt())
 }
 
@@ -262,9 +262,9 @@ func TestInitializeCoStakerRwdsTracker_WithRealDelegations(t *testing.T) {
 	// Create BTC delegation
 	btcDel := createTestBTCDelegation(t, r, ctx, btcStkKeeper, stakerAddr, 50000)
 
-	// Create baby staking delegation
-	babyAmount := math.NewInt(25000)
-	createBabyDelegation(t, ctx, stkKeeper, stakerAddr, babyAmount)
+	// Create ntk staking delegation
+	ntkAmount := math.NewInt(25000)
+	createNtkDelegation(t, ctx, stkKeeper, stakerAddr, ntkAmount)
 
 	// seed voting power dist cache with FP as active (the one the staker is delegating to)
 	setupVotingPowerDistCacheWithActiveFPs(t, r, ctx, fKeeper, btcDel.FpBtcPkList)
@@ -276,7 +276,7 @@ func TestInitializeCoStakerRwdsTracker_WithRealDelegations(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify co-staker was created
-	verifyCoStakerCreated(t, ctx, cdc, storeService, stakerAddr, math.NewIntFromUint64(btcDel.TotalSat), babyAmount)
+	verifyCoStakerCreated(t, ctx, cdc, storeService, stakerAddr, math.NewIntFromUint64(btcDel.TotalSat), ntkAmount)
 }
 
 func TestInitializeCoStakerRwdsTracker_OnlyBTCStaking(t *testing.T) {
@@ -303,7 +303,7 @@ func TestInitializeCoStakerRwdsTracker_OnlyBTCStaking(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	// Verify co-staker was created (BTC only, no baby staking)
+	// Verify co-staker was created (BTC only, no ntk staking)
 	verifyCoStakerCreated(t, ctx, cdc, storeService, stakerAddr, math.NewIntFromUint64(btcDel.TotalSat), math.ZeroInt())
 }
 
@@ -324,36 +324,36 @@ func TestInitializeCoStakerRwdsTracker_MixedActiveInactiveValidators(t *testing.
 
 	// Create delegation to ACTIVE validator
 	activeValAddr := datagen.GenRandomValidatorAddress()
-	activeBabyAmount := math.NewInt(15000)
+	activeNtkAmount := math.NewInt(15000)
 	activeDelegation := stktypes.Delegation{
 		DelegatorAddress: stakerAddr.String(),
 		ValidatorAddress: activeValAddr.String(),
-		Shares:           math.LegacyNewDecFromInt(activeBabyAmount),
+		Shares:           math.LegacyNewDecFromInt(activeNtkAmount),
 	}
 	activeValidator := stktypes.Validator{
 		OperatorAddress: activeValAddr.String(),
-		Tokens:          activeBabyAmount,
-		DelegatorShares: math.LegacyNewDecFromInt(activeBabyAmount),
+		Tokens:          activeNtkAmount,
+		DelegatorShares: math.LegacyNewDecFromInt(activeNtkAmount),
 		Status:          stktypes.Bonded,
 	}
 	require.NoError(t, stkKeeper.SetValidator(ctx, activeValidator))
 	require.NoError(t, stkKeeper.SetDelegation(ctx, activeDelegation))
 	// Mark as active validator
-	power := stkKeeper.TokensToConsensusPower(ctx, activeBabyAmount)
+	power := stkKeeper.TokensToConsensusPower(ctx, activeNtkAmount)
 	require.NoError(t, stkKeeper.SetLastValidatorPower(ctx, activeValAddr, power))
 
 	// Create delegation to INACTIVE validator
 	inactiveValAddr := datagen.GenRandomValidatorAddress()
-	inactiveBabyAmount := math.NewInt(10000)
+	inactiveNtkAmount := math.NewInt(10000)
 	inactiveDelegation := stktypes.Delegation{
 		DelegatorAddress: stakerAddr.String(),
 		ValidatorAddress: inactiveValAddr.String(),
-		Shares:           math.LegacyNewDecFromInt(inactiveBabyAmount),
+		Shares:           math.LegacyNewDecFromInt(inactiveNtkAmount),
 	}
 	inactiveValidator := stktypes.Validator{
 		OperatorAddress: inactiveValAddr.String(),
-		Tokens:          inactiveBabyAmount,
-		DelegatorShares: math.LegacyNewDecFromInt(inactiveBabyAmount),
+		Tokens:          inactiveNtkAmount,
+		DelegatorShares: math.LegacyNewDecFromInt(inactiveNtkAmount),
 		Status:          stktypes.Unbonded, // Not bonded
 	}
 	require.NoError(t, stkKeeper.SetValidator(ctx, inactiveValidator))
@@ -369,9 +369,9 @@ func TestInitializeCoStakerRwdsTracker_MixedActiveInactiveValidators(t *testing.
 	)
 	require.NoError(t, err)
 
-	// Verify co-staker was created with only the active validator's baby amount
-	// Total baby should be 15000 (from active validator), not 25000 (15000 + 10000)
-	verifyCoStakerCreated(t, ctx, cdc, storeService, stakerAddr, math.NewIntFromUint64(btcDel.TotalSat), activeBabyAmount)
+	// Verify co-staker was created with only the active validator's ntk amount
+	// Total ntk should be 15000 (from active validator), not 25000 (15000 + 10000)
+	verifyCoStakerCreated(t, ctx, cdc, storeService, stakerAddr, math.NewIntFromUint64(btcDel.TotalSat), activeNtkAmount)
 }
 
 func TestInitializeCoStakerRwdsTracker_MultipleCombinations(t *testing.T) {
@@ -383,24 +383,24 @@ func TestInitializeCoStakerRwdsTracker_MultipleCombinations(t *testing.T) {
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 
-	// Case 1: BTC + Baby staking (should create co-staker)
+	// Case 1: BTC + Ntk staking (should create co-staker)
 	staker1Addr := datagen.GenRandomAccount().GetAddress()
 	btcDel1 := createTestBTCDelegation(t, r, ctx, btcStkKeeper, staker1Addr, 60000)
 
-	// Case 2: Only BTC staking (should create co-staker with 0 baby amt)
+	// Case 2: Only BTC staking (should create co-staker with 0 ntk amt)
 	staker2Addr := datagen.GenRandomAccount().GetAddress()
 	btcDel2 := createTestBTCDelegation(t, r, ctx, btcStkKeeper, staker2Addr, 80000)
 
-	// Case 3: BTC to inactive FP + Baby staking (should create co-staker with 0 BTC amt)
+	// Case 3: BTC to inactive FP + Ntk staking (should create co-staker with 0 BTC amt)
 	staker3Addr := datagen.GenRandomAccount().GetAddress()
 	createTestBTCDelegation(t, r, ctx, btcStkKeeper, staker3Addr, 100000)
 
-	// create staking delegations - only staker1 and staker3 have baby staking
-	babyDel1Amt := math.NewInt(30000)
-	createBabyDelegation(t, ctx, stkKeeper, staker1Addr, babyDel1Amt)
+	// create staking delegations - only staker1 and staker3 have ntk staking
+	ntkDel1Amt := math.NewInt(30000)
+	createNtkDelegation(t, ctx, stkKeeper, staker1Addr, ntkDel1Amt)
 
-	babyDel3Amt := math.NewInt(50000)
-	createBabyDelegation(t, ctx, stkKeeper, staker3Addr, babyDel3Amt)
+	ntkDel3Amt := math.NewInt(50000)
+	createNtkDelegation(t, ctx, stkKeeper, staker3Addr, ntkDel3Amt)
 
 	// Collect all FP BTC public keys
 	allFpBtcPks := make([]anc.BIP340PubKey, 0)
@@ -417,9 +417,9 @@ func TestInitializeCoStakerRwdsTracker_MultipleCombinations(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify results
-	verifyCoStakerCreated(t, ctx, cdc, storeService, staker1Addr, math.NewIntFromUint64(btcDel1.TotalSat), babyDel1Amt)    // Co-staker
+	verifyCoStakerCreated(t, ctx, cdc, storeService, staker1Addr, math.NewIntFromUint64(btcDel1.TotalSat), ntkDel1Amt)    // Co-staker
 	verifyCoStakerCreated(t, ctx, cdc, storeService, staker2Addr, math.NewIntFromUint64(btcDel2.TotalSat), math.ZeroInt()) // BTC only
-	verifyCoStakerCreated(t, ctx, cdc, storeService, staker3Addr, math.ZeroInt(), babyDel3Amt)                             // FP not active
+	verifyCoStakerCreated(t, ctx, cdc, storeService, staker3Addr, math.ZeroInt(), ntkDel3Amt)                             // FP not active
 
 	// Verify total count
 	count := countCoStakers(t, ctx, cdc, storeService)
@@ -445,15 +445,15 @@ func TestInitializeCoStakerRwdsTracker_WithMultipleActiveFPs(t *testing.T) {
 	btcDel2 := createTestBTCDelegation(t, r, ctx, btcStkKeeper, staker2Addr, 40000)
 	btcDel3 := createTestBTCDelegation(t, r, ctx, btcStkKeeper, staker3Addr, 50000)
 
-	// Create baby staking delegations
-	babyAmount1 := math.NewInt(15000)
-	createBabyDelegation(t, ctx, stkKeeper, staker1Addr, babyAmount1)
+	// Create ntk staking delegations
+	ntkAmount1 := math.NewInt(15000)
+	createNtkDelegation(t, ctx, stkKeeper, staker1Addr, ntkAmount1)
 
-	babyAmount2 := math.NewInt(20000)
-	createBabyDelegation(t, ctx, stkKeeper, staker2Addr, babyAmount2)
+	ntkAmount2 := math.NewInt(20000)
+	createNtkDelegation(t, ctx, stkKeeper, staker2Addr, ntkAmount2)
 
-	babyAmount3 := math.NewInt(25000)
-	createBabyDelegation(t, ctx, stkKeeper, staker3Addr, babyAmount3)
+	ntkAmount3 := math.NewInt(25000)
+	createNtkDelegation(t, ctx, stkKeeper, staker3Addr, ntkAmount3)
 
 	// Collect all FP BTC public keys
 	allFpBtcPks := make([]anc.BIP340PubKey, 0)
@@ -471,9 +471,9 @@ func TestInitializeCoStakerRwdsTracker_WithMultipleActiveFPs(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify all co-stakers were created
-	verifyCoStakerCreated(t, ctx, cdc, storeService, staker1Addr, math.NewIntFromUint64(btcDel1.TotalSat), babyAmount1)
-	verifyCoStakerCreated(t, ctx, cdc, storeService, staker2Addr, math.NewIntFromUint64(btcDel2.TotalSat), babyAmount2)
-	verifyCoStakerCreated(t, ctx, cdc, storeService, staker3Addr, math.NewIntFromUint64(btcDel3.TotalSat), babyAmount3)
+	verifyCoStakerCreated(t, ctx, cdc, storeService, staker1Addr, math.NewIntFromUint64(btcDel1.TotalSat), ntkAmount1)
+	verifyCoStakerCreated(t, ctx, cdc, storeService, staker2Addr, math.NewIntFromUint64(btcDel2.TotalSat), ntkAmount2)
+	verifyCoStakerCreated(t, ctx, cdc, storeService, staker3Addr, math.NewIntFromUint64(btcDel3.TotalSat), ntkAmount3)
 
 	// Verify total count
 	count := countCoStakers(t, ctx, cdc, storeService)
@@ -498,16 +498,16 @@ func TestInitializeCoStakerRwdsTracker_MultipleStakingFromSameStaker(t *testing.
 	btcDel3 := createTestBTCDelegation(t, r, ctx, btcStkKeeper, stakerAddr, 25000) // 25k sats
 	// Total BTC: 75k sats
 
-	// Create multiple baby delegations for the same staker
-	babyDel1Amt := math.NewInt(10000)
-	createBabyDelegation(t, ctx, stkKeeper, stakerAddr, babyDel1Amt)
+	// Create multiple ntk delegations for the same staker
+	ntkDel1Amt := math.NewInt(10000)
+	createNtkDelegation(t, ctx, stkKeeper, stakerAddr, ntkDel1Amt)
 
-	babyDel2Amt := math.NewInt(15000)
-	createBabyDelegation(t, ctx, stkKeeper, stakerAddr, babyDel2Amt)
+	ntkDel2Amt := math.NewInt(15000)
+	createNtkDelegation(t, ctx, stkKeeper, stakerAddr, ntkDel2Amt)
 
-	babyDel3Amt := math.NewInt(12000)
-	createBabyDelegation(t, ctx, stkKeeper, stakerAddr, babyDel3Amt)
-	// Total Baby: 37k tokens
+	ntkDel3Amt := math.NewInt(12000)
+	createNtkDelegation(t, ctx, stkKeeper, stakerAddr, ntkDel3Amt)
+	// Total Ntk: 37k tokens
 
 	// Collect all FP BTC public keys
 	allFpBtcPks := make([]anc.BIP340PubKey, 0)
@@ -526,9 +526,9 @@ func TestInitializeCoStakerRwdsTracker_MultipleStakingFromSameStaker(t *testing.
 
 	// Verify co-staker was created with accumulated amounts
 	expectedTotalBTC := math.NewIntFromUint64(btcDel1.TotalSat + btcDel2.TotalSat + btcDel3.TotalSat) // 75k sats
-	expectedTotalBaby := babyDel1Amt.Add(babyDel2Amt).Add(babyDel3Amt)                                // 37k tokens
+	expectedTotalNtk := ntkDel1Amt.Add(ntkDel2Amt).Add(ntkDel3Amt)                                // 37k tokens
 
-	verifyCoStakerCreated(t, ctx, cdc, storeService, stakerAddr, expectedTotalBTC, expectedTotalBaby)
+	verifyCoStakerCreated(t, ctx, cdc, storeService, stakerAddr, expectedTotalBTC, expectedTotalNtk)
 
 	// Verify total count is 1 (only one unique staker)
 	count := countCoStakers(t, ctx, cdc, storeService)
@@ -609,27 +609,27 @@ func runTestWithEnv(t *testing.T, env string, btcTip uint32) {
 
 	require.Equal(t, 0, missingCostakers, "Found %d missing costakers", missingCostakers)
 
-	// Verify tracker content: expected costakers should have both activeSat > 0 AND activeBaby > 0
-	// All other costakers should have either activeSat = 0 OR activeBaby = 0
+	// Verify tracker content: expected costakers should have both activeSat > 0 AND activeNtk > 0
+	// All other costakers should have either activeSat = 0 OR activeNtk = 0
 	expectedCostakersWithBothActive := 0
 	otherCostakersWithBothActive := 0
 
 	for addr, tracker := range actualCostakers {
-		hasBothActive := tracker.ActiveSatoshis.GT(math.ZeroInt()) && tracker.ActiveBaby.GT(math.ZeroInt())
+		hasBothActive := tracker.ActiveSatoshis.GT(math.ZeroInt()) && tracker.ActiveNtk.GT(math.ZeroInt())
 
 		if expectedSet[addr] {
-			// This is an expected costaker - should have both BTC and BABY > 0
+			// This is an expected costaker - should have both BTC and NTK > 0
 			if !hasBothActive {
-				t.Errorf("Expected costaker %s should have both activeSat > 0 AND activeBaby > 0, but got activeSat=%s, activeBaby=%s",
-					addr, tracker.ActiveSatoshis.String(), tracker.ActiveBaby.String())
+				t.Errorf("Expected costaker %s should have both activeSat > 0 AND activeNtk > 0, but got activeSat=%s, activeNtk=%s",
+					addr, tracker.ActiveSatoshis.String(), tracker.ActiveNtk.String())
 			} else {
 				expectedCostakersWithBothActive++
 			}
 		} else {
-			// This costaker was not in the expected list - should have either activeSat = 0 OR activeBaby = 0
+			// This costaker was not in the expected list - should have either activeSat = 0 OR activeNtk = 0
 			if hasBothActive {
-				t.Errorf("Non-expected costaker %s should have either activeSat = 0 OR activeBaby = 0, but got both > 0: activeSat=%s, activeBaby=%s",
-					addr, tracker.ActiveSatoshis.String(), tracker.ActiveBaby.String())
+				t.Errorf("Non-expected costaker %s should have either activeSat = 0 OR activeNtk = 0, but got both > 0: activeSat=%s, activeNtk=%s",
+					addr, tracker.ActiveSatoshis.String(), tracker.ActiveNtk.String())
 				otherCostakersWithBothActive++
 			}
 		}
@@ -639,7 +639,7 @@ func runTestWithEnv(t *testing.T, env string, btcTip uint32) {
 		"Number of created costakers (%d) should match expected (%d)",
 		expectedCostakersWithBothActive, len(expectedCostakers))
 
-	t.Logf("Verification complete: %d expected costakers have both BTC and BABY staking active", expectedCostakersWithBothActive)
+	t.Logf("Verification complete: %d expected costakers have both BTC and NTK staking active", expectedCostakersWithBothActive)
 	t.Logf("All %d %s costakers were created correctly with proper staking amounts", len(actualCostakers), env)
 }
 
@@ -753,7 +753,7 @@ func createTestBTCDelegation(t *testing.T, r *rand.Rand, ctx sdk.Context, btcStk
 	return del
 }
 
-func createBabyDelegation(t *testing.T, ctx context.Context, stkKeeper *stkkeeper.Keeper, stakerAddr sdk.AccAddress, delAmount math.Int) {
+func createNtkDelegation(t *testing.T, ctx context.Context, stkKeeper *stkkeeper.Keeper, stakerAddr sdk.AccAddress, delAmount math.Int) {
 	validatorAddr := datagen.GenRandomValidatorAddress()
 	delegation := stktypes.Delegation{
 		DelegatorAddress: stakerAddr.String(),
@@ -776,14 +776,14 @@ func createBabyDelegation(t *testing.T, ctx context.Context, stkKeeper *stkkeepe
 	require.NoError(t, stkKeeper.SetLastValidatorPower(ctx, validatorAddr, power))
 }
 
-func verifyCoStakerCreated(t *testing.T, ctx sdk.Context, cdc codec.BinaryCodec, storeService corestore.KVStoreService, stakerAddr sdk.AccAddress, expectedBTCAmount, expectedBabyAmount math.Int) {
+func verifyCoStakerCreated(t *testing.T, ctx sdk.Context, cdc codec.BinaryCodec, storeService corestore.KVStoreService, stakerAddr sdk.AccAddress, expectedBTCAmount, expectedNtkAmount math.Int) {
 	rwdTrackers := rwdTrackerCollection(storeService, cdc)
 	tracker, err := rwdTrackers.Get(ctx, []byte(stakerAddr))
 
 	require.NoError(t, err, "Co-staker rewards tracker should exist for %s", stakerAddr.String())
 	require.Equal(t, uint64(1), tracker.StartPeriodCumulativeReward, "StartPeriodCumulativeReward should be 1")
 	require.True(t, tracker.ActiveSatoshis.Equal(expectedBTCAmount), "ActiveSatoshis should match expected BTC amount: expected %s, got %s", expectedBTCAmount.String(), tracker.ActiveSatoshis.String())
-	require.True(t, tracker.ActiveBaby.Equal(expectedBabyAmount), "ActiveBaby should match expected baby amount: expected %s, got %s", expectedBabyAmount.String(), tracker.ActiveBaby.String())
+	require.True(t, tracker.ActiveNtk.Equal(expectedNtkAmount), "ActiveNtk should match expected ntk amount: expected %s, got %s", expectedNtkAmount.String(), tracker.ActiveNtk.String())
 }
 
 func countCoStakers(t *testing.T, ctx sdk.Context, cdc codec.BinaryCodec, storeService corestore.KVStoreService) int {
@@ -1021,9 +1021,9 @@ func loadAndSeedBTCDelegations(t *testing.T, ctx sdk.Context, env string, btcStk
 
 // loadAndSeedCosmosDelegations loads cosmos delegations from file and seeds them into keeper using streaming
 func loadAndSeedCosmosDelegations(t *testing.T, ctx sdk.Context, env string, stkKeeper *stkkeeper.Keeper) (int, error) {
-	fileName := testnetBabyDelegationsFile
+	fileName := testnetNtkDelegationsFile
 	if env == mainnet {
-		fileName = mainnetBabyDelegationsFile
+		fileName = mainnetNtkDelegationsFile
 	}
 	filePath := filepath.Join(testDataDir, fileName)
 

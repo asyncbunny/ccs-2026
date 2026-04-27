@@ -64,7 +64,7 @@ message QueryCostakerRewardsTrackerResponse {
 
   // StartPeriodCumulativeReward the starting period the costaker
   // made his last withdraw of costaking rewards or modified his active staking
-  // amount of satoshis or baby.
+  // amount of satoshis or ntk.
   uint64 start_period_cumulative_reward = 1;
   // ActiveSatoshis is the total amount of active satoshi delegated
   // from this costaker anon address.
@@ -73,9 +73,9 @@ message QueryCostakerRewardsTrackerResponse {
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
   ];
-  // ActiveBaby is the total amount of active baby delegated
+  // ActiveNtk is the total amount of active ntk delegated
   // from this costaker anon address.
-  bytes active_baby = 3 [
+  bytes active_ntk = 3 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "cosmossdk.io/math.Int",
     (gogoproto.nullable) = false
@@ -100,7 +100,7 @@ message QueryCurrentRewardsResponse {
   option (gogoproto.goproto_getters) = false;
 
   // Rewards is the current rewards for the single pool of rewards for all the
-  // costakers for the whole chain. If some action happens of satoshi or baby
+  // costakers for the whole chain. If some action happens of satoshi or ntk
   // staked or is unbonded or withdraw of the rewards available, this current
   // period is sent to an HistoricalRewards and a new period is created and
   // the rewards property is zerod out.

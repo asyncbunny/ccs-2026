@@ -70,8 +70,8 @@ func (s *CostakingTestSuite) TestFinalityProviderExit() {
 	s.Require().NotEmpty(validators)
 	targetValidator := validators[0]
 
-	babyDelegation := "20000000uanc"
-	txHash := delegatorNode.Delegate(delegatorNode.WalletName, targetValidator.OperatorAddress, babyDelegation, "--gas=500000")
+	ntkDelegation := "20000000uanc"
+	txHash := delegatorNode.Delegate(delegatorNode.WalletName, targetValidator.OperatorAddress, ntkDelegation, "--gas=500000")
 	chainA.WaitForNumHeights(2)
 	res, _ := delegatorNode.QueryTx(txHash)
 	s.Equal(res.Code, uint32(0), res.RawLog)

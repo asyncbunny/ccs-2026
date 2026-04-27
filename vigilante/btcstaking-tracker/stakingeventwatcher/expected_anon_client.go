@@ -123,7 +123,7 @@ func (bca *AnonClientAdapter) IsDelegationActive(stakingTxHash chainhash.Hash) (
 	resp, err := bca.anonClient.BTCDelegation(stakingTxHash.String())
 
 	if err != nil {
-		return false, fmt.Errorf("failed to retrieve delegation from babyln: %w", err)
+		return false, fmt.Errorf("failed to retrieve delegation from ntkln: %w", err)
 	}
 
 	return resp.BtcDelegation.Active, nil
@@ -134,7 +134,7 @@ func (bca *AnonClientAdapter) IsDelegationVerified(stakingTxHash chainhash.Hash)
 	resp, err := bca.anonClient.BTCDelegation(stakingTxHash.String())
 
 	if err != nil {
-		return false, fmt.Errorf("failed to retrieve delegation from babyln: %w", err)
+		return false, fmt.Errorf("failed to retrieve delegation from ntkln: %w", err)
 	}
 
 	return resp.BtcDelegation.StatusDesc == btcstakingtypes.BTCDelegationStatus_VERIFIED.String(), nil
@@ -179,7 +179,7 @@ func (bca *AnonClientAdapter) BtcClientTipHeight() (uint32, error) {
 	resp, err := bca.anonClient.BTCHeaderChainTip()
 
 	if err != nil {
-		return 0, fmt.Errorf("failed to retrieve btc light client tip from babyln: %w", err)
+		return 0, fmt.Errorf("failed to retrieve btc light client tip from ntkln: %w", err)
 	}
 
 	return resp.Header.Height, nil

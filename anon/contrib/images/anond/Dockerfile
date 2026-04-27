@@ -55,7 +55,7 @@ RUN apk --no-cache add bash curl jq && rm -rf /var/cache/apk/\*
 
 # Label should match your github repo
 ARG VERSION
-LABEL org.opencontainers.image.source="https://github.com/anon-org/anond:${VERSION}"
+LABEL org.opencontainers.image.source="#:${VERSION}"
 
 # Install Libraries
 # COPY --from=build-env /usr/lib/libgcc_s.so.1 /lib/

@@ -146,7 +146,7 @@ See [x/mint](../../x/mint) for the implementation of this module.
 
 ## References
 
-1. [ADR-031](https://github.com/anon-org/pm/blob/main/adr/adr-031-mint-module.md)
+1. [ADR-031](#)
 2. [Celestia's
    ADR-019](https://github.com/celestiaorg/celestia-app/tree/main/docs/architecture/adr-019-strict-inflation-schedule.md)
 3. [Celestia's mint

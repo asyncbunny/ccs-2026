@@ -317,7 +317,7 @@ func (bc *ClientWrapper) QueryFinalityProviders() ([]*btcstakingtypes.FinalityPr
 	}
 
 	for {
-		// NOTE: empty BSN ID means querying all Anon finality providers
+		// NOTE: empty CSN ID means querying all Anon finality providers
 		res, err := bc.ancClient.FinalityProviders(pagination)
 		if err != nil {
 			return nil, fmt.Errorf("failed to query finality providers: %w", err)

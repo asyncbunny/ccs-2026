@@ -47,7 +47,7 @@ func FuzzInitExportGenesis(f *testing.F) {
 						StartPeriodCumulativeReward: datagen.RandomInt(r, 100),
 						TotalScore:                  math.NewInt(int64(datagen.RandomInt(r, 1000) + 1)),
 						ActiveSatoshis:              math.NewInt(int64(datagen.RandomInt(r, 1000) + 1)),
-						ActiveBaby:                  math.NewInt(int64(datagen.RandomInt(r, 1000) + 1)),
+						ActiveNtk:                  math.NewInt(int64(datagen.RandomInt(r, 1000) + 1)),
 					},
 				})
 			}

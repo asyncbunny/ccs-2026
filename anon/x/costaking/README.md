@@ -1,7 +1,7 @@
 # CoStaking Module
 
 The CoStaking module enables users to earn aditional rewards by simultaneously
-stake both Bitcoin (BTC) and Baby tokens. This module tracks "costakers" who
+stake both Bitcoin (BTC) and Ntk tokens. This module tracks "costakers" who
 have delegations in both systems.
 
 ## Quick Start
@@ -9,7 +9,7 @@ have delegations in both systems.
 A **costaker** is a user who has:
 1. **BTC delegations**: Active delegations to active finality providers via the
 `x/btcstaking` module
-2. **Baby delegations**: Active delegations to validators via cosmos `x/staking`
+2. **Ntk delegations**: Active delegations to validators via cosmos `x/staking`
 
 The module dynamically tracks and updates costaker positions based on
 delegation state changes through a comprehensive hook system.
@@ -23,21 +23,21 @@ The core data structure tracking each costaker's position:
 ```go
 // CostakerRewardsTracker represents the structure that holds information
 // from the last time this staker withdraw the costaking rewards or modified
-// his active staked amount of baby or satoshis.
+// his active staked amount of ntk or satoshis.
 // The anon address of the staker is ommitted here but should be part of the
 // key used to store this structure.
 // Key: Prefix + costaker anon address.
 type CostakerRewardsTracker struct {
   // StartPeriodCumulativeReward the starting period the costaker
   // made his last withdraw of costaking rewards or modified his active staking
-  // amount of satoshis or baby.
+  // amount of satoshis or ntk.
   StartPeriodCumulativeReward uint64 `protobuf:"varint,1,opt,name=start_period_cumulative_reward,json=startPeriodCumulativeReward,proto3" json:"start_period_cumulative_reward,omitempty"`
   // ActiveSatoshis is the total amount of active satoshi delegated
   // from this costaker anon address.
   ActiveSatoshis cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=active_satoshis,json=activeSatoshis,proto3,customtype=cosmossdk.io/math.Int" json:"active_satoshis"`
-  // ActiveBaby is the total amount of active baby delegated
+  // ActiveNtk is the total amount of active ntk delegated
   // from this costaker anon address.
-  ActiveBaby cosmossdk_io_math.Int `protobuf:"bytes,3,opt,name=active_baby,json=activeBaby,proto3,customtype=cosmossdk.io/math.Int" json:"active_baby"`
+  ActiveNtk cosmossdk_io_math.Int `protobuf:"bytes,3,opt,name=active_ntk,json=activeNtk,proto3,customtype=cosmossdk.io/math.Int" json:"active_ntk"`
   // TotalScore is the total amount of calculated score
   // of this costaker.
   TotalScore cosmossdk_io_math.Int `protobuf:"bytes,4,opt,name=total_score,json=totalScore,proto3,customtype=cosmossdk.io/math.Int" json:"total_score"`
@@ -49,7 +49,7 @@ type CostakerRewardsTracker struct {
 The module responds to events from three other modules:
 
 - **x/finality**: BTC delegation and finality providers lifecycle events
-- **x/staking**: Baby token delegation changes
+- **x/staking**: Ntk token delegation changes
 - **x/incentive**: Triggers rewards withdraw
 
 ## Costaker State Logic
@@ -57,18 +57,18 @@ The module responds to events from three other modules:
 ```mermaid
 graph TD
     A[Costaker] --> B{Has BTC<br>Delegations?}
-    A --> C{Has Baby<br>Delegations?}
+    A --> C{Has Ntk<br>Delegations?}
 
     B -->|Yes| D[BTC: hooks <br>x/finality]
     B -->|No| X[❌]
 
     C -->|No| X[❌]
-    C -->|Yes| F[Baby: hooks <br>x/staking]
+    C -->|Yes| F[Ntk: hooks <br>x/staking]
 
     D --> J[🎯 CoStaker State<br/>Tracked by x/costaking]
     F --> J
 
-    J --> M[CostakerRewardsTracker<br/>ActiveSatoshis + ActiveBaby + TotalScore]
+    J --> M[CostakerRewardsTracker<br/>ActiveSatoshis + ActiveNtk + TotalScore]
     J --> N[Eligible for costaker rewards]
 
     style J fill:#e8f5e8,stroke:#4caf50,stroke-width:3px
@@ -132,9 +132,9 @@ sequenceDiagram
 
 ### x/staking Hooks
 
-- `BeforeDelegationSharesModified`: Stores the amount of baby staked for that
+- `BeforeDelegationSharesModified`: Stores the amount of ntk staked for that
   validator in a map in memory to calculate the delta change.
-- `AfterDelegationModified`: Updates Baby token amount based on delegation
+- `AfterDelegationModified`: Updates Ntk token amount based on delegation
   delta change using the in memory cache.
 
 ```mermaid
@@ -144,7 +144,7 @@ sequenceDiagram
     participant CoStaking as x/costaking
     participant Cache as Memory Cache
 
-    User->>Staking: ModifyBabyDelegation(valAddr, 100→150 Baby)
+    User->>Staking: ModifyNtkDelegation(valAddr, 100→150 Ntk)
 
     Staking->>CoStaking: Hooks BeforeDelegationSharesModified(delAddr, valAddr)
     CoStaking->>Cache: setCacheStakedAmount(delAddr, valAddr, 100)
@@ -158,7 +158,7 @@ sequenceDiagram
     CoStaking->>Cache: GetCacheStakedAmount(delAddr, valAddr)
     Cache-->>CoStaking: cached: 100 tokens
     CoStaking->>CoStaking: Calculate delta: 150 - 100 = +50
-    CoStaking->>CoStaking: costakerModified(delAddr, +50 ActiveBaby)
+    CoStaking->>CoStaking: costakerModified(delAddr, +50 ActiveNtk)
     CoStaking-->>Staking:
 ```
 

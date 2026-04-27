@@ -82,13 +82,13 @@ func (m *HistoricalRewards) GetCumulativeRewardsPerScore() github_com_cosmos_cos
 }
 
 // CurrentRewards represents the current rewards of the pool of costakers.
-// Note: This rewards are for the stakers that have BTC delegations and BABY
+// Note: This rewards are for the stakers that have BTC delegations and NTK
 // delegations.
 // Key: Prefix. Since this will be a single pool of rewards for the entire chain
 // a single CurrentRewards structure is necessary.
 type CurrentRewards struct {
 	// Rewards is the current rewards for the single pool of rewards for all the
-	// costakers for the whole chain. If some action happens of satoshi or baby
+	// costakers for the whole chain. If some action happens of satoshi or ntk
 	// staked or is unbonded or withdraw of the rewards available, this current
 	// period is sent to an HistoricalRewards and a new period is created and
 	// the rewards property is zerod out.
@@ -155,21 +155,21 @@ func (m *CurrentRewards) GetPeriod() uint64 {
 
 // CostakerRewardsTracker represents the structure that holds information
 // from the last time this staker withdraw the costaking rewards or modified
-// his active staked amount of baby or satoshis.
+// his active staked amount of ntk or satoshis.
 // The anon address of the staker is ommitted here but should be part of the
 // key used to store this structure.
 // Key: Prefix + costaker anon address.
 type CostakerRewardsTracker struct {
 	// StartPeriodCumulativeReward the starting period the costaker
 	// made his last withdraw of costaking rewards or modified his active staking
-	// amount of satoshis or baby.
+	// amount of satoshis or ntk.
 	StartPeriodCumulativeReward uint64 `protobuf:"varint,1,opt,name=start_period_cumulative_reward,json=startPeriodCumulativeReward,proto3" json:"start_period_cumulative_reward,omitempty"`
 	// ActiveSatoshis is the total amount of active satoshi delegated
 	// from this costaker anon address.
 	ActiveSatoshis cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=active_satoshis,json=activeSatoshis,proto3,customtype=cosmossdk.io/math.Int" json:"active_satoshis"`
-	// ActiveBaby is the total amount of active baby delegated
+	// ActiveNtk is the total amount of active ntk delegated
 	// from this costaker anon address.
-	ActiveBaby cosmossdk_io_math.Int `protobuf:"bytes,3,opt,name=active_baby,json=activeBaby,proto3,customtype=cosmossdk.io/math.Int" json:"active_baby"`
+	ActiveNtk cosmossdk_io_math.Int `protobuf:"bytes,3,opt,name=active_ntk,json=activeNtk,proto3,customtype=cosmossdk.io/math.Int" json:"active_ntk"`
 	// TotalScore is the total amount of calculated score
 	// of this costaker.
 	TotalScore cosmossdk_io_math.Int `protobuf:"bytes,4,opt,name=total_score,json=totalScore,proto3,customtype=cosmossdk.io/math.Int" json:"total_score"`
@@ -379,9 +379,9 @@ func (m *CostakerRewardsTracker) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	i--
 	dAtA[i] = 0x22
 	{
-		size := m.ActiveBaby.Size()
+		size := m.ActiveNtk.Size()
 		i -= size
-		if _, err := m.ActiveBaby.MarshalTo(dAtA[i:]); err != nil {
+		if _, err := m.ActiveNtk.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
 		}
 		i = encodeVarintRewards(dAtA, i, uint64(size))
@@ -463,7 +463,7 @@ func (m *CostakerRewardsTracker) Size() (n int) {
 	}
 	l = m.ActiveSatoshis.Size()
 	n += 1 + l + sovRewards(uint64(l))
-	l = m.ActiveBaby.Size()
+	l = m.ActiveNtk.Size()
 	n += 1 + l + sovRewards(uint64(l))
 	l = m.TotalScore.Size()
 	n += 1 + l + sovRewards(uint64(l))
@@ -779,7 +779,7 @@ func (m *CostakerRewardsTracker) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ActiveBaby", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ActiveNtk", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -806,7 +806,7 @@ func (m *CostakerRewardsTracker) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.ActiveBaby.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.ActiveNtk.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

@@ -88,14 +88,14 @@ func TestResetCoStakerRwdsTracker_WithPreexistingTrackers(t *testing.T) {
 	stakerAddr := datagen.GenRandomAccount().GetAddress()
 	startPeriod := uint64(5)
 
-	rndAmtBaby := datagen.RandomMathInt(r, 1000).AddRaw(2)
+	rndAmtNtk := datagen.RandomMathInt(r, 1000).AddRaw(2)
 	rndAmtSats := datagen.RandomMathInt(r, 1000).AddRaw(10)
-	correctAmtBaby := rndAmtBaby.AddRaw(5)
+	correctAmtNtk := rndAmtNtk.AddRaw(5)
 
 	tkeeper.CreateCostakerRewardsTracker(t, ctx, cdc, storeService, stakerAddr, costktypes.CostakerRewardsTracker{
 		StartPeriodCumulativeReward: startPeriod,
 		ActiveSatoshis:              rndAmtSats,
-		ActiveBaby:                  rndAmtBaby,
+		ActiveNtk:                  rndAmtNtk,
 	})
 
 	pks := simtestutil.CreateTestPubKeys(5)
@@ -125,19 +125,19 @@ func TestResetCoStakerRwdsTracker_WithPreexistingTrackers(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	_, err = stkK.Delegate(ctx, stakerAddr, correctAmtBaby, stktypes.Unbonded, validator, false)
+	_, err = stkK.Delegate(ctx, stakerAddr, correctAmtNtk, stktypes.Unbonded, validator, false)
 	require.NoError(t, err)
 
-	err = v4_3.ResetCoStakerRwdsTrackerActiveBaby(ctx, cdc, storeService, epochingK, stkK, costkK)
+	err = v4_3.ResetCoStakerRwdsTrackerActiveNtk(ctx, cdc, storeService, epochingK, stkK, costkK)
 	require.NoError(t, err)
 
 	costkRwd, err := costkK.GetCostakerRewards(ctx, stakerAddr)
 	require.NoError(t, err)
-	require.Equal(t, costkRwd.ActiveBaby.String(), correctAmtBaby.String())
+	require.Equal(t, costkRwd.ActiveNtk.String(), correctAmtNtk.String())
 	require.Equal(t, costkRwd.ActiveSatoshis.String(), rndAmtSats.String())
 
 	costkP := costkK.GetParams(ctx)
-	expScore := costktypes.CalculateScore(costkP.ScoreRatioBtcByBaby, correctAmtBaby, rndAmtSats)
+	expScore := costktypes.CalculateScore(costkP.ScoreRatioBtcByNtk, correctAmtNtk, rndAmtSats)
 	require.Equal(t, costkRwd.TotalScore.String(), expScore.String())
 
 	currenRwd, err := costkK.GetCurrentRewards(ctx)

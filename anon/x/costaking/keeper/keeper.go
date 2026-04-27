@@ -29,7 +29,7 @@ type (
 		stkK   types.StakingKeeper
 		distrK types.DistributionKeeper
 
-		// cache for delta changes in baby delegations
+		// cache for delta changes in ntk delegations
 		stkCache *types.StakingCache
 
 		// params stores the module parameter

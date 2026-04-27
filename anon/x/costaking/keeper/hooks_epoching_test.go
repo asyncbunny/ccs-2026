@@ -59,13 +59,13 @@ func TestHookEpochingAfterEpochEnds_ValidatorBecomesActive(t *testing.T) {
 	// Mock getting delegations for the newly active validator
 	mockStkK.EXPECT().GetValidatorDelegations(gomock.Any(), valAddr).Return([]stakingtypes.Delegation{delegation}, nil).Times(1)
 
-	// Call AfterEpochEnds - should add baby tokens for the newly active validator
+	// Call AfterEpochEnds - should add ntk tokens for the newly active validator
 	hooks.AfterEpochEnds(ctx, 1)
 
 	// Verify the costaker tracker was created/updated with the delegation amount
 	tracker, err := k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, shares.TruncateInt().String(), tracker.ActiveBaby.String())
+	require.Equal(t, shares.TruncateInt().String(), tracker.ActiveNtk.String())
 }
 
 func TestHookEpochingAfterEpochEnds_ValidatorBecomesInactive(t *testing.T) {
@@ -89,7 +89,7 @@ func TestHookEpochingAfterEpochEnds_ValidatorBecomesInactive(t *testing.T) {
 	val, err := tmocks.CreateValidator(valAddr, shares.RoundInt())
 	require.NoError(t, err)
 
-	// Setup: create a costaker tracker with existing ActiveBaby
+	// Setup: create a costaker tracker with existing ActiveNtk
 	err = k.setCostakerRewardsTracker(ctx, delAddr, types.NewCostakerRewardsTracker(0, math.ZeroInt(), shares.TruncateInt(), math.ZeroInt()))
 	require.NoError(t, err)
 
@@ -113,14 +113,14 @@ func TestHookEpochingAfterEpochEnds_ValidatorBecomesInactive(t *testing.T) {
 	// Mock getting delegations for the newly inactive validator
 	mockStkK.EXPECT().GetValidatorDelegations(gomock.Any(), valAddr).Return([]stakingtypes.Delegation{delegation}, nil).Times(1)
 
-	// Call AfterEpochEnds - should remove baby tokens for the newly inactive validator
+	// Call AfterEpochEnds - should remove ntk tokens for the newly inactive validator
 	mockStkK.EXPECT().GetValidator(gomock.Any(), valAddr).Return(val, nil).Times(1)
 	hooks.AfterEpochEnds(ctx, 1)
 
-	// Verify the costaker tracker was updated (ActiveBaby should be zero)
+	// Verify the costaker tracker was updated (ActiveNtk should be zero)
 	tracker, err := k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.True(t, tracker.ActiveBaby.IsZero(), "ActiveBaby should be zero after validator becomes inactive", "active baby", tracker.ActiveBaby.String())
+	require.True(t, tracker.ActiveNtk.IsZero(), "ActiveNtk should be zero after validator becomes inactive", "active ntk", tracker.ActiveNtk.String())
 }
 
 func TestHookEpochingAfterEpochEnds_MultipleValidatorsTransition(t *testing.T) {
@@ -162,9 +162,9 @@ func TestHookEpochingAfterEpochEnds_MultipleValidatorsTransition(t *testing.T) {
 	require.NotNil(t, delegation2)
 	require.NotNil(t, delegation3)
 
-	// Setup: create a costaker tracker with ActiveBaby from val1 and val2
-	initialActiveBaby := shares1.Add(shares2).TruncateInt()
-	err = k.setCostakerRewardsTracker(ctx, delAddr, types.NewCostakerRewardsTracker(0, math.ZeroInt(), initialActiveBaby, math.ZeroInt()))
+	// Setup: create a costaker tracker with ActiveNtk from val1 and val2
+	initialActiveNtk := shares1.Add(shares2).TruncateInt()
+	err = k.setCostakerRewardsTracker(ctx, delAddr, types.NewCostakerRewardsTracker(0, math.ZeroInt(), initialActiveNtk, math.ZeroInt()))
 	require.NoError(t, err)
 
 	mockStkK := k.stkK.(*types.MockStakingKeeper)
@@ -173,7 +173,7 @@ func TestHookEpochingAfterEpochEnds_MultipleValidatorsTransition(t *testing.T) {
 
 	// Store validator set with val1 and val2 active (simulating previous epoch state)
 	mockStkK.EXPECT().GetValidator(gomock.Any(), val1Addr).Return(val1, nil).Times(2) // initial + updateValidatorSet
-	mockStkK.EXPECT().GetValidator(gomock.Any(), val2Addr).Return(val2, nil).Times(2) // initial + removeBabyForDelegators
+	mockStkK.EXPECT().GetValidator(gomock.Any(), val2Addr).Return(val2, nil).Times(2) // initial + removeNtkForDelegators
 	err = k.updateValidatorSet(ctx, []sdk.ValAddress{val1Addr, val2Addr})
 	require.NoError(t, err)
 
@@ -188,7 +188,7 @@ func TestHookEpochingAfterEpochEnds_MultipleValidatorsTransition(t *testing.T) {
 
 	// Newly active validator val3
 	mockStkK.EXPECT().GetValidatorDelegations(gomock.Any(), val3Addr).Return([]stakingtypes.Delegation{delegation3}, nil).Times(1)
-	mockStkK.EXPECT().GetValidator(gomock.Any(), val3Addr).Return(val3, nil).Times(2) // addBabyForDelegators + updateValidatorSet
+	mockStkK.EXPECT().GetValidator(gomock.Any(), val3Addr).Return(val3, nil).Times(2) // addNtkForDelegators + updateValidatorSet
 
 	// Newly inactive validator val2
 	mockStkK.EXPECT().GetValidatorDelegations(gomock.Any(), val2Addr).Return([]stakingtypes.Delegation{delegation2}, nil).Times(1)
@@ -201,8 +201,8 @@ func TestHookEpochingAfterEpochEnds_MultipleValidatorsTransition(t *testing.T) {
 	// Lost: val2 (500)
 	tracker, err := k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	expectedActiveBaby := shares1.Add(shares3).TruncateInt() // 1000 + 750 = 1750
-	require.Equal(t, expectedActiveBaby.String(), tracker.ActiveBaby.String())
+	expectedActiveNtk := shares1.Add(shares3).TruncateInt() // 1000 + 750 = 1750
+	require.Equal(t, expectedActiveNtk.String(), tracker.ActiveNtk.String())
 }
 
 func TestHookEpochingAfterEpochEnds_NoValidatorChanges(t *testing.T) {
@@ -217,7 +217,7 @@ func TestHookEpochingAfterEpochEnds_NoValidatorChanges(t *testing.T) {
 	valAddr := datagen.GenRandomValidatorAddress()
 	shares := math.LegacyNewDec(1000)
 
-	// Setup: create a costaker tracker with existing ActiveBaby
+	// Setup: create a costaker tracker with existing ActiveNtk
 	err := k.setCostakerRewardsTracker(ctx, delAddr, types.NewCostakerRewardsTracker(0, math.ZeroInt(), shares.TruncateInt(), math.ZeroInt()))
 	require.NoError(t, err)
 
@@ -255,7 +255,7 @@ func TestHookEpochingAfterEpochEnds_NoValidatorChanges(t *testing.T) {
 	// Verify the costaker tracker is unchanged
 	tracker, err := k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, shares.TruncateInt().String(), tracker.ActiveBaby.String())
+	require.Equal(t, shares.TruncateInt().String(), tracker.ActiveNtk.String())
 }
 
 func TestHookEpochingAfterEpochEnds_MultipleDelegators(t *testing.T) {
@@ -319,19 +319,19 @@ func TestHookEpochingAfterEpochEnds_MultipleDelegators(t *testing.T) {
 	// Mock getting all delegations for the validator
 	mockStkK.EXPECT().GetValidatorDelegations(gomock.Any(), valAddr).Return(delegations, nil).Times(1)
 
-	// Call AfterEpochEnds - should add baby tokens for all delegators
+	// Call AfterEpochEnds - should add ntk tokens for all delegators
 	hooks.AfterEpochEnds(ctx, 1)
 
 	// Verify all delegators have their trackers updated
 	tracker1, err := k.GetCostakerRewards(ctx, del1Addr)
 	require.NoError(t, err)
-	require.Equal(t, shares1.TruncateInt().String(), tracker1.ActiveBaby.String())
+	require.Equal(t, shares1.TruncateInt().String(), tracker1.ActiveNtk.String())
 
 	tracker2, err := k.GetCostakerRewards(ctx, del2Addr)
 	require.NoError(t, err)
-	require.Equal(t, shares2.TruncateInt().String(), tracker2.ActiveBaby.String())
+	require.Equal(t, shares2.TruncateInt().String(), tracker2.ActiveNtk.String())
 
 	tracker3, err := k.GetCostakerRewards(ctx, del3Addr)
 	require.NoError(t, err)
-	require.Equal(t, shares3.TruncateInt().String(), tracker3.ActiveBaby.String())
+	require.Equal(t, shares3.TruncateInt().String(), tracker3.ActiveNtk.String())
 }

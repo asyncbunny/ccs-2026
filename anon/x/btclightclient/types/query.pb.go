@@ -917,7 +917,7 @@ type QueryClient interface {
 	Contains(ctx context.Context, in *QueryContainsRequest, opts ...grpc.CallOption) (*QueryContainsResponse, error)
 	// ContainsBytes is a temporary method that
 	// checks whether a hash is maintained by the module.
-	// See discussion at https://github.com/anon-org/anon/pull/132
+	// See discussion at #
 	// for more details.
 	ContainsBytes(ctx context.Context, in *QueryContainsBytesRequest, opts ...grpc.CallOption) (*QueryContainsBytesResponse, error)
 	// MainChain returns the canonical chain
@@ -1022,7 +1022,7 @@ type QueryServer interface {
 	Contains(context.Context, *QueryContainsRequest) (*QueryContainsResponse, error)
 	// ContainsBytes is a temporary method that
 	// checks whether a hash is maintained by the module.
-	// See discussion at https://github.com/anon-org/anon/pull/132
+	// See discussion at #
 	// for more details.
 	ContainsBytes(context.Context, *QueryContainsBytesRequest) (*QueryContainsBytesResponse, error)
 	// MainChain returns the canonical chain

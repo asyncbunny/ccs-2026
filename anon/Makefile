@@ -35,7 +35,7 @@ LEDGER_ENABLED ?= true
 BINDIR ?= $(GOPATH)/bin
 PROJECT_NAME ?= anon
 BUILDDIR ?= $(CURDIR)/build
-HTTPS_GIT := https://github.com/anon-org/anon.git
+HTTPS_GIT := #
 DOCKER := $(shell which docker)
 SIMAPP = ./simapp
 

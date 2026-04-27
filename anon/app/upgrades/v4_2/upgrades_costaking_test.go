@@ -105,7 +105,7 @@ func TestResetCoStakerRwdsTracker_WithPreexistingTrackers(t *testing.T) {
 	preexistingTracker := costktypes.CostakerRewardsTracker{
 		StartPeriodCumulativeReward: uint64(5),
 		ActiveSatoshis:              math.NewInt(999999), // Wrong value
-		ActiveBaby:                  math.NewInt(888888), // Wrong value
+		ActiveNtk:                  math.NewInt(888888), // Wrong value
 	}
 	tkeeper.CreateCostakerRewardsTracker(t, ctx, cdc, storeService, stakerAddr, preexistingTracker)
 
@@ -125,7 +125,7 @@ func TestResetCoStakerRwdsTracker_WithPreexistingTrackers(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify tracker was reset and recalculated correctly
-	verifyCoStakerUpdated(t, ctx, cdc, storeService, stakerAddr, math.NewIntFromUint64(btcDel.TotalSat), preexistingTracker.ActiveBaby, currPeriod)
+	verifyCoStakerUpdated(t, ctx, cdc, storeService, stakerAddr, math.NewIntFromUint64(btcDel.TotalSat), preexistingTracker.ActiveNtk, currPeriod)
 
 	// Current rewards period should have increased
 	currRwds, err := costkKeeper.GetCurrentRewards(ctx)
@@ -150,26 +150,26 @@ func TestResetCoStakerRwdsTracker_MultiplePreexistingTrackers(t *testing.T) {
 	staker3Addr := datagen.GenRandomAccount().GetAddress()
 	staker4Addr := datagen.GenRandomAccount().GetAddress()
 
-	babyAmount1 := math.NewInt(15000)
-	babyAmount2 := math.NewInt(20000)
-	babyAmount3 := math.NewInt(25000)
-	babyAmount4 := math.NewInt(0)
+	ntkAmount1 := math.NewInt(15000)
+	ntkAmount2 := math.NewInt(20000)
+	ntkAmount3 := math.NewInt(25000)
+	ntkAmount4 := math.NewInt(0)
 
 	// Create pre-existing trackers with incorrect values
 	tkeeper.CreateCostakerRewardsTracker(t, ctx, cdc, storeService, staker1Addr, costktypes.CostakerRewardsTracker{
 		StartPeriodCumulativeReward: uint64(10),
 		ActiveSatoshis:              math.NewInt(111111),
-		ActiveBaby:                  babyAmount1,
+		ActiveNtk:                  ntkAmount1,
 	})
 	tkeeper.CreateCostakerRewardsTracker(t, ctx, cdc, storeService, staker2Addr, costktypes.CostakerRewardsTracker{
 		StartPeriodCumulativeReward: uint64(15),
 		ActiveSatoshis:              math.NewInt(333333),
-		ActiveBaby:                  babyAmount2,
+		ActiveNtk:                  ntkAmount2,
 	})
 	tkeeper.CreateCostakerRewardsTracker(t, ctx, cdc, storeService, staker3Addr, costktypes.CostakerRewardsTracker{
 		StartPeriodCumulativeReward: uint64(20),
 		ActiveSatoshis:              math.NewInt(555555),
-		ActiveBaby:                  babyAmount3,
+		ActiveNtk:                  ntkAmount3,
 	})
 
 	startPeriod4 := uint64(25)
@@ -177,7 +177,7 @@ func TestResetCoStakerRwdsTracker_MultiplePreexistingTrackers(t *testing.T) {
 	tkeeper.CreateCostakerRewardsTracker(t, ctx, cdc, storeService, staker4Addr, costktypes.CostakerRewardsTracker{
 		StartPeriodCumulativeReward: startPeriod4,
 		ActiveSatoshis:              activeSats4,
-		ActiveBaby:                  babyAmount4,
+		ActiveNtk:                  ntkAmount4,
 	})
 
 	currPeriod := uint64(30)
@@ -209,12 +209,12 @@ func TestResetCoStakerRwdsTracker_MultiplePreexistingTrackers(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify all trackers were reset and recalculated correctly
-	verifyCoStakerUpdated(t, ctx, cdc, storeService, staker1Addr, math.NewIntFromUint64(btcDel1.TotalSat), babyAmount1, currPeriod)
-	verifyCoStakerUpdated(t, ctx, cdc, storeService, staker2Addr, math.NewIntFromUint64(btcDel2.TotalSat), babyAmount2, currPeriod)
-	verifyCoStakerUpdated(t, ctx, cdc, storeService, staker3Addr, math.NewIntFromUint64(btcDel3.TotalSat), babyAmount3, currPeriod)
+	verifyCoStakerUpdated(t, ctx, cdc, storeService, staker1Addr, math.NewIntFromUint64(btcDel1.TotalSat), ntkAmount1, currPeriod)
+	verifyCoStakerUpdated(t, ctx, cdc, storeService, staker2Addr, math.NewIntFromUint64(btcDel2.TotalSat), ntkAmount2, currPeriod)
+	verifyCoStakerUpdated(t, ctx, cdc, storeService, staker3Addr, math.NewIntFromUint64(btcDel3.TotalSat), ntkAmount3, currPeriod)
 
 	// Active sats before == current active sats, so start period should not increase
-	verifyCoStakerUpdated(t, ctx, cdc, storeService, staker4Addr, activeSats4, babyAmount4, startPeriod4)
+	verifyCoStakerUpdated(t, ctx, cdc, storeService, staker4Addr, activeSats4, ntkAmount4, startPeriod4)
 
 	// Verify total count is still 4
 	count := countCoStakers(t, ctx, cdc, storeService)
@@ -243,20 +243,20 @@ func TestResetCoStakerRwdsTracker_TrackerNoLongerValid(t *testing.T) {
 	staker2Addr := datagen.GenRandomAccount().GetAddress() // Will NOT have delegations
 
 	// Create pre-existing trackers for both
-	babyAmount1 := math.NewInt(15000)
-	babyAmount2 := math.NewInt(100000)
+	ntkAmount1 := math.NewInt(15000)
+	ntkAmount2 := math.NewInt(100000)
 
 	startPeriod1 := uint64(5)
 	tkeeper.CreateCostakerRewardsTracker(t, ctx, cdc, storeService, staker1Addr, costktypes.CostakerRewardsTracker{
 		StartPeriodCumulativeReward: startPeriod1,
 		ActiveSatoshis:              math.NewInt(100000),
-		ActiveBaby:                  babyAmount1,
+		ActiveNtk:                  ntkAmount1,
 	})
 	startPeriod2 := uint64(10)
 	tkeeper.CreateCostakerRewardsTracker(t, ctx, cdc, storeService, staker2Addr, costktypes.CostakerRewardsTracker{
 		StartPeriodCumulativeReward: startPeriod2,
 		ActiveSatoshis:              math.NewInt(200000),
-		ActiveBaby:                  babyAmount2,
+		ActiveNtk:                  ntkAmount2,
 	})
 
 	currPeriod := uint64(20)
@@ -275,10 +275,10 @@ func TestResetCoStakerRwdsTracker_TrackerNoLongerValid(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify staker1 has correct values
-	verifyCoStakerUpdated(t, ctx, cdc, storeService, staker1Addr, math.NewIntFromUint64(btcDel1.TotalSat), babyAmount1, currPeriod)
+	verifyCoStakerUpdated(t, ctx, cdc, storeService, staker1Addr, math.NewIntFromUint64(btcDel1.TotalSat), ntkAmount1, currPeriod)
 
 	// Verify staker2 tracker is zeroed out (no delegations)
-	verifyCoStakerUpdated(t, ctx, cdc, storeService, staker2Addr, math.ZeroInt(), babyAmount2, currPeriod)
+	verifyCoStakerUpdated(t, ctx, cdc, storeService, staker2Addr, math.ZeroInt(), ntkAmount2, currPeriod)
 
 	// Current rewards period should have increased
 	currRwds, err := costkKeeper.GetCurrentRewards(ctx)
@@ -300,20 +300,20 @@ func TestResetCoStakerRwdsTracker_InactiveFPAndValidator(t *testing.T) {
 	stakerAddr1 := datagen.GenRandomAccount().GetAddress()
 	stakerAddr2 := datagen.GenRandomAccount().GetAddress()
 
-	// Create pre-existing tracker with both BTC and BABY
-	babyAmount := math.NewInt(25000)
+	// Create pre-existing tracker with both BTC and NTK
+	ntkAmount := math.NewInt(25000)
 	startPeriod := uint64(5)
 	tkeeper.CreateCostakerRewardsTracker(t, ctx, cdc, storeService, stakerAddr1, costktypes.CostakerRewardsTracker{
 		StartPeriodCumulativeReward: startPeriod,
 		ActiveSatoshis:              math.NewInt(100000),
-		ActiveBaby:                  babyAmount,
+		ActiveNtk:                  ntkAmount,
 	})
 
-	// staker 2 has costaker tracker with 0 sats and some baby
+	// staker 2 has costaker tracker with 0 sats and some ntk
 	tkeeper.CreateCostakerRewardsTracker(t, ctx, cdc, storeService, stakerAddr2, costktypes.CostakerRewardsTracker{
 		StartPeriodCumulativeReward: startPeriod,
 		ActiveSatoshis:              math.ZeroInt(),
-		ActiveBaby:                  babyAmount,
+		ActiveNtk:                  ntkAmount,
 	})
 
 	// Create BTC delegation (but FP will be inactive)
@@ -335,10 +335,10 @@ func TestResetCoStakerRwdsTracker_InactiveFPAndValidator(t *testing.T) {
 	require.NoError(t, err)
 
 	// Verify tracker is zeroed out (active sats only)
-	verifyCoStakerUpdated(t, ctx, cdc, storeService, stakerAddr1, math.ZeroInt(), babyAmount, currPeriod)
+	verifyCoStakerUpdated(t, ctx, cdc, storeService, stakerAddr1, math.ZeroInt(), ntkAmount, currPeriod)
 	// For staker2, there's no change as it had 0 sats before
 	// so start period should remain unchanged
-	verifyCoStakerUpdated(t, ctx, cdc, storeService, stakerAddr2, math.ZeroInt(), babyAmount, startPeriod)
+	verifyCoStakerUpdated(t, ctx, cdc, storeService, stakerAddr2, math.ZeroInt(), ntkAmount, startPeriod)
 
 	// Current rewards period should have increased
 	currRwds, err := costkKeeper.GetCurrentRewards(ctx)
@@ -437,14 +437,14 @@ func createTestBTCDelegation(t *testing.T, r *rand.Rand, ctx sdk.Context, btcStk
 	return del
 }
 
-func verifyCoStakerUpdated(t *testing.T, ctx sdk.Context, cdc codec.BinaryCodec, storeService corestore.KVStoreService, stakerAddr sdk.AccAddress, expectedBTCAmount, expectedBabyAmount math.Int, expectedStartPeriod uint64) {
+func verifyCoStakerUpdated(t *testing.T, ctx sdk.Context, cdc codec.BinaryCodec, storeService corestore.KVStoreService, stakerAddr sdk.AccAddress, expectedBTCAmount, expectedNtkAmount math.Int, expectedStartPeriod uint64) {
 	rwdTrackers := tkeeper.RwdTrackerCollection(storeService, cdc)
 	tracker, err := rwdTrackers.Get(ctx, []byte(stakerAddr))
 
 	require.NoError(t, err, "Co-staker rewards tracker should exist for %s", stakerAddr.String())
 	require.Equal(t, expectedStartPeriod, tracker.StartPeriodCumulativeReward, "StartPeriodCumulativeReward should be %d", expectedStartPeriod)
 	require.True(t, tracker.ActiveSatoshis.Equal(expectedBTCAmount), "ActiveSatoshis should match expected BTC amount: expected %s, got %s", expectedBTCAmount.String(), tracker.ActiveSatoshis.String())
-	require.True(t, tracker.ActiveBaby.Equal(expectedBabyAmount), "ActiveBaby should match expected baby amount: expected %s, got %s", expectedBabyAmount.String(), tracker.ActiveBaby.String())
+	require.True(t, tracker.ActiveNtk.Equal(expectedNtkAmount), "ActiveNtk should match expected ntk amount: expected %s, got %s", expectedNtkAmount.String(), tracker.ActiveNtk.String())
 }
 
 func countCoStakers(t *testing.T, ctx sdk.Context, cdc codec.BinaryCodec, storeService corestore.KVStoreService) int {

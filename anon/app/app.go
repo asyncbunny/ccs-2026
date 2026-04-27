@@ -368,7 +368,7 @@ func NewAnonApp(
 		// NOTE: incentive module's BeginBlock has to be after mint but before distribution
 		// so that it can intercept a part of new inflation to reward BTC staking stakeholders.
 		// costaking module goes right after incentives but before distribution to also take
-		// a cut of the inflation for costaking (BABY + BTC) staking.
+		// a cut of the inflation for costaking (NTK + BTC) staking.
 		minttypes.ModuleName, incentivetypes.ModuleName, costktypes.ModuleName, distrtypes.ModuleName,
 		slashingtypes.ModuleName,
 		evidencetypes.ModuleName, stakingtypes.ModuleName,

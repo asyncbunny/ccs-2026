@@ -335,7 +335,7 @@ func (bc *AnonConsumerController) QueryFinalityActivationBlockHeight(_ context.C
 	return res.Params.FinalityActivationHeight, nil
 }
 
-func (bc *AnonConsumerController) IsBSN() bool {
+func (bc *AnonConsumerController) IsCSN() bool {
 	return false
 }
 

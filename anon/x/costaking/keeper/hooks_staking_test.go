@@ -67,13 +67,13 @@ func TestHookStakingAfterDelegationModified(t *testing.T) {
 	mockIctvK := types.NewMockIncentiveKeeper(ctrl)
 	k, ctx := NewKeeperWithMockIncentiveKeeper(t, mockIctvK)
 	p := k.GetParams(ctx)
-	p.ScoreRatioBtcByBaby = math.NewInt(50)
+	p.ScoreRatioBtcByNtk = math.NewInt(50)
 	err := k.SetParams(ctx, p)
 	require.NoError(t, err)
 
 	delAddr, valAddr := datagen.GenRandomAddress(), datagen.GenRandomValidatorAddress()
 
-	// simulates as if the user had staked 100 baby at genesis
+	// simulates as if the user had staked 100 ntk at genesis
 	expShares := math.LegacyNewDec(100)
 	delegation := stakingtypes.Delegation{
 		DelegatorAddress: delAddr.String(),
@@ -101,7 +101,7 @@ func TestHookStakingAfterDelegationModified(t *testing.T) {
 	// Verify the costaker tracker was updated with the delta
 	tracker, err := k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, expShares.TruncateInt().String(), tracker.ActiveBaby.String())
+	require.Equal(t, expShares.TruncateInt().String(), tracker.ActiveNtk.String())
 
 	// simulates that the user staked a bit of BTC
 	err = k.costakerModified(ctx, delAddr, func(rwdTracker *types.CostakerRewardsTracker) {
@@ -185,7 +185,7 @@ func TestHookStakingAfterDelegationModifiedReducingAmountStaked(t *testing.T) {
 	// Verify the costaker tracker was updated with the negative delta
 	tracker, err := k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, afterShares.TruncateInt().String(), tracker.ActiveBaby.String())
+	require.Equal(t, afterShares.TruncateInt().String(), tracker.ActiveNtk.String())
 }
 
 func TestHookStakingAfterDelegationModified_InactiveValidator(t *testing.T) {
@@ -271,7 +271,7 @@ func TestHookStakingMultipleValidators_MixedActiveInactive(t *testing.T) {
 	// Verify tracker was created with active validator's amount
 	tracker, err := k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, activeShares.TruncateInt().String(), tracker.ActiveBaby.String())
+	require.Equal(t, activeShares.TruncateInt().String(), tracker.ActiveNtk.String())
 
 	// Second call: try to delegate to inactive validator
 	// Note: cache is already populated, so no IterateLastValidatorPowers call
@@ -281,7 +281,7 @@ func TestHookStakingMultipleValidators_MixedActiveInactive(t *testing.T) {
 	// Verify tracker amount didn't change (inactive validator was skipped)
 	tracker, err = k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, activeShares.TruncateInt().String(), tracker.ActiveBaby.String())
+	require.Equal(t, activeShares.TruncateInt().String(), tracker.ActiveNtk.String())
 }
 
 func TestHookStakingValidatorBecomesInactive(t *testing.T) {
@@ -322,7 +322,7 @@ func TestHookStakingValidatorBecomesInactive(t *testing.T) {
 
 	tracker, err := k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, shares.TruncateInt().String(), tracker.ActiveBaby.String())
+	require.Equal(t, shares.TruncateInt().String(), tracker.ActiveNtk.String())
 
 	// Clear the cache to simulate new block/epoch
 	k.stkCache.Clear()
@@ -337,10 +337,10 @@ func TestHookStakingValidatorBecomesInactive(t *testing.T) {
 	// Tracker should still have the old amount (no change because validator is inactive)
 	tracker, err = k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, shares.TruncateInt().String(), tracker.ActiveBaby.String())
+	require.Equal(t, shares.TruncateInt().String(), tracker.ActiveNtk.String())
 }
 
-// TestHookStakingSlashedValidator_PostSlashDelegationUnbond delegations made after slashing ARE added to ActiveBaby as
+// TestHookStakingSlashedValidator_PostSlashDelegationUnbond delegations made after slashing ARE added to ActiveNtk as
 // long as the validator remains in the active set, and they ARE correctly subtracted when
 // unbonded. This test ensures that this behavior is preserved.
 func TestHookStakingSlashedValidator_PostSlashDelegationUnbond(t *testing.T) {
@@ -372,13 +372,13 @@ func TestHookStakingSlashedValidator_PostSlashDelegationUnbond(t *testing.T) {
 	// Now set up for initial delegation
 	mockStkK.EXPECT().GetDelegation(gomock.Any(), delAddr, valAddr).Return(delegation, nil).Times(1)
 
-	// Trigger AfterDelegationModified - adds 1000 to ActiveBaby
+	// Trigger AfterDelegationModified - adds 1000 to ActiveNtk
 	err = hooks.AfterDelegationModified(ctx, delAddr, valAddr)
 	require.NoError(t, err)
 
 	tracker, err := k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "1000", tracker.ActiveBaby.String())
+	require.Equal(t, "1000", tracker.ActiveNtk.String())
 
 	// Step 2: Simulate validator slashing (10% slash)
 	// Tokens reduced from 1000 to 900, but shares remain 1000
@@ -387,16 +387,16 @@ func TestHookStakingSlashedValidator_PostSlashDelegationUnbond(t *testing.T) {
 	slashedVal.Tokens = slashedTokens
 	// Shares remain the same, breaking 1:1 ratio
 
-	// Call BeforeValidatorSlashed hook to reduce ActiveBaby
+	// Call BeforeValidatorSlashed hook to reduce ActiveNtk
 	mockStkK.EXPECT().GetValidatorDelegations(gomock.Any(), valAddr).Return([]stakingtypes.Delegation{delegation}, nil).Times(1)
 	slashRatio := math.LegacyMustNewDecFromStr("0.1")
 	err = hooks.BeforeValidatorSlashed(ctx, valAddr, slashRatio)
 	require.NoError(t, err)
 
-	// Verify slash reduced ActiveBaby from 1000 to 900
+	// Verify slash reduced ActiveNtk from 1000 to 900
 	tracker, err = k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "900", tracker.ActiveBaby.String())
+	require.Equal(t, "900", tracker.ActiveNtk.String())
 
 	// Clear cache to simulate new block, but DON'T update validator set
 	// The validator set still has the original (pre-slash) tokens, which allows detection of slashing
@@ -427,14 +427,14 @@ func TestHookStakingSlashedValidator_PostSlashDelegationUnbond(t *testing.T) {
 
 	mockStkK.EXPECT().GetDelegation(gomock.Any(), delAddr, valAddr).Return(delegationAfterPostSlash, nil).Times(1)
 
-	// Trigger AfterDelegationModified - should add 200 to ActiveBaby (validator is slashed, but still in the active set)
+	// Trigger AfterDelegationModified - should add 200 to ActiveNtk (validator is slashed, but still in the active set)
 	err = hooks.AfterDelegationModified(ctx, delAddr, valAddr)
 	require.NoError(t, err)
 
-	// Verify ActiveBaby increased: 900 (after slash) + 200 (new delegation) = 1100
+	// Verify ActiveNtk increased: 900 (after slash) + 200 (new delegation) = 1100
 	tracker, err = k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "1100", tracker.ActiveBaby.String(), "ActiveBaby should increase with post-slash delegation")
+	require.Equal(t, "1100", tracker.ActiveNtk.String(), "ActiveNtk should increase with post-slash delegation")
 
 	// Step 4a: Unbond the pre-slash delegation (1000 shares / 900 tokens after slash)
 	delegationBeforePreSlashUnbond := stakingtypes.Delegation{
@@ -456,10 +456,10 @@ func TestHookStakingSlashedValidator_PostSlashDelegationUnbond(t *testing.T) {
 	err = hooks.AfterDelegationModified(ctx, delAddr, valAddr)
 	require.NoError(t, err)
 
-	// ActiveBaby should be reduced by 900: 1100 - 900 = 200
+	// ActiveNtk should be reduced by 900: 1100 - 900 = 200
 	tracker, err = k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "200", tracker.ActiveBaby.String())
+	require.Equal(t, "200", tracker.ActiveNtk.String())
 
 	// Step 4b: Unbond the remaining post-slash delegation (222.22 shares / 200 tokens)
 	delegationBeforeUnbond := stakingtypes.Delegation{
@@ -475,14 +475,14 @@ func TestHookStakingSlashedValidator_PostSlashDelegationUnbond(t *testing.T) {
 	err = hooks.BeforeDelegationRemoved(ctx, delAddr, valAddr)
 	require.NoError(t, err)
 
-	// Verify ActiveBaby reduced to 0: 200 - 200 = 0
+	// Verify ActiveNtk reduced to 0: 200 - 200 = 0
 	tracker, err = k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "0", tracker.ActiveBaby.String(), "ActiveBaby should be 0 after removing all delegations")
+	require.Equal(t, "0", tracker.ActiveNtk.String(), "ActiveNtk should be 0 after removing all delegations")
 }
 
 // TestHookStakingSlashedValidator_PreSlashDelegationUnbond tests that unbonding
-// a delegation made BEFORE slashing correctly subtracts from ActiveBaby using the
+// a delegation made BEFORE slashing correctly subtracts from ActiveNtk using the
 // original (pre-slash) ratio.
 func TestHookStakingSlashedValidator_PreSlashDelegationUnbond(t *testing.T) {
 	k, ctx := NewKeeperWithMockIncentiveKeeper(t, nil)
@@ -516,23 +516,23 @@ func TestHookStakingSlashedValidator_PreSlashDelegationUnbond(t *testing.T) {
 
 	tracker, err := k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "1000", tracker.ActiveBaby.String())
+	require.Equal(t, "1000", tracker.ActiveNtk.String())
 
 	// Simulate validator slashing
 	slashedTokens := math.NewInt(900)
 	slashedVal := val
 	slashedVal.Tokens = slashedTokens
 
-	// Call BeforeValidatorSlashed hook to reduce ActiveBaby
+	// Call BeforeValidatorSlashed hook to reduce ActiveNtk
 	mockStkK.EXPECT().GetValidatorDelegations(gomock.Any(), valAddr).Return([]stakingtypes.Delegation{delegation}, nil).Times(1)
 	slashRatio := math.LegacyMustNewDecFromStr("0.1")
 	err = hooks.BeforeValidatorSlashed(ctx, valAddr, slashRatio)
 	require.NoError(t, err)
 
-	// Verify slash reduced ActiveBaby from 1000 to 900
+	// Verify slash reduced ActiveNtk from 1000 to 900
 	tracker, err = k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "900", tracker.ActiveBaby.String())
+	require.Equal(t, "900", tracker.ActiveNtk.String())
 
 	// Clear cache but don't update validator set (keeps original tokens for slashing detection)
 	k.stkCache.Clear()
@@ -557,12 +557,12 @@ func TestHookStakingSlashedValidator_PreSlashDelegationUnbond(t *testing.T) {
 	// Should subtract 900 tokens (current value after slash): 900 - 900 = 0
 	tracker, err = k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "0", tracker.ActiveBaby.String(), "ActiveBaby should be 0 after unbonding all")
+	require.Equal(t, "0", tracker.ActiveNtk.String(), "ActiveNtk should be 0 after unbonding all")
 }
 
 // TestHookStakingSlashedValidator_MixedPreAndPostSlashUnbond tests unbonding when
 // the delegation contains both pre-slash and post-slash shares. Only the pre-slash
-// portion should be subtracted from ActiveBaby.
+// portion should be subtracted from ActiveNtk.
 func TestHookStakingSlashedValidator_MixedPreAndPostSlashUnbond(t *testing.T) {
 	k, ctx := NewKeeperWithMockIncentiveKeeper(t, nil)
 	ctx = ctx.WithBlockHeight(100)
@@ -598,16 +598,16 @@ func TestHookStakingSlashedValidator_MixedPreAndPostSlashUnbond(t *testing.T) {
 	slashedVal := val
 	slashedVal.Tokens = slashedTokens
 
-	// Call BeforeValidatorSlashed hook to reduce ActiveBaby
+	// Call BeforeValidatorSlashed hook to reduce ActiveNtk
 	mockStkK.EXPECT().GetValidatorDelegations(gomock.Any(), valAddr).Return([]stakingtypes.Delegation{delegation}, nil).Times(1)
 	slashRatio := math.LegacyMustNewDecFromStr("0.1")
 	err = hooks.BeforeValidatorSlashed(ctx, valAddr, slashRatio)
 	require.NoError(t, err)
 
-	// Verify slash reduced ActiveBaby from 1000 to 900
+	// Verify slash reduced ActiveNtk from 1000 to 900
 	tracker, err := k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "900", tracker.ActiveBaby.String())
+	require.Equal(t, "900", tracker.ActiveNtk.String())
 
 	// Clear cache but don't update validator set (keeps original tokens for slashing detection)
 	k.stkCache.Clear()
@@ -637,10 +637,10 @@ func TestHookStakingSlashedValidator_MixedPreAndPostSlashUnbond(t *testing.T) {
 	err = hooks.AfterDelegationModified(ctx, delAddr, valAddr)
 	require.NoError(t, err)
 
-	// Verify ActiveBaby after post-slash delegation: 900 (pre-slash after reduction) + 200 (post-slash) = 1100
+	// Verify ActiveNtk after post-slash delegation: 900 (pre-slash after reduction) + 200 (post-slash) = 1100
 	tracker, err = k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "1100", tracker.ActiveBaby.String())
+	require.Equal(t, "1100", tracker.ActiveNtk.String())
 
 	// Step 4: Unbond ALL shares (both pre-slash 1000 and post-slash 222.22)
 	// Total current tokens: 900 + 200 = 1100
@@ -663,7 +663,7 @@ func TestHookStakingSlashedValidator_MixedPreAndPostSlashUnbond(t *testing.T) {
 	// delTokenChange = 1000 shares * 1000 tokens / 1000 shares = 1000 tokens
 	tracker, err = k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "0", tracker.ActiveBaby.String(), "ActiveBaby should only be reduced by pre-slash amount (1000)")
+	require.Equal(t, "0", tracker.ActiveNtk.String(), "ActiveNtk should only be reduced by pre-slash amount (1000)")
 }
 
 // TestHookStakingSlashedValidator_MultipleDeltaShares tests the scenario where
@@ -709,10 +709,10 @@ func TestHookStakingSlashedValidator_MultipleDeltaShares(t *testing.T) {
 	slashedVal.Tokens = math.NewInt(900)
 	k.stkCache.Clear()
 
-	// slash should reduce the active baby staked
+	// slash should reduce the active ntk staked
 	tracker, err := k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "900", tracker.ActiveBaby.String())
+	require.Equal(t, "900", tracker.ActiveNtk.String())
 
 	// First post-slash delegation: 100 tokens
 
@@ -748,7 +748,7 @@ func TestHookStakingSlashedValidator_MultipleDeltaShares(t *testing.T) {
 	// First stake should add 100 tokens
 	tracker, err = k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "1000", tracker.ActiveBaby.String())
+	require.Equal(t, "1000", tracker.ActiveNtk.String())
 
 	mockStkK.EXPECT().GetDelegation(gomock.Any(), delAddr, valAddr).Return(delegationAfterFirst, nil).Times(1)
 	err = hooks.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
@@ -775,7 +775,7 @@ func TestHookStakingSlashedValidator_MultipleDeltaShares(t *testing.T) {
 	// Second stake should add 50 tokens
 	tracker, err = k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "1050", tracker.ActiveBaby.String())
+	require.Equal(t, "1050", tracker.ActiveNtk.String())
 
 	// Unbond all shares
 	// BeforeDelegationSharesModified before unbonding
@@ -789,7 +789,7 @@ func TestHookStakingSlashedValidator_MultipleDeltaShares(t *testing.T) {
 	// Should unbond all from the costaking tracker
 	tracker, err = k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "0", tracker.ActiveBaby.String())
+	require.Equal(t, "0", tracker.ActiveNtk.String())
 }
 
 // TestHookStakingSlashedValidator_OnlyPostSlashDelegationExists tests the edge case
@@ -832,10 +832,10 @@ func TestHookStakingSlashedValidator_OnlyPostSlashDelegationExists(t *testing.T)
 	err = hooks.AfterDelegationModified(ctx, delAddr, valAddr)
 	require.NoError(t, err)
 
-	// Should not add to ActiveBaby
+	// Should not add to ActiveNtk
 	tracker, err := k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "100", tracker.ActiveBaby.String())
+	require.Equal(t, "100", tracker.ActiveNtk.String())
 
 	// Unbond the post-slash delegation
 	// BeforeDelegationSharesModified before unbonding
@@ -852,8 +852,8 @@ func TestHookStakingSlashedValidator_OnlyPostSlashDelegationExists(t *testing.T)
 	err = hooks.BeforeDelegationRemoved(ctx, delAddr, valAddr)
 	require.NoError(t, err)
 
-	// Should subtract 100 from ActiveBaby: 100 - 100 = 0
+	// Should subtract 100 from ActiveNtk: 100 - 100 = 0
 	tracker, err = k.GetCostakerRewards(ctx, delAddr)
 	require.NoError(t, err)
-	require.Equal(t, "0", tracker.ActiveBaby.String())
+	require.Equal(t, "0", tracker.ActiveNtk.String())
 }

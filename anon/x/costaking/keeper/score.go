@@ -9,7 +9,7 @@ import (
 	"github.com/anon-org/anon/v4/x/costaking/types"
 )
 
-func (k Keeper) UpdateAllCostakersScore(ctx context.Context, scoreRatioBtcByBaby math.Int) error {
+func (k Keeper) UpdateAllCostakersScore(ctx context.Context, scoreRatioBtcByNtk math.Int) error {
 	totalScore := math.ZeroInt()
 
 	endedPeriod, err := k.IncrementRewardsPeriod(ctx)
@@ -23,7 +23,7 @@ func (k Keeper) UpdateAllCostakersScore(ctx context.Context, scoreRatioBtcByBaby
 	}
 
 	err = k.IterateCostakers(ctx, func(costaker sdk.AccAddress, rwdTracker types.CostakerRewardsTracker) error {
-		deltaScoreChange := rwdTracker.UpdateScore(scoreRatioBtcByBaby)
+		deltaScoreChange := rwdTracker.UpdateScore(scoreRatioBtcByNtk)
 
 		totalScore = totalScore.Add(rwdTracker.TotalScore)
 		if deltaScoreChange.IsZero() {

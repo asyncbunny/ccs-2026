@@ -28,7 +28,7 @@ service Query {
 
   // ContainsBytes is a temporary method that
   // checks whether a hash is maintained by the module.
-  // See discussion at https://github.com/anon-org/anon/pull/132
+  // See discussion at #
   // for more details.
   rpc ContainsBytes(QueryContainsBytesRequest)
       returns (QueryContainsBytesResponse) {

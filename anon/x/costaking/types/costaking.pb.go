@@ -31,11 +31,11 @@ type Params struct {
 	// NOTE: This portion of costakers is taken after the incentive module
 	// takes part of the fee_collector to give out to BTC stakers.
 	CostakingPortion cosmossdk_io_math.LegacyDec `protobuf:"bytes,1,opt,name=costaking_portion,json=costakingPortion,proto3,customtype=cosmossdk.io/math.LegacyDec" json:"costaking_portion"`
-	// ScoreRatioBtcByBaby defines the amount of uanc necessary for the
+	// ScoreRatioBtcByNtk defines the amount of uanc necessary for the
 	// sats staked to count as score in the formula.
 	// score: min(costakers_sats_staked, (costakers_uanc_staked /
-	// score_ratio_btc_by_baby))
-	ScoreRatioBtcByBaby cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=score_ratio_btc_by_baby,json=scoreRatioBtcByBaby,proto3,customtype=cosmossdk.io/math.Int" json:"score_ratio_btc_by_baby"`
+	// score_ratio_btc_by_ntk))
+	ScoreRatioBtcByNtk cosmossdk_io_math.Int `protobuf:"bytes,2,opt,name=score_ratio_btc_by_ntk,json=scoreRatioBtcByNtk,proto3,customtype=cosmossdk.io/math.Int" json:"score_ratio_btc_by_ntk"`
 	// ValidatorsPortion is the portion of rewards that goes to Anon Validators
 	// NOTE: This portion of validators is taken after the incentive module
 	// takes part of the fee_collector balance to give out to validators that
@@ -243,9 +243,9 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i--
 	dAtA[i] = 0x1a
 	{
-		size := m.ScoreRatioBtcByBaby.Size()
+		size := m.ScoreRatioBtcByNtk.Size()
 		i -= size
-		if _, err := m.ScoreRatioBtcByBaby.MarshalTo(dAtA[i:]); err != nil {
+		if _, err := m.ScoreRatioBtcByNtk.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
 		}
 		i = encodeVarintCostaking(dAtA, i, uint64(size))
@@ -371,7 +371,7 @@ func (m *Params) Size() (n int) {
 	_ = l
 	l = m.CostakingPortion.Size()
 	n += 1 + l + sovCostaking(uint64(l))
-	l = m.ScoreRatioBtcByBaby.Size()
+	l = m.ScoreRatioBtcByNtk.Size()
 	n += 1 + l + sovCostaking(uint64(l))
 	l = m.ValidatorsPortion.Size()
 	n += 1 + l + sovCostaking(uint64(l))
@@ -481,7 +481,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ScoreRatioBtcByBaby", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ScoreRatioBtcByNtk", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -508,7 +508,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.ScoreRatioBtcByBaby.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.ScoreRatioBtcByNtk.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
