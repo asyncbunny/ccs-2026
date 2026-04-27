@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -13,8 +13,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/go-bip39"
 
-	"github.com/babylonlabs-io/finality-provider/types"
-	"github.com/babylonlabs-io/finality-provider/util"
+	"github.com/anon-org/finality-provider/types"
+	"github.com/anon-org/finality-provider/util"
 )
 
 const (
@@ -121,7 +121,7 @@ func (kc *ChainKeyringController) CreateChainKey(passphrase, hdPath, mnemonic st
 	}
 }
 
-// CreatePop creates proof-of-possession of Babylon and BTC public keys
+// CreatePop creates proof-of-possession of Anon and BTC public keys
 // the input is the bytes of BTC public key used to sign
 // this requires both keys created beforehand
 func (kc *ChainKeyringController) CreatePop(_ string, fpAddr sdk.AccAddress, btcPrivKey *btcec.PrivateKey) (*bstypes.ProofOfPossessionBTC, error) {

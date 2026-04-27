@@ -31,11 +31,11 @@ go version
 ### 1.1. Clone the Finality Provider Repository
 
 Subsequently, clone the finality provider
-[repository](https://github.com/babylonlabs-io/finality-provider) and checkout
+[repository](https://github.com/anon-org/finality-provider) and checkout
 to the version you want to install.
 
 ```shell
-git clone https://github.com/babylonlabs-io/finality-provider.git
+git clone https://github.com/anon-org/finality-provider.git
 cd finality-provider
 git checkout <version>
 ```

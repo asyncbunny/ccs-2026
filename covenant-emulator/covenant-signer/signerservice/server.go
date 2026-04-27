@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"net/http"
 
-	m "github.com/babylonlabs-io/covenant-emulator/covenant-signer/observability/metrics"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice/handlers"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice/middlewares"
+	m "github.com/anon-org/covenant-emulator/covenant-signer/observability/metrics"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice/handlers"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice/middlewares"
 	"github.com/rs/zerolog/log"
 
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/config"
-	s "github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerapp"
+	"github.com/anon-org/covenant-emulator/covenant-signer/config"
+	s "github.com/anon-org/covenant-emulator/covenant-signer/signerapp"
 	"github.com/go-chi/chi/v5"
 )
 

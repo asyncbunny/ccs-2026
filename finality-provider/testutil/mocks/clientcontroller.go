@@ -13,39 +13,39 @@ import (
 	context "context"
 	reflect "reflect"
 
-	types "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
-	api "github.com/babylonlabs-io/finality-provider/clientcontroller/api"
-	types0 "github.com/babylonlabs-io/finality-provider/types"
+	types "github.com/anon-org/anon/v4/x/btcstaking/types"
+	api "github.com/anon-org/finality-provider/clientcontroller/api"
+	types0 "github.com/anon-org/finality-provider/types"
 	btcec "github.com/btcsuite/btcd/btcec/v2"
 	gomock "go.uber.org/mock/gomock"
 )
 
-// MockBabylonController is a mock of BabylonController interface.
-type MockBabylonController struct {
+// MockAnonController is a mock of AnonController interface.
+type MockAnonController struct {
 	ctrl     *gomock.Controller
-	recorder *MockBabylonControllerMockRecorder
+	recorder *MockAnonControllerMockRecorder
 	isgomock struct{}
 }
 
-// MockBabylonControllerMockRecorder is the mock recorder for MockBabylonController.
-type MockBabylonControllerMockRecorder struct {
-	mock *MockBabylonController
+// MockAnonControllerMockRecorder is the mock recorder for MockAnonController.
+type MockAnonControllerMockRecorder struct {
+	mock *MockAnonController
 }
 
-// NewMockBabylonController creates a new mock instance.
-func NewMockBabylonController(ctrl *gomock.Controller) *MockBabylonController {
-	mock := &MockBabylonController{ctrl: ctrl}
-	mock.recorder = &MockBabylonControllerMockRecorder{mock}
+// NewMockAnonController creates a new mock instance.
+func NewMockAnonController(ctrl *gomock.Controller) *MockAnonController {
+	mock := &MockAnonController{ctrl: ctrl}
+	mock.recorder = &MockAnonControllerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockBabylonController) EXPECT() *MockBabylonControllerMockRecorder {
+func (m *MockAnonController) EXPECT() *MockAnonControllerMockRecorder {
 	return m.recorder
 }
 
 // Close mocks base method.
-func (m *MockBabylonController) Close() error {
+func (m *MockAnonController) Close() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Close")
 	ret0, _ := ret[0].(error)
@@ -53,13 +53,13 @@ func (m *MockBabylonController) Close() error {
 }
 
 // Close indicates an expected call of Close.
-func (mr *MockBabylonControllerMockRecorder) Close() *gomock.Call {
+func (mr *MockAnonControllerMockRecorder) Close() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockBabylonController)(nil).Close))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockAnonController)(nil).Close))
 }
 
 // EditFinalityProvider mocks base method.
-func (m *MockBabylonController) EditFinalityProvider(ctx context.Context, req *api.EditFinalityProviderRequest) (*types.MsgEditFinalityProvider, error) {
+func (m *MockAnonController) EditFinalityProvider(ctx context.Context, req *api.EditFinalityProviderRequest) (*types.MsgEditFinalityProvider, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "EditFinalityProvider", ctx, req)
 	ret0, _ := ret[0].(*types.MsgEditFinalityProvider)
@@ -68,13 +68,13 @@ func (m *MockBabylonController) EditFinalityProvider(ctx context.Context, req *a
 }
 
 // EditFinalityProvider indicates an expected call of EditFinalityProvider.
-func (mr *MockBabylonControllerMockRecorder) EditFinalityProvider(ctx, req any) *gomock.Call {
+func (mr *MockAnonControllerMockRecorder) EditFinalityProvider(ctx, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EditFinalityProvider", reflect.TypeOf((*MockBabylonController)(nil).EditFinalityProvider), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EditFinalityProvider", reflect.TypeOf((*MockAnonController)(nil).EditFinalityProvider), ctx, req)
 }
 
 // GetFpPopContextV0 mocks base method.
-func (m *MockBabylonController) GetFpPopContextV0() string {
+func (m *MockAnonController) GetFpPopContextV0() string {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFpPopContextV0")
 	ret0, _ := ret[0].(string)
@@ -82,13 +82,13 @@ func (m *MockBabylonController) GetFpPopContextV0() string {
 }
 
 // GetFpPopContextV0 indicates an expected call of GetFpPopContextV0.
-func (mr *MockBabylonControllerMockRecorder) GetFpPopContextV0() *gomock.Call {
+func (mr *MockAnonControllerMockRecorder) GetFpPopContextV0() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFpPopContextV0", reflect.TypeOf((*MockBabylonController)(nil).GetFpPopContextV0))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFpPopContextV0", reflect.TypeOf((*MockAnonController)(nil).GetFpPopContextV0))
 }
 
 // QueryFinalityProvider mocks base method.
-func (m *MockBabylonController) QueryFinalityProvider(ctx context.Context, fpPk *btcec.PublicKey) (*types.QueryFinalityProviderResponse, error) {
+func (m *MockAnonController) QueryFinalityProvider(ctx context.Context, fpPk *btcec.PublicKey) (*types.QueryFinalityProviderResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "QueryFinalityProvider", ctx, fpPk)
 	ret0, _ := ret[0].(*types.QueryFinalityProviderResponse)
@@ -97,13 +97,13 @@ func (m *MockBabylonController) QueryFinalityProvider(ctx context.Context, fpPk 
 }
 
 // QueryFinalityProvider indicates an expected call of QueryFinalityProvider.
-func (mr *MockBabylonControllerMockRecorder) QueryFinalityProvider(ctx, fpPk any) *gomock.Call {
+func (mr *MockAnonControllerMockRecorder) QueryFinalityProvider(ctx, fpPk any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryFinalityProvider", reflect.TypeOf((*MockBabylonController)(nil).QueryFinalityProvider), ctx, fpPk)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryFinalityProvider", reflect.TypeOf((*MockAnonController)(nil).QueryFinalityProvider), ctx, fpPk)
 }
 
 // RegisterFinalityProvider mocks base method.
-func (m *MockBabylonController) RegisterFinalityProvider(ctx context.Context, req *api.RegisterFinalityProviderRequest) (*types0.TxResponse, error) {
+func (m *MockAnonController) RegisterFinalityProvider(ctx context.Context, req *api.RegisterFinalityProviderRequest) (*types0.TxResponse, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "RegisterFinalityProvider", ctx, req)
 	ret0, _ := ret[0].(*types0.TxResponse)
@@ -112,13 +112,13 @@ func (m *MockBabylonController) RegisterFinalityProvider(ctx context.Context, re
 }
 
 // RegisterFinalityProvider indicates an expected call of RegisterFinalityProvider.
-func (mr *MockBabylonControllerMockRecorder) RegisterFinalityProvider(ctx, req any) *gomock.Call {
+func (mr *MockAnonControllerMockRecorder) RegisterFinalityProvider(ctx, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterFinalityProvider", reflect.TypeOf((*MockBabylonController)(nil).RegisterFinalityProvider), ctx, req)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterFinalityProvider", reflect.TypeOf((*MockAnonController)(nil).RegisterFinalityProvider), ctx, req)
 }
 
 // Start mocks base method.
-func (m *MockBabylonController) Start() error {
+func (m *MockAnonController) Start() error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Start")
 	ret0, _ := ret[0].(error)
@@ -126,9 +126,9 @@ func (m *MockBabylonController) Start() error {
 }
 
 // Start indicates an expected call of Start.
-func (mr *MockBabylonControllerMockRecorder) Start() *gomock.Call {
+func (mr *MockAnonControllerMockRecorder) Start() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockBabylonController)(nil).Start))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Start", reflect.TypeOf((*MockAnonController)(nil).Start))
 }
 
 // MockConsumerController is a mock of ConsumerController interface.

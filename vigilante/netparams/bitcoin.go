@@ -3,7 +3,7 @@ package netparams
 import (
 	"fmt"
 
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/types"
 	"github.com/btcsuite/btcd/chaincfg"
 )
 

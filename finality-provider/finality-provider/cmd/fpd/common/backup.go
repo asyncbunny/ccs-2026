@@ -4,7 +4,7 @@ package common
 import (
 	"fmt"
 
-	dc "github.com/babylonlabs-io/finality-provider/finality-provider/service/client"
+	dc "github.com/anon-org/finality-provider/finality-provider/service/client"
 	"github.com/spf13/cobra"
 )
 

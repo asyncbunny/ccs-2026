@@ -6,13 +6,13 @@ import (
 	"net"
 	"path/filepath"
 
-	"github.com/babylonlabs-io/babylon/v4/types"
-	clientctx "github.com/babylonlabs-io/finality-provider/finality-provider/cmd/fpd/clientctx"
-	commoncmd "github.com/babylonlabs-io/finality-provider/finality-provider/cmd/fpd/common"
-	fpcfg "github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/service"
-	"github.com/babylonlabs-io/finality-provider/log"
-	"github.com/babylonlabs-io/finality-provider/util"
+	"github.com/anon-org/anon/v4/types"
+	clientctx "github.com/anon-org/finality-provider/finality-provider/cmd/fpd/clientctx"
+	commoncmd "github.com/anon-org/finality-provider/finality-provider/cmd/fpd/common"
+	fpcfg "github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/finality-provider/service"
+	"github.com/anon-org/finality-provider/log"
+	"github.com/anon-org/finality-provider/util"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -64,8 +64,8 @@ func runStartCmd(ctx client.Context, cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("failed to read flag %s: %w", commoncmd.RPCListenerFlag, err)
 	}
 
-	if cfg.BabylonConfig.KeyringBackend != "test" {
-		return fmt.Errorf("the keyring backend in config must be `test` for automatic signing, got %s", cfg.BabylonConfig.KeyringBackend)
+	if cfg.AnonConfig.KeyringBackend != "test" {
+		return fmt.Errorf("the keyring backend in config must be `test` for automatic signing, got %s", cfg.AnonConfig.KeyringBackend)
 	}
 
 	if rpcListener != "" {

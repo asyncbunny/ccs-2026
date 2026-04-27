@@ -8,20 +8,20 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
-	"github.com/babylonlabs-io/finality-provider/clientcontroller/api"
-	"github.com/babylonlabs-io/finality-provider/clientcontroller/babylon"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager"
-	eotscfg "github.com/babylonlabs-io/finality-provider/eotsmanager/config"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/service"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/store"
-	fpkr "github.com/babylonlabs-io/finality-provider/keyring"
-	"github.com/babylonlabs-io/finality-provider/metrics"
-	"github.com/babylonlabs-io/finality-provider/testutil"
-	"github.com/babylonlabs-io/finality-provider/testutil/mocks"
-	"github.com/babylonlabs-io/finality-provider/types"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	anctypes "github.com/anon-org/anon/v4/types"
+	"github.com/anon-org/finality-provider/clientcontroller/api"
+	"github.com/anon-org/finality-provider/clientcontroller/anon"
+	"github.com/anon-org/finality-provider/eotsmanager"
+	eotscfg "github.com/anon-org/finality-provider/eotsmanager/config"
+	"github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/finality-provider/service"
+	"github.com/anon-org/finality-provider/finality-provider/store"
+	fpkr "github.com/anon-org/finality-provider/keyring"
+	"github.com/anon-org/finality-provider/metrics"
+	"github.com/anon-org/finality-provider/testutil"
+	"github.com/anon-org/finality-provider/testutil/mocks"
+	"github.com/anon-org/finality-provider/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/mock/gomock"
 )
@@ -35,7 +35,7 @@ func FuzzCommitPubRandList(f *testing.F) {
 		randomStartingHeight := uint64(r.Int63n(100) + 1)
 		currentHeight := randomStartingHeight + uint64(r.Int63n(10)+2)
 		startingBlock := types.NewBlockInfo(randomStartingHeight, testutil.GenRandomByteArray(r, 32), false)
-		mockBabylonController := testutil.PrepareMockedBabylonController(t)
+		mockAnonController := testutil.PrepareMockedAnonController(t)
 		expectedTxHash := testutil.GenRandomHexStr(r, 32)
 		mockConsumerController := testutil.PrepareMockedConsumerControllerWithTxHash(t, r, randomStartingHeight, currentHeight, expectedTxHash)
 		mockConsumerController.EXPECT().QueryFinalityProviderHasPower(gomock.Any(), gomock.Any()).
@@ -43,7 +43,7 @@ func FuzzCommitPubRandList(f *testing.F) {
 		mockConsumerController.EXPECT().GetFpRandCommitContext().Return("").AnyTimes()
 		mockConsumerController.EXPECT().GetFpFinVoteContext().Return("").AnyTimes()
 		mockConsumerController.EXPECT().IsBSN().Return(false).AnyTimes()
-		_, fpIns, cleanUp := startFinalityProviderAppWithRegisteredFp(t, r, mockBabylonController, mockConsumerController, true, randomStartingHeight, testutil.TestPubRandNum)
+		_, fpIns, cleanUp := startFinalityProviderAppWithRegisteredFp(t, r, mockAnonController, mockConsumerController, true, randomStartingHeight, testutil.TestPubRandNum)
 		defer cleanUp()
 
 		res, err := fpIns.CommitPubRand(t.Context(), startingBlock.GetHeight())
@@ -61,13 +61,13 @@ func FuzzSubmitFinalitySigs(f *testing.F) {
 		randomStartingHeight := uint64(r.Int63n(100) + 1)
 		currentHeight := randomStartingHeight + uint64(r.Int63n(10)+1)
 		startingBlock := types.NewBlockInfo(randomStartingHeight, testutil.GenRandomByteArray(r, 32), false)
-		mockBabylonController := testutil.PrepareMockedBabylonController(t)
+		mockAnonController := testutil.PrepareMockedAnonController(t)
 		mockConsumerController := testutil.PrepareMockedConsumerController(t, r, randomStartingHeight, currentHeight)
 		mockConsumerController.EXPECT().QueryLatestBlock(t.Context()).Return(types.NewBlockInfo(0, testutil.GenRandomByteArray(r, 32), false), nil).AnyTimes()
 		mockConsumerController.EXPECT().GetFpRandCommitContext().Return("").AnyTimes()
 		mockConsumerController.EXPECT().GetFpFinVoteContext().Return("").AnyTimes()
 		mockConsumerController.EXPECT().IsBSN().Return(false).AnyTimes()
-		_, fpIns, cleanUp := startFinalityProviderAppWithRegisteredFp(t, r, mockBabylonController, mockConsumerController, true, randomStartingHeight, testutil.TestPubRandNum)
+		_, fpIns, cleanUp := startFinalityProviderAppWithRegisteredFp(t, r, mockAnonController, mockConsumerController, true, randomStartingHeight, testutil.TestPubRandNum)
 		defer cleanUp()
 
 		// commit pub rand
@@ -76,7 +76,7 @@ func FuzzSubmitFinalitySigs(f *testing.F) {
 
 		// mock committed pub rand
 		lastCommittedHeight := randomStartingHeight + 25
-		lastCommittedPubRand := &babylon.BabylonPubRandCommit{
+		lastCommittedPubRand := &anon.AnonPubRandCommit{
 			StartHeight: lastCommittedHeight,
 			NumPubRand:  1000,
 			Commitment:  datagen.GenRandomByteArray(r, 32),
@@ -115,7 +115,7 @@ func FuzzDetermineStartHeight(f *testing.F) {
 		lastFinalizedHeight := uint64(r.Int63n(1000) + 1)
 
 		randomStartingHeight := uint64(r.Int63n(100) + 1)
-		mockBabylonController := testutil.PrepareMockedBabylonController(t)
+		mockAnonController := testutil.PrepareMockedAnonController(t)
 
 		ctl := gomock.NewController(t)
 		mockConsumerController := mocks.NewMockConsumerController(ctl)
@@ -130,7 +130,7 @@ func FuzzDetermineStartHeight(f *testing.F) {
 		finalizedBlock := types.NewBlockInfo(lastFinalizedHeight, testutil.GenRandomByteArray(r, 32), false)
 		mockConsumerController.EXPECT().QueryLatestFinalizedBlock(gomock.Any()).Return(finalizedBlock, nil).AnyTimes()
 
-		_, fpIns, cleanUp := startFinalityProviderAppWithRegisteredFp(t, r, mockBabylonController, mockConsumerController, false, randomStartingHeight, testutil.TestPubRandNum)
+		_, fpIns, cleanUp := startFinalityProviderAppWithRegisteredFp(t, r, mockAnonController, mockConsumerController, false, randomStartingHeight, testutil.TestPubRandNum)
 		defer cleanUp()
 		fpIns.NewTestHelper().MustUpdateStateAfterFinalitySigSubmission(t, lastVotedHeight)
 
@@ -147,7 +147,7 @@ func FuzzDetermineStartHeight(f *testing.F) {
 func startFinalityProviderAppWithRegisteredFp(
 	t *testing.T,
 	r *rand.Rand,
-	cc api.BabylonController,
+	cc api.AnonController,
 	consumerCon api.ConsumerController,
 	isStaticStartHeight bool,
 	startingHeight uint64,
@@ -199,16 +199,16 @@ func startFinalityProviderAppWithRegisteredFp(
 	require.NoError(t, err)
 	eotsPkBz, err := em.CreateKey(eotsKeyName, "")
 	require.NoError(t, err)
-	eotsPk, err := bbntypes.NewBIP340PubKey(eotsPkBz)
+	eotsPk, err := anctypes.NewBIP340PubKey(eotsPkBz)
 	require.NoError(t, err)
 	pubRandProofStore := app.GetPubRandProofStore()
 	fpStore := app.GetFinalityProviderStore()
 	keyName := datagen.GenRandomHexStr(r, 10)
 	chainID := datagen.GenRandomHexStr(r, 10)
 	kr, err := fpkr.CreateKeyring(
-		fpCfg.BabylonConfig.KeyDirectory,
-		fpCfg.BabylonConfig.ChainID,
-		fpCfg.BabylonConfig.KeyringBackend,
+		fpCfg.AnonConfig.KeyDirectory,
+		fpCfg.AnonConfig.ChainID,
+		fpCfg.AnonConfig.KeyringBackend,
 	)
 	require.NoError(t, err)
 	kc, err := fpkr.NewChainKeyringControllerWithKeyring(kr, keyName)
@@ -268,13 +268,13 @@ func setupBenchmarkEnvironment(t *testing.T, seed int64, numPubRand uint32) (*ty
 	startingBlock := types.NewBlockInfo(randomStartingHeight, testutil.GenRandomByteArray(r, 32), false)
 
 	// Mock client controller setup
-	mockBabylonController := testutil.PrepareMockedBabylonController(t)
+	mockAnonController := testutil.PrepareMockedAnonController(t)
 	mockConsumerController := testutil.PrepareMockedConsumerController(t, r, randomStartingHeight, currentHeight)
 	mockConsumerController.EXPECT().QueryFinalityProviderHasPower(gomock.Any(), gomock.Any()).
 		Return(false, nil).AnyTimes()
 
 	// Set up finality provider app
-	_, fpIns, cleanUp := startFinalityProviderAppWithRegisteredFp(t, r, mockBabylonController, mockConsumerController, true, randomStartingHeight, numPubRand)
+	_, fpIns, cleanUp := startFinalityProviderAppWithRegisteredFp(t, r, mockAnonController, mockConsumerController, true, randomStartingHeight, numPubRand)
 
 	// Configure additional mocks
 	expectedTxHash := testutil.GenRandomHexStr(r, 32)

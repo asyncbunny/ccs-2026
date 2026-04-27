@@ -3,7 +3,7 @@ package store
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/proto"
+	"github.com/anon-org/finality-provider/eotsmanager/proto"
 )
 
 type SigningRecord struct {

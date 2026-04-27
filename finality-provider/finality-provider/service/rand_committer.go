@@ -5,12 +5,12 @@ import (
 	"fmt"
 
 	"github.com/avast/retry-go/v4"
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
-	ccapi "github.com/babylonlabs-io/finality-provider/clientcontroller/api"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/store"
-	"github.com/babylonlabs-io/finality-provider/metrics"
-	"github.com/babylonlabs-io/finality-provider/types"
+	anctypes "github.com/anon-org/anon/v4/types"
+	ccapi "github.com/anon-org/finality-provider/clientcontroller/api"
+	"github.com/anon-org/finality-provider/eotsmanager"
+	"github.com/anon-org/finality-provider/finality-provider/store"
+	"github.com/anon-org/finality-provider/metrics"
+	"github.com/anon-org/finality-provider/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/cometbft/cometbft/crypto/merkle"
@@ -47,7 +47,7 @@ func NewRandomnessCommitterConfig(
 }
 
 type DefaultRandomnessCommitter struct {
-	BtcPk        *bbntypes.BIP340PubKey
+	BtcPk        *anctypes.BIP340PubKey
 	Cfg          *RandomnessCommitterConfig
 	PubRandState *PubRandState
 	ConsumerCon  ccapi.ConsumerController
@@ -74,7 +74,7 @@ func NewDefaultRandomnessCommitter(
 	}
 }
 
-func (rc *DefaultRandomnessCommitter) Init(btcPk *bbntypes.BIP340PubKey, chainID []byte) error {
+func (rc *DefaultRandomnessCommitter) Init(btcPk *anctypes.BIP340PubKey, chainID []byte) error {
 	if btcPk == nil {
 		return fmt.Errorf("BtcPk cannot be nil")
 	}
@@ -316,7 +316,7 @@ func (rc *DefaultRandomnessCommitter) getLatestBlockHeightWithRetry(ctx context.
 	})); err != nil {
 		return nil, fmt.Errorf("failed to get latest block height after retries: %w", err)
 	}
-	rc.Metrics.RecordBabylonTipHeight(latestBlock.GetHeight())
+	rc.Metrics.RecordAnonTipHeight(latestBlock.GetHeight())
 
 	return latestBlock, nil
 }

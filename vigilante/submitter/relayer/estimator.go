@@ -6,7 +6,7 @@ import (
 	"github.com/btcsuite/btcd/rpcclient"
 	"github.com/lightningnetwork/lnd/lnwallet/chainfee"
 
-	"github.com/babylonlabs-io/vigilante/config"
+	"github.com/anon-org/vigilante/config"
 )
 
 // NewFeeEstimator creates a fee estimator for bitcoind

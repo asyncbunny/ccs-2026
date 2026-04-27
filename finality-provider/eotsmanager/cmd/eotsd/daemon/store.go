@@ -3,9 +3,9 @@ package daemon
 import (
 	"fmt"
 
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/config"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/store"
+	anctypes "github.com/anon-org/anon/v4/types"
+	"github.com/anon-org/finality-provider/eotsmanager/config"
+	"github.com/anon-org/finality-provider/eotsmanager/store"
 	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 )
@@ -98,7 +98,7 @@ func rollbackSignStore(cmd *cobra.Command, _ []string) error {
 		}
 	}()
 
-	fpPk, err := bbntypes.NewBIP340PubKeyFromHex(eotsFpPubKeyStr)
+	fpPk, err := anctypes.NewBIP340PubKeyFromHex(eotsFpPubKeyStr)
 	if err != nil {
 		return fmt.Errorf("invalid finality-provider public key %s: %w", eotsFpPubKeyStr, err)
 	}

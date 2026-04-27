@@ -7,14 +7,14 @@ import (
 	"fmt"
 	"time"
 
-	bbnclient "github.com/babylonlabs-io/babylon/v4/client/client"
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/monitor"
-	"github.com/babylonlabs-io/vigilante/reporter"
-	"github.com/babylonlabs-io/vigilante/submitter"
-	"github.com/babylonlabs-io/vigilante/testutil"
-	"github.com/babylonlabs-io/vigilante/types"
+	ancclient "github.com/anon-org/anon/v4/client/client"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/monitor"
+	"github.com/anon-org/vigilante/reporter"
+	"github.com/anon-org/vigilante/submitter"
+	"github.com/anon-org/vigilante/testutil"
+	"github.com/anon-org/vigilante/types"
 	"github.com/btcsuite/btcd/chaincfg"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	promtestutil "github.com/prometheus/client_golang/prometheus/testutil"
@@ -45,7 +45,7 @@ func TestMonitorBootstrap(t *testing.T) {
 	dbBackend := testutil.MakeTestBackend(t)
 
 	monitorMetrics := metrics.NewMonitorMetrics()
-	genesisPath := fmt.Sprintf("%s/config/genesis.json", tm.Config.Babylon.KeyDirectory)
+	genesisPath := fmt.Sprintf("%s/config/genesis.json", tm.Config.Anon.KeyDirectory)
 	genesisInfo, err := types.GetGenesisInfoFromFile(genesisPath, zap.NewNop())
 	require.NoError(t, err)
 
@@ -57,7 +57,7 @@ func TestMonitorBootstrap(t *testing.T) {
 		&tm.Config.Submitter,
 		logger,
 		tm.BTCClient,
-		tm.BabylonClient,
+		tm.AnonClient,
 		subAddr,
 		tm.Config.Common.RetrySleepTime,
 		tm.Config.Common.MaxRetrySleepTime,
@@ -76,7 +76,7 @@ func TestMonitorBootstrap(t *testing.T) {
 		&tm.Config.Reporter,
 		logger,
 		tm.BTCClient,
-		tm.BabylonClient,
+		tm.AnonClient,
 		backend,
 		tm.Config.Common.RetrySleepTime,
 		tm.Config.Common.MaxRetrySleepTime,
@@ -95,7 +95,7 @@ func TestMonitorBootstrap(t *testing.T) {
 		&tm.Config.Common,
 		zap.NewNop(),
 		genesisInfo,
-		tm.BabylonClient,
+		tm.AnonClient,
 		tm.BTCClient,
 		backend,
 		monitorMetrics,
@@ -125,17 +125,17 @@ func TestMonitorBootstrap(t *testing.T) {
 	time.Sleep(15 * time.Second)
 	mon.Stop()
 
-	// use a new bbn client
-	babylonClient, err := bbnclient.New(&tm.Config.Babylon, nil)
+	// use a new anc client
+	anonClient, err := ancclient.New(&tm.Config.Anon, nil)
 	require.NoError(t, err)
-	defer babylonClient.Stop()
+	defer anonClient.Stop()
 
 	mon, err = monitor.New(
 		&tm.Config.Monitor,
 		&tm.Config.Common,
 		zap.NewNop(),
 		genesisInfo,
-		babylonClient,
+		anonClient,
 		tm.BTCClient,
 		backend,
 		monitorMetrics,

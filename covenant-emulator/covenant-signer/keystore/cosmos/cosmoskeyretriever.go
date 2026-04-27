@@ -6,8 +6,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/config"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerapp"
+	"github.com/anon-org/covenant-emulator/covenant-signer/config"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerapp"
 	"github.com/btcsuite/btcd/btcec/v2"
 )
 

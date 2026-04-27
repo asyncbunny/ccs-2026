@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/babylonlabs-io/finality-provider/util"
+	"github.com/anon-org/finality-provider/util"
 )
 
 func TestHasDuplicateHeights(t *testing.T) {

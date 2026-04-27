@@ -7,11 +7,11 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/testutil/mocks"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	anc "github.com/anon-org/anon/v4/types"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/testutil/mocks"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/golang/mock/gomock"
@@ -26,7 +26,7 @@ func TestBTCSlasher_slashBTCDelegation_exitUnslashable(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	mockBabylonQuerier := NewMockBabylonQueryClient(ctrl)
+	mockAnonQuerier := NewMockAnonQueryClient(ctrl)
 	mockBTCClient := mocks.NewMockBTCClient(ctrl)
 	// mock btc
 	mockBTCClient.EXPECT().GetRawTransaction(gomock.Any()).Return(nil, fmt.Errorf("mock not found")).AnyTimes()
@@ -36,7 +36,7 @@ func TestBTCSlasher_slashBTCDelegation_exitUnslashable(t *testing.T) {
 	btcSlasher := &BTCSlasher{
 		logger:                 zaptest.NewLogger(t).Named(t.Name()).Sugar(),
 		BTCClient:              mockBTCClient,
-		BBNQuerier:             mockBabylonQuerier,
+		ANCQuerier:             mockAnonQuerier,
 		netParams:              nil,
 		btcFinalizationTimeout: 0,
 		retrySleepTime:         1 * time.Second,
@@ -48,12 +48,12 @@ func TestBTCSlasher_slashBTCDelegation_exitUnslashable(t *testing.T) {
 
 	covQuorum := datagen.RandomInt(r, 5) + 1
 	covenantSks := make([]*btcec.PrivateKey, 0, covQuorum)
-	covenantPks := make([]bbn.BIP340PubKey, 0, covQuorum)
+	covenantPks := make([]anc.BIP340PubKey, 0, covQuorum)
 	for idx := uint64(0); idx < covQuorum; idx++ {
 		covenantSk, _, err := datagen.GenRandomBTCKeyPair(r)
 		require.NoError(t, err)
 		covenantSks = append(covenantSks, covenantSk)
-		covenantPks = append(covenantPks, *bbn.NewBIP340PubKeyFromBTCPK(covenantSk.PubKey()))
+		covenantPks = append(covenantPks, *anc.NewBIP340PubKeyFromBTCPK(covenantSk.PubKey()))
 	}
 	var covPks []*btcec.PublicKey
 	for _, pk := range covenantPks {
@@ -64,12 +64,12 @@ func TestBTCSlasher_slashBTCDelegation_exitUnslashable(t *testing.T) {
 	require.NoError(t, err)
 	delSK, _, err := datagen.GenRandomBTCKeyPair(r)
 	require.NoError(t, err)
-	fpBTCPK := bbn.NewBIP340PubKeyFromBTCPK(fpPK)
+	fpBTCPK := anc.NewBIP340PubKeyFromBTCPK(fpPK)
 	activeBTCDel, err := datagen.GenRandomBTCDelegation(
 		r,
 		t,
 		&chaincfg.SimNetParams,
-		[]bbn.BIP340PubKey{*fpBTCPK},
+		[]anc.BIP340PubKey{*fpBTCPK},
 		delSK,
 		covenantSks,
 		covPks,

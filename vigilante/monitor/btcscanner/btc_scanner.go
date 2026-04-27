@@ -7,15 +7,15 @@ import (
 
 	notifier "github.com/lightningnetwork/lnd/chainntnfs"
 
-	"github.com/babylonlabs-io/babylon/v4/btctxformatter"
-	ckpttypes "github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
+	"github.com/anon-org/anon/v4/btctxformatter"
+	ckpttypes "github.com/anon-org/anon/v4/x/checkpointing/types"
 	"github.com/btcsuite/btcd/wire"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/types"
 )
 
 var _ Scanner = (*BtcScanner)(nil)

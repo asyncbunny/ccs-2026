@@ -8,21 +8,21 @@ import (
 	"time"
 
 	"github.com/avast/retry-go/v4"
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
-	ccapi "github.com/babylonlabs-io/finality-provider/clientcontroller/api"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager"
-	fpcfg "github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/store"
-	"github.com/babylonlabs-io/finality-provider/metrics"
-	"github.com/babylonlabs-io/finality-provider/types"
+	anctypes "github.com/anon-org/anon/v4/types"
+	ccapi "github.com/anon-org/finality-provider/clientcontroller/api"
+	"github.com/anon-org/finality-provider/eotsmanager"
+	fpcfg "github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
+	"github.com/anon-org/finality-provider/finality-provider/store"
+	"github.com/anon-org/finality-provider/metrics"
+	"github.com/anon-org/finality-provider/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 )
 
 type FinalityProviderInstance struct {
-	btcPk *bbntypes.BIP340PubKey
+	btcPk *anctypes.BIP340PubKey
 
 	fpState      *FpState
 	pubRandState *PubRandState
@@ -30,7 +30,7 @@ type FinalityProviderInstance struct {
 
 	logger            *zap.Logger
 	em                eotsmanager.EOTSManager
-	cc                ccapi.BabylonController
+	cc                ccapi.AnonController
 	consumerCon       ccapi.ConsumerController
 	poller            types.BlockPoller[types.BlockDescription]
 	rndCommitter      types.RandomnessCommitter
@@ -45,14 +45,14 @@ type FinalityProviderInstance struct {
 	quit      chan struct{}
 }
 
-// NewFinalityProviderInstance returns a FinalityProviderInstance instance with the given Babylon public key
+// NewFinalityProviderInstance returns a FinalityProviderInstance instance with the given Anon public key
 // the finality-provider should be registered before
 func NewFinalityProviderInstance(
-	fpPk *bbntypes.BIP340PubKey,
+	fpPk *anctypes.BIP340PubKey,
 	cfg *fpcfg.Config,
 	s *store.FinalityProviderStore,
 	prStore *store.PubRandProofStore,
-	cc ccapi.BabylonController,
+	cc ccapi.AnonController,
 	consumerCon ccapi.ConsumerController,
 	em eotsmanager.EOTSManager,
 	poller types.BlockPoller[types.BlockDescription],
@@ -96,7 +96,7 @@ func newFinalityProviderInstanceFromStore(
 	cfg *fpcfg.Config,
 	s *store.FinalityProviderStore,
 	prStore *store.PubRandProofStore,
-	cc ccapi.BabylonController,
+	cc ccapi.AnonController,
 	consumerCon ccapi.ConsumerController,
 	em eotsmanager.EOTSManager,
 	poller types.BlockPoller[types.BlockDescription],
@@ -107,7 +107,7 @@ func newFinalityProviderInstanceFromStore(
 	errChan chan<- *CriticalError,
 	logger *zap.Logger,
 ) (*FinalityProviderInstance, error) {
-	btcPk := bbntypes.NewBIP340PubKeyFromBTCPK(sfp.BtcPk)
+	btcPk := anctypes.NewBIP340PubKeyFromBTCPK(sfp.BtcPk)
 	fpState := NewFpState(sfp, s, logger, metrics)
 
 	if err := rndCommitter.Init(btcPk, []byte(sfp.ChainID)); err != nil {
@@ -118,7 +118,7 @@ func newFinalityProviderInstanceFromStore(
 	}
 
 	return &FinalityProviderInstance{
-		btcPk:             bbntypes.NewBIP340PubKeyFromBTCPK(sfp.BtcPk),
+		btcPk:             anctypes.NewBIP340PubKeyFromBTCPK(sfp.BtcPk),
 		fpState:           fpState,
 		pubRandState:      NewPubRandState(prStore),
 		cfg:               cfg,
@@ -504,7 +504,7 @@ func (fp *FinalityProviderInstance) GetStoreFinalityProvider() *store.StoredFina
 	return sfp
 }
 
-func (fp *FinalityProviderInstance) GetBtcPkBIP340() *bbntypes.BIP340PubKey {
+func (fp *FinalityProviderInstance) GetBtcPkBIP340() *anctypes.BIP340PubKey {
 	return fp.fpState.GetBtcPkBIP340()
 }
 

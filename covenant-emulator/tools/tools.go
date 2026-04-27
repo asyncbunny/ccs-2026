@@ -4,5 +4,5 @@
 package finalityprovider
 
 import (
-	_ "github.com/babylonlabs-io/babylon/v4/cmd/babylond"
+	_ "github.com/anon-org/anon/v4/cmd/anond"
 )

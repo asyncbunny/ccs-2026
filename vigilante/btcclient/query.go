@@ -10,7 +10,7 @@ import (
 	"github.com/btcsuite/btcd/wire"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/types"
 )
 
 // GetBestBlock returns the height of the best block

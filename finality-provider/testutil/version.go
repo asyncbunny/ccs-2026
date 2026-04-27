@@ -11,10 +11,10 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
-const modName = "github.com/babylonlabs-io/babylon/v4"
+const modName = "github.com/anon-org/anon/v4"
 
-// GetBabylonVersion returns babylond version from go.mod
-func GetBabylonVersion() (string, error) {
+// GetAnonVersion returns anond version from go.mod
+func GetAnonVersion() (string, error) {
 	// Get the current working directory
 	wd, err := os.Getwd()
 	if err != nil {
@@ -58,12 +58,12 @@ func GetBabylonVersion() (string, error) {
 	return "", fmt.Errorf("module %s not found", modName)
 }
 
-// Helper function to get the entire Babylon commit hash
+// Helper function to get the entire Anon commit hash
 // corresponding to the current version used.
-func GetBabylonCommitHash() (string, error) {
-	version, err := GetBabylonVersion()
+func GetAnonCommitHash() (string, error) {
+	version, err := GetAnonVersion()
 	if err != nil {
-		return "", fmt.Errorf("failed to get babylon version: %w", err)
+		return "", fmt.Errorf("failed to get anon version: %w", err)
 	}
 
 	return getFullCommit(modName, version)

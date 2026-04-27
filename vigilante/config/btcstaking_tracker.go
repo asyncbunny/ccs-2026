@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/types"
 )
 
 const (
@@ -40,7 +40,7 @@ func DefaultBTCStakingTrackerConfig() BTCStakingTrackerConfig {
 		CheckDelegationActiveInterval: 5 * time.Minute,
 		// This should be small, as we want to report unbonding tx as soon as possible even if we initially failed
 		RetrySubmitUnbondingTxInterval: 1 * time.Minute,
-		// pretty large jitter to avoid spamming babylon with requests
+		// pretty large jitter to avoid spamming anon with requests
 		RetryJitter:              30 * time.Second,
 		BTCNetParams:             types.BtcSimnet.String(),
 		MaxSlashingConcurrency:   MaxSlashingConcurrency,

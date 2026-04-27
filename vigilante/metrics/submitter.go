@@ -51,7 +51,7 @@ func newRelayerMetrics(registry *prometheus.Registry) *RelayerMetrics {
 		NewSubmittedCheckpointSegmentGaugeVec: registerer.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Name: "vigilante_submitter_new_checkpoint_segment",
-				Help: "The metric of a new Babylon checkpoint segment submitted to BTC",
+				Help: "The metric of a new Anon checkpoint segment submitted to BTC",
 			},
 			[]string{
 				// the epoch number of the checkpoint segment

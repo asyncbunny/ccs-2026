@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/cmd/eotsd/daemon"
+	"github.com/anon-org/finality-provider/eotsmanager/cmd/eotsd/daemon"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,7 +20,7 @@ var popsToVerify = []daemon.PoPExport{
 		BabySignEotsPk: "GO7xlC+BIypdcQdnIDsM+Ts75X9JKTOkDpXt5t4TSOIt/P1puAHVNhaYbweStVs25J9uRK+4XfrjD0M+t0Qy4g==",
 		EotsSignBaby:   "pR6vxgU0gXq+VqO+y7dHpZgHTz3zr5hdqXXh0WcWNkqUnRjHrizhYAHDMV8gh4vks4PqzKAIgZ779Wqwf5UrXQ==",
 
-		BabyAddress: "bbn1f04czxeqprn0s9fe7kdzqyde2e6nqj63dllwsm",
+		BabyAddress: "anc1f04czxeqprn0s9fe7kdzqyde2e6nqj63dllwsm",
 	},
 	daemon.PoPExport{
 		EotsPublicKey: "b1bc317bacf02fba17abea4f695c89997d55fe513a56ad8126237226212dd487",
@@ -29,7 +29,7 @@ var popsToVerify = []daemon.PoPExport{
 		BabySignEotsPk: "kNcxCeqmQFQO//LvqhbzUQwbD3+/FfSbrvfyEa4Xf1MP5YDZp0XKYlOh+wA6dqFsb5IA7Wciz0WRbkGxRwxHVg==",
 		EotsSignBaby:   "L9wYf+rg2fQRzy2rau2MTO9V5sEBCSUWtWcxJxweSrvkDpR6tJTwKz3Ba0c/q7yNCT91Ag7H4rKMVhKmyN4tkQ==",
 
-		BabyAddress: "bbn1ayrme3m73xv294t50k7v5pfj6pauyps03atepn",
+		BabyAddress: "anc1ayrme3m73xv294t50k7v5pfj6pauyps03atepn",
 	},
 }
 

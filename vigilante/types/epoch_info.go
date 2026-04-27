@@ -3,13 +3,13 @@ package types // nolint:revive
 import (
 	"bytes"
 
-	"github.com/babylonlabs-io/babylon/v4/crypto/bls12381"
-	ckpttypes "github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
+	"github.com/anon-org/anon/v4/crypto/bls12381"
+	ckpttypes "github.com/anon-org/anon/v4/x/checkpointing/types"
 	"github.com/boljen/go-bitmap"
 	"github.com/pkg/errors"
 )
 
-// EpochInfo maintains information for a specific epoch from Babylon
+// EpochInfo maintains information for a specific epoch from Anon
 type EpochInfo struct {
 	epochNum uint64
 	valSet   ckpttypes.ValidatorWithBlsKeySet

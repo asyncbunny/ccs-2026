@@ -4,9 +4,9 @@ import (
 	"math/rand"
 	"testing"
 
-	bbndatagen "github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	"github.com/babylonlabs-io/vigilante/monitor/store"
-	"github.com/babylonlabs-io/vigilante/testutil"
+	ancdatagen "github.com/anon-org/anon/v4/testutil/datagen"
+	"github.com/anon-org/vigilante/monitor/store"
+	"github.com/anon-org/vigilante/testutil"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,7 +27,7 @@ func TestEmptyStore(t *testing.T) {
 
 func FuzzStoringEpochs(f *testing.F) {
 	// only 3 seeds as this is pretty slow test opening/closing db
-	bbndatagen.AddRandomSeedsToFuzzer(f, 3)
+	ancdatagen.AddRandomSeedsToFuzzer(f, 3)
 
 	f.Fuzz(func(t *testing.T, seed int64) {
 		t.Parallel()
@@ -52,7 +52,7 @@ func FuzzStoringEpochs(f *testing.F) {
 }
 
 func FuzzStoringHeights(f *testing.F) {
-	bbndatagen.AddRandomSeedsToFuzzer(f, 3)
+	ancdatagen.AddRandomSeedsToFuzzer(f, 3)
 
 	f.Fuzz(func(t *testing.T, seed int64) {
 		t.Parallel()

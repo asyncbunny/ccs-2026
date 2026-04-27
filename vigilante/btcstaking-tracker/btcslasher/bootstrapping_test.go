@@ -6,22 +6,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/testutil"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/testutil"
 	"github.com/lightningnetwork/lnd/chainntnfs"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/btcsuite/btcd/btcec/v2"
 
-	datagen "github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	btcctypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
-	ftypes "github.com/babylonlabs-io/babylon/v4/x/finality/types"
-	"github.com/babylonlabs-io/vigilante/btcstaking-tracker/btcslasher"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/testutil/mocks"
+	datagen "github.com/anon-org/anon/v4/testutil/datagen"
+	anc "github.com/anon-org/anon/v4/types"
+	btcctypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
+	ftypes "github.com/anon-org/anon/v4/x/finality/types"
+	"github.com/anon-org/vigilante/btcstaking-tracker/btcslasher"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/testutil/mocks"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
@@ -41,11 +41,11 @@ func FuzzSlasher_Bootstrapping(f *testing.F) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockBabylonQuerier := btcslasher.NewMockBabylonQueryClient(ctrl)
+		mockAnonQuerier := btcslasher.NewMockAnonQueryClient(ctrl)
 		mockBTCClient := mocks.NewMockBTCClient(ctrl)
 		// mock k, w
 		btccParams := &btcctypes.QueryParamsResponse{Params: btcctypes.Params{BtcConfirmationDepth: 10, CheckpointFinalizationTimeout: 100}}
-		mockBabylonQuerier.EXPECT().BTCCheckpointParams().Return(btccParams, nil).AnyTimes()
+		mockAnonQuerier.EXPECT().BTCCheckpointParams().Return(btccParams, nil).AnyTimes()
 
 		unbondingTime := uint16(btccParams.Params.CheckpointFinalizationTimeout + 1)
 		block, _ := datagen.GenRandomBtcdBlock(r, 10, nil)
@@ -63,12 +63,12 @@ func FuzzSlasher_Bootstrapping(f *testing.F) {
 		// covenant secret key
 		covQuorum := datagen.RandomInt(r, 5) + 1
 		covenantSks := make([]*btcec.PrivateKey, 0, covQuorum)
-		covenantPks := make([]bbn.BIP340PubKey, 0, covQuorum)
+		covenantPks := make([]anc.BIP340PubKey, 0, covQuorum)
 		for idx := uint64(0); idx < covQuorum; idx++ {
 			covenantSk, _, err := datagen.GenRandomBTCKeyPair(r)
 			require.NoError(t, err)
 			covenantSks = append(covenantSks, covenantSk)
-			covenantPks = append(covenantPks, *bbn.NewBIP340PubKeyFromBTCPK(covenantSk.PubKey()))
+			covenantPks = append(covenantPks, *anc.NewBIP340PubKeyFromBTCPK(covenantSk.PubKey()))
 		}
 		var covPks []*btcec.PublicKey
 
@@ -82,7 +82,7 @@ func FuzzSlasher_Bootstrapping(f *testing.F) {
 		btcSlasher, err := btcslasher.New(
 			logger,
 			mockBTCClient,
-			mockBabylonQuerier,
+			mockAnonQuerier,
 			&chaincfg.SimNetParams,
 			commonCfg.RetrySleepTime,
 			commonCfg.MaxRetrySleepTime,
@@ -107,12 +107,12 @@ func FuzzSlasher_Bootstrapping(f *testing.F) {
 			CovenantPks:    covenantPks,
 			SlashingRate:   sdkmath.LegacyMustNewDecFromStr("0.1"),
 		}}
-		mockBabylonQuerier.EXPECT().BTCStakingParamsByVersion(gomock.Any()).Return(bsParams, nil).AnyTimes()
+		mockAnonQuerier.EXPECT().BTCStakingParamsByVersion(gomock.Any()).Return(bsParams, nil).AnyTimes()
 
 		// generate BTC key pair for slashed finality provider
 		fpSK, fpPK, err := datagen.GenRandomBTCKeyPair(r)
 		require.NoError(t, err)
-		fpBTCPK := bbn.NewBIP340PubKeyFromBTCPK(fpPK)
+		fpBTCPK := anc.NewBIP340PubKeyFromBTCPK(fpPK)
 		// mock an evidence with this finality provider
 		evidence, err := datagen.GenRandomEvidence(r, fpSK, 100)
 		require.NoError(t, err)
@@ -125,7 +125,7 @@ func FuzzSlasher_Bootstrapping(f *testing.F) {
 			CanonicalFinalitySig: evidence.CanonicalFinalitySig,
 			ForkFinalitySig:      evidence.ForkFinalitySig,
 		}
-		mockBabylonQuerier.EXPECT().ListEvidences(gomock.Any(), gomock.Any()).Return(&ftypes.QueryListEvidencesResponse{
+		mockAnonQuerier.EXPECT().ListEvidences(gomock.Any(), gomock.Any()).Return(&ftypes.QueryListEvidencesResponse{
 			Evidences:  []*ftypes.EvidenceResponse{er},
 			Pagination: &query.PageResponse{NextKey: nil},
 		}, nil).Times(1)
@@ -141,7 +141,7 @@ func FuzzSlasher_Bootstrapping(f *testing.F) {
 				r,
 				t,
 				net,
-				[]bbn.BIP340PubKey{*fpBTCPK},
+				[]anc.BIP340PubKey{*fpBTCPK},
 				delSK,
 				covenantSks,
 				covPks,
@@ -172,7 +172,7 @@ func FuzzSlasher_Bootstrapping(f *testing.F) {
 				r,
 				t,
 				net,
-				[]bbn.BIP340PubKey{*fpBTCPK},
+				[]anc.BIP340PubKey{*fpBTCPK},
 				delSK,
 				covenantSks,
 				covPks,
@@ -197,7 +197,7 @@ func FuzzSlasher_Bootstrapping(f *testing.F) {
 			BtcDelegatorDelegations: append(slashableBTCDelsList, unslashableBTCDelsList...),
 			Pagination:              &query.PageResponse{NextKey: nil},
 		}
-		mockBabylonQuerier.EXPECT().FinalityProviderDelegations(gomock.Eq(fpBTCPK.MarshalHex()), gomock.Any()).Return(btcDelsResp, nil).Times(1)
+		mockAnonQuerier.EXPECT().FinalityProviderDelegations(gomock.Eq(fpBTCPK.MarshalHex()), gomock.Any()).Return(btcDelsResp, nil).Times(1)
 
 		mockBTCClient.EXPECT().
 			GetRawTransaction(gomock.Any()).

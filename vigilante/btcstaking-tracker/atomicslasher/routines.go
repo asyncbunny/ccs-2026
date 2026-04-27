@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/babylonlabs-io/babylon/v4/client/babylonclient"
+	"github.com/anon-org/anon/v4/client/anonclient"
 
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"go.uber.org/zap"
 )
@@ -23,7 +23,7 @@ func (as *AtomicSlasher) btcDelegationTracker() {
 	for {
 		select {
 		case <-ticker.C:
-			err := as.bbnAdapter.HandleAllBTCDelegations(func(btcDel *bstypes.BTCDelegationResponse) error {
+			err := as.ancAdapter.HandleAllBTCDelegations(func(btcDel *bstypes.BTCDelegationResponse) error {
 				trackedDel, err := NewTrackedBTCDelegation(btcDel)
 				if err != nil {
 					return err
@@ -105,7 +105,7 @@ func (as *AtomicSlasher) slashingTxTracker() {
 }
 
 // selectiveSlashingReporter is a routine that reports finality providers who
-// launch selective slashing to Babylon and slashing enforcer routine
+// launch selective slashing to Anon and slashing enforcer routine
 func (as *AtomicSlasher) selectiveSlashingReporter() {
 	defer as.wg.Done()
 
@@ -119,7 +119,7 @@ func (as *AtomicSlasher) selectiveSlashingReporter() {
 			stakingTxHash := slashingTxInfo.StakingTxHash
 			stakingTxHashStr := stakingTxHash.String()
 			ctx, cancel := as.quitContext()
-			btcDelResp, err := as.bbnAdapter.BTCDelegation(ctx, stakingTxHashStr)
+			btcDelResp, err := as.ancAdapter.BTCDelegation(ctx, stakingTxHashStr)
 			cancel()
 			if err != nil {
 				as.logger.Error(
@@ -133,7 +133,7 @@ func (as *AtomicSlasher) selectiveSlashingReporter() {
 			// get parameter at the version of this BTC delegation
 			ctx, cancel = as.quitContext()
 			paramsVersion := btcDelResp.BtcDelegation.ParamsVersion
-			bsParams, err := as.bbnAdapter.BTCStakingParams(ctx, paramsVersion)
+			bsParams, err := as.ancAdapter.BTCStakingParams(ctx, paramsVersion)
 			cancel()
 			if err != nil {
 				as.logger.Error(
@@ -163,7 +163,7 @@ func (as *AtomicSlasher) selectiveSlashingReporter() {
 
 			// skip if the finality provider is already slashed
 			ctx, cancel = as.quitContext()
-			isSlashed, err := as.bbnAdapter.IsFPSlashed(ctx, fpPK)
+			isSlashed, err := as.ancAdapter.IsFPSlashed(ctx, fpPK)
 			if err != nil {
 				as.logger.Error(
 					"failed to query slashing status of finality provider",
@@ -207,9 +207,9 @@ func (as *AtomicSlasher) selectiveSlashingReporter() {
 				continue
 			}
 
-			// report selective slashing to Babylon
+			// report selective slashing to Anon
 			ctx, cancel = as.quitContext()
-			if err := as.bbnAdapter.ReportSelectiveSlashing(ctx, fpSK); err != nil {
+			if err := as.ancAdapter.ReportSelectiveSlashing(ctx, fpSK); err != nil {
 				// TODO: this implies that all signed covenant members collude with
 				// the finality provider. Decide what to do in this case
 				as.logger.Error(
@@ -218,7 +218,7 @@ func (as *AtomicSlasher) selectiveSlashingReporter() {
 					zap.Error(err),
 				)
 
-				if errors.Is(err, babylonclient.ErrTimeoutAfterWaitingForTxBroadcast) {
+				if errors.Is(err, anonclient.ErrTimeoutAfterWaitingForTxBroadcast) {
 					as.metrics.SelectiveSlashingCensorshipGaugeVec.WithLabelValues(stakingTxHashStr).Inc()
 				}
 			}

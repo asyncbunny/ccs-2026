@@ -12,12 +12,12 @@ RUN apk add --no-cache --update openssh git make build-base linux-headers libc-d
     libzmq-static libsodium-static gcc wget && rm -rf /var/cache/apk/*
 
 # Build
-WORKDIR /go/src/github.com/babylonlabs-io/finality-provider
+WORKDIR /go/src/github.com/anon-org/finality-provider
 # Cache dependencies
-COPY go.mod go.sum /go/src/github.com/babylonlabs-io/finality-provider/
+COPY go.mod go.sum /go/src/github.com/anon-org/finality-provider/
 RUN go mod download
 # Copy the rest of the files
-COPY ./ /go/src/github.com/babylonlabs-io/finality-provider/
+COPY ./ /go/src/github.com/anon-org/finality-provider/
 
 # Cosmwasm - Download correct libwasmvm version
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
@@ -41,7 +41,7 @@ RUN addgroup --gid 1138 -S finality-provider && adduser --uid 1138 -S finality-p
 # hadolint ignore=DL3018
 RUN apk add --no-cache bash curl jq && rm -rf /var/cache/apk/*
 
-COPY --from=builder /go/src/github.com/babylonlabs-io/finality-provider/build/ /bin/
+COPY --from=builder /go/src/github.com/anon-org/finality-provider/build/ /bin/
 
 WORKDIR /home/finality-provider
 RUN chown -R finality-provider /home/finality-provider

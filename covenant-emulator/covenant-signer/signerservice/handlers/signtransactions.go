@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice/types"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice/types"
 )
 
 func (h *Handler) SignTransactions(request *http.Request) (*Result, *types.Error) {

@@ -4,12 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
+	anctypes "github.com/anon-org/anon/v4/types"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
 )
 
 type FinalityProviderServiceGRpcClient struct {
@@ -119,7 +119,7 @@ func (c *FinalityProviderServiceGRpcClient) QueryFinalityProviderList(ctx contex
 }
 
 // QueryFinalityProviderInfo - gets the finality provider data from local store
-func (c *FinalityProviderServiceGRpcClient) QueryFinalityProviderInfo(ctx context.Context, fpPk *bbntypes.BIP340PubKey) (*proto.QueryFinalityProviderResponse, error) {
+func (c *FinalityProviderServiceGRpcClient) QueryFinalityProviderInfo(ctx context.Context, fpPk *anctypes.BIP340PubKey) (*proto.QueryFinalityProviderResponse, error) {
 	req := &proto.QueryFinalityProviderRequest{BtcPk: fpPk.MarshalHex()}
 	res, err := c.client.QueryFinalityProvider(ctx, req)
 	if err != nil {
@@ -131,7 +131,7 @@ func (c *FinalityProviderServiceGRpcClient) QueryFinalityProviderInfo(ctx contex
 
 // EditFinalityProvider - edit the finality provider data.
 func (c *FinalityProviderServiceGRpcClient) EditFinalityProvider(
-	ctx context.Context, fpPk *bbntypes.BIP340PubKey, desc *proto.Description, rate string) error {
+	ctx context.Context, fpPk *anctypes.BIP340PubKey, desc *proto.Description, rate string) error {
 	req := &proto.EditFinalityProviderRequest{BtcPk: fpPk.MarshalHex(), Description: desc, Commission: rate}
 
 	_, err := c.client.EditFinalityProvider(ctx, req)
@@ -144,7 +144,7 @@ func (c *FinalityProviderServiceGRpcClient) EditFinalityProvider(
 
 // UnsafeRemoveMerkleProof - remove all proofs up to target height
 func (c *FinalityProviderServiceGRpcClient) UnsafeRemoveMerkleProof(
-	ctx context.Context, fpPk *bbntypes.BIP340PubKey, chainID string, targetHeight uint64) error {
+	ctx context.Context, fpPk *anctypes.BIP340PubKey, chainID string, targetHeight uint64) error {
 	req := &proto.RemoveMerkleProofRequest{BtcPkHex: fpPk.MarshalHex(), ChainId: chainID, TargetHeight: targetHeight}
 	_, err := c.client.UnsafeRemoveMerkleProof(ctx, req)
 	if err != nil {

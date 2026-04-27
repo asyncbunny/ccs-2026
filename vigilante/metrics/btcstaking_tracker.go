@@ -1,7 +1,7 @@
 package metrics
 
 import (
-	"github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
+	"github.com/anon-org/anon/v4/x/btcstaking/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 )
@@ -52,12 +52,12 @@ func newUnbondingWatcherMetrics(registry *prometheus.Registry) *UnbondingWatcher
 		ReportedUnbondingTransactionsCounter: registerer.NewCounter(prometheus.CounterOpts{
 			Namespace: "vigilante",
 			Name:      "unbonding_watcher_reported_unbonding_transactions",
-			Help:      "The total number of unbonding transactions successfully reported to Babylon node",
+			Help:      "The total number of unbonding transactions successfully reported to Anon node",
 		}),
 		FailedReportedUnbondingTransactions: registerer.NewCounter(prometheus.CounterOpts{
 			Namespace: "vigilante",
 			Name:      "unbonding_watcher_failed_reported_unbonding_transactions",
-			Help:      "The total number times reporting unbonding transactions to Babylon node failed",
+			Help:      "The total number times reporting unbonding transactions to Anon node failed",
 		}),
 		NumberOfTrackedActiveDelegations: registerer.NewGauge(prometheus.GaugeOpts{
 			Namespace: "vigilante",
@@ -82,12 +82,12 @@ func newUnbondingWatcherMetrics(registry *prometheus.Registry) *UnbondingWatcher
 		FailedReportedActivateDelegations: registerer.NewCounter(prometheus.CounterOpts{
 			Namespace: "vigilante",
 			Name:      "unbonding_watcher_failed_reported_activate_delegation",
-			Help:      "The total number times reporting activation delegation failed on Babylon node",
+			Help:      "The total number times reporting activation delegation failed on Anon node",
 		}),
 		ReportedActivateDelegationsCounter: registerer.NewCounter(prometheus.CounterOpts{
 			Namespace: "vigilante",
 			Name:      "unbonding_watcher_reported_activate_delegations",
-			Help:      "The total number of unbonding transactions successfully reported to Babylon node",
+			Help:      "The total number of unbonding transactions successfully reported to Anon node",
 		}),
 		MethodExecutionLatency: registerer.NewHistogramVec(prometheus.HistogramOpts{
 			Namespace: "vigilante",
@@ -148,7 +148,7 @@ func newUnbondingWatcherMetrics(registry *prometheus.Registry) *UnbondingWatcher
 		BtcLightClientHeight: registerer.NewGauge(prometheus.GaugeOpts{
 			Namespace: "vigilante",
 			Name:      "unbonding_watcher_btc_light_client_height",
-			Help:      "The height of the babylon btc light client",
+			Help:      "The height of the anon btc light client",
 		}),
 	}
 

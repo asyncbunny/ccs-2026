@@ -3,16 +3,16 @@ package cmd
 import (
 	"fmt"
 
-	bbnclient "github.com/babylonlabs-io/babylon/v4/client/client"
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	bst "github.com/babylonlabs-io/vigilante/btcstaking-tracker"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
+	ancclient "github.com/anon-org/anon/v4/client/client"
+	"github.com/anon-org/vigilante/btcclient"
+	bst "github.com/anon-org/vigilante/btcstaking-tracker"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
 	"github.com/spf13/cobra"
 )
 
 func GetBTCStakingTracker() *cobra.Command {
-	var babylonKeyDir string
+	var anonKeyDir string
 	var cfgFile = ""
 	var startHeight uint64
 
@@ -31,8 +31,8 @@ func GetBTCStakingTracker() *cobra.Command {
 				panic(fmt.Errorf("failed to load config: %w", err))
 			}
 			// apply the flags from CLI
-			if len(babylonKeyDir) != 0 {
-				cfg.Babylon.KeyDirectory = babylonKeyDir
+			if len(anonKeyDir) != 0 {
+				cfg.Anon.KeyDirectory = anonKeyDir
 			}
 
 			rootLogger, err := cfg.CreateLogger()
@@ -41,19 +41,19 @@ func GetBTCStakingTracker() *cobra.Command {
 			}
 
 			// apply the flags from CLI
-			if len(babylonKeyDir) != 0 {
-				cfg.Babylon.KeyDirectory = babylonKeyDir
+			if len(anonKeyDir) != 0 {
+				cfg.Anon.KeyDirectory = anonKeyDir
 			}
 
-			// create Babylon client. Note that requests from Babylon client are ad hoc
-			bbnClient, err := bbnclient.New(&cfg.Babylon, nil)
+			// create Anon client. Note that requests from Anon client are ad hoc
+			ancClient, err := ancclient.New(&cfg.Anon, nil)
 			if err != nil {
-				panic(fmt.Errorf("failed to open Babylon client: %w", err))
+				panic(fmt.Errorf("failed to open Anon client: %w", err))
 			}
 
-			// start Babylon client so that WebSocket subscriber can work
-			if err := bbnClient.Start(); err != nil {
-				panic(fmt.Errorf("failed to start WebSocket connection with Babylon: %w", err))
+			// start Anon client so that WebSocket subscriber can work
+			if err := ancClient.Start(); err != nil {
+				panic(fmt.Errorf("failed to start WebSocket connection with Anon: %w", err))
 			}
 
 			// create BTC client and connect to BTC server
@@ -80,7 +80,7 @@ func GetBTCStakingTracker() *cobra.Command {
 			bstracker := bst.NewBTCStakingTracker(
 				btcClient,
 				btcNotifier,
-				bbnClient,
+				ancClient,
 				&cfg.BTCStakingTracker,
 				&cfg.Common,
 				rootLogger,
@@ -123,18 +123,18 @@ func GetBTCStakingTracker() *cobra.Command {
 				rootLogger.Info("BTC notifier shutdown")
 			})
 			addInterruptHandler(func() {
-				rootLogger.Info("Stopping Babylon client...")
-				if err := bbnClient.Stop(); err != nil {
-					panic(fmt.Errorf("failed to stop Babylon client: %w", err))
+				rootLogger.Info("Stopping Anon client...")
+				if err := ancClient.Stop(); err != nil {
+					panic(fmt.Errorf("failed to stop Anon client: %w", err))
 				}
-				rootLogger.Info("Babylon client shutdown")
+				rootLogger.Info("Anon client shutdown")
 			})
 
 			<-interruptHandlersDone
 			rootLogger.Info("Shutdown complete")
 		},
 	}
-	cmd.Flags().StringVar(&babylonKeyDir, "babylon-key", "", "Directory of the Babylon key")
+	cmd.Flags().StringVar(&anonKeyDir, "anon-key", "", "Directory of the Anon key")
 	cmd.Flags().StringVar(&cfgFile, "config", config.DefaultConfigFile(), "config file")
 	cmd.Flags().Uint64Var(&startHeight, "start-height", 0, "height that the BTC slasher starts scanning for evidences")
 

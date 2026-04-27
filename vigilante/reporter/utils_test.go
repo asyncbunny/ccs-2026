@@ -4,34 +4,34 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/babylonlabs-io/babylon/v4/client/babylonclient"
+	"github.com/anon-org/anon/v4/client/anonclient"
 	"github.com/lightningnetwork/lnd/lntest/mock"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	btcctypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
-	btclctypes "github.com/babylonlabs-io/babylon/v4/x/btclightclient/types"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	btcctypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
+	btclctypes "github.com/anon-org/anon/v4/x/btclightclient/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/reporter"
-	vdatagen "github.com/babylonlabs-io/vigilante/testutil/datagen"
-	"github.com/babylonlabs-io/vigilante/testutil/mocks"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/reporter"
+	vdatagen "github.com/anon-org/vigilante/testutil/datagen"
+	"github.com/anon-org/vigilante/testutil/mocks"
+	"github.com/anon-org/vigilante/types"
 )
 
 func newMockReporter(t *testing.T, ctrl *gomock.Controller) (
-	*reporter.MockBabylonClient, *reporter.Reporter) {
+	*reporter.MockAnonClient, *reporter.Reporter) {
 	cfg := config.DefaultConfig()
 	logger, err := cfg.CreateLogger()
 	require.NoError(t, err)
 
 	mockBTCClient := mocks.NewMockBTCClient(ctrl)
-	mockBabylonClient := reporter.NewMockBabylonClient(ctrl)
+	mockAnonClient := reporter.NewMockAnonClient(ctrl)
 	btccParams := btcctypes.DefaultParams()
-	mockBabylonClient.EXPECT().GetConfig().Return(&cfg.Babylon).AnyTimes()
-	mockBabylonClient.EXPECT().BTCCheckpointParams().Return(
+	mockAnonClient.EXPECT().GetConfig().Return(&cfg.Anon).AnyTimes()
+	mockAnonClient.EXPECT().BTCCheckpointParams().Return(
 		&btcctypes.QueryParamsResponse{Params: btccParams}, nil).AnyTimes()
 	mockNotifier := mock.ChainNotifier{}
 
@@ -39,7 +39,7 @@ func newMockReporter(t *testing.T, ctrl *gomock.Controller) (
 		&cfg.Reporter,
 		logger,
 		mockBTCClient,
-		mockBabylonClient,
+		mockAnonClient,
 		&mockNotifier,
 		cfg.Common.RetrySleepTime,
 		cfg.Common.MaxRetrySleepTime,
@@ -48,11 +48,11 @@ func newMockReporter(t *testing.T, ctrl *gomock.Controller) (
 	)
 	require.NoError(t, err)
 
-	return mockBabylonClient, r
+	return mockAnonClient, r
 }
 
 // FuzzProcessHeaders fuzz tests ProcessHeaders()
-// - Data: a number of random blocks, with or without Babylon txs
+// - Data: a number of random blocks, with or without Anon txs
 // - Tested property: for any BTC block, if its header is not duplicated, then it will submit this header
 func FuzzProcessHeaders(f *testing.F) {
 	datagen.AddRandomSeedsToFuzzer(f, 10)
@@ -65,25 +65,25 @@ func FuzzProcessHeaders(f *testing.F) {
 
 		// generate a random number of blocks
 		numBlocks := datagen.RandomInt(r, 1000) + 100 // more than 1 pages of MsgInsertHeader messages to submit
-		blocks, _, _ := vdatagen.GenRandomBlockchainWithBabylonTx(r, numBlocks, 0, 0)
+		blocks, _, _ := vdatagen.GenRandomBlockchainWithAnonTx(r, numBlocks, 0, 0)
 		ibs := []*types.IndexedBlock{}
 		for _, block := range blocks {
 			ibs = append(ibs, types.NewIndexedBlockFromMsgBlock(r.Uint32(), block))
 		}
 
-		mockBabylonClient, mockReporter := newMockReporter(t, ctrl)
+		mockAnonClient, mockReporter := newMockReporter(t, ctrl)
 
 		// a random number of blocks exists on chain
 		numBlocksOnChain := r.Intn(int(numBlocks))
-		mockBabylonClient.EXPECT().ContainsBTCBlock(gomock.Any()).Return(
+		mockAnonClient.EXPECT().ContainsBTCBlock(gomock.Any()).Return(
 			&btclctypes.QueryContainsBytesResponse{Contains: true}, nil).Times(numBlocksOnChain)
-		mockBabylonClient.EXPECT().ContainsBTCBlock(gomock.Any()).Return(
+		mockAnonClient.EXPECT().ContainsBTCBlock(gomock.Any()).Return(
 			&btclctypes.QueryContainsBytesResponse{Contains: false}, nil).AnyTimes()
 
 		// inserting header will always be successful
-		mockBabylonClient.EXPECT().ReliablySendMsg(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&babylonclient.RelayerTxResponse{Code: 0}, nil).AnyTimes()
+		mockAnonClient.EXPECT().ReliablySendMsg(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&anonclient.RelayerTxResponse{Code: 0}, nil).AnyTimes()
 
-		// if Babylon client contains this block, numSubmitted has to be 0, otherwise 1
+		// if Anon client contains this block, numSubmitted has to be 0, otherwise 1
 		numSubmitted, err := mockReporter.ProcessHeaders("", ibs)
 		require.Equal(t, int(numBlocks)-numBlocksOnChain, numSubmitted)
 		require.NoError(t, err)
@@ -91,8 +91,8 @@ func FuzzProcessHeaders(f *testing.F) {
 }
 
 // FuzzProcessCheckpoints fuzz tests ProcessCheckpoints()
-// - Data: a number of random blocks, with or without Babylon txs
-// - Tested property: for any BTC block, if it contains Babylon data, then it will extract checkpoint segments, do a match, and report matched checkpoints
+// - Data: a number of random blocks, with or without Anon txs
+// - Tested property: for any BTC block, if it contains Anon data, then it will extract checkpoint segments, do a match, and report matched checkpoints
 func FuzzProcessCheckpoints(f *testing.F) {
 	datagen.AddRandomSeedsToFuzzer(f, 100)
 
@@ -102,13 +102,13 @@ func FuzzProcessCheckpoints(f *testing.F) {
 		defer ctrl.Finish()
 		r := rand.New(rand.NewSource(seed))
 
-		mockBabylonClient, mockReporter := newMockReporter(t, ctrl)
+		mockAnonClient, mockReporter := newMockReporter(t, ctrl)
 		// inserting SPV proofs is always successful
-		mockBabylonClient.EXPECT().ReliablySendMsg(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&babylonclient.RelayerTxResponse{Code: 0}, nil).AnyTimes()
+		mockAnonClient.EXPECT().ReliablySendMsg(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(&anonclient.RelayerTxResponse{Code: 0}, nil).AnyTimes()
 
-		// generate a random number of blocks, with or without Babylon txs
+		// generate a random number of blocks, with or without Anon txs
 		numBlocks := datagen.RandomInt(r, 100)
-		blocks, numCkptSegsExpected, rawCkpts := vdatagen.GenRandomBlockchainWithBabylonTx(r, numBlocks, 0.3, 0.4)
+		blocks, numCkptSegsExpected, rawCkpts := vdatagen.GenRandomBlockchainWithAnonTx(r, numBlocks, 0.3, 0.4)
 		ibs := []*types.IndexedBlock{}
 		numMatchedCkptsExpected := 0
 		for i, block := range blocks {

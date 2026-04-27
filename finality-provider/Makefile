@@ -1,7 +1,7 @@
 BUILDDIR ?= $(CURDIR)/build
 TOOLS_DIR := tools
 
-BCD_PKG     := github.com/babylonlabs-io/babylon-sdk/demo/cmd/bcd
+BCD_PKG     := github.com/anon-org/anon-sdk/demo/cmd/bcd
 RLY_PKG     := github.com/cosmos/relayer/v2
 
 GO_BIN := ${GOPATH}/bin
@@ -16,11 +16,11 @@ MOCKGEN_CMD=go run ${MOCKGEN_REPO}@${MOCKGEN_VERSION}
 
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 
-ldflags := $(LDFLAGS) -X github.com/babylonlabs-io/finality-provider/version.version=$(VERSION)
+ldflags := $(LDFLAGS) -X github.com/anon-org/finality-provider/version.version=$(VERSION)
 build_tags := $(BUILD_TAGS)
 build_args := $(BUILD_ARGS)
 
-PACKAGES_E2E=$(shell go list -tags=e2e_babylon ./... | grep '/itest')
+PACKAGES_E2E=$(shell go list -tags=e2e_anon ./... | grep '/itest')
 # need to specify the full path to fix issue where logs won't stream to stdout
 # due to multiple packages found
 # context: https://github.com/golang/go/issues/24929
@@ -54,7 +54,7 @@ $(BUILDDIR)/:
 	mkdir -p $(BUILDDIR)/
 
 build-docker:
-	$(DOCKER) build --tag babylonlabs-io/finality-provider -f Dockerfile \
+	$(DOCKER) build --tag anon-org/finality-provider -f Dockerfile \
 		$(shell git rev-parse --show-toplevel)
 
 .PHONY: build build-docker
@@ -75,29 +75,29 @@ install-rly:
 	cd $(TOOLS_DIR); \
 	go install -trimpath $(RLY_PKG)
 
-.PHONY: clean-e2e test-e2e test-e2e-babylon test-e2e-babylon-ci test-e2e-bcd test-e2e-rollup
+.PHONY: clean-e2e test-e2e test-e2e-anon test-e2e-anon-ci test-e2e-bcd test-e2e-rollup
 
 # Clean up environments by stopping processes and removing data directories
 clean-e2e:
-	@pids=$$(ps aux | grep -E 'babylond start|bcd start|relayer start' | grep -v grep | awk '{print $$2}' | tr '\n' ' '); \
+	@pids=$$(ps aux | grep -E 'anond start|bcd start|relayer start' | grep -v grep | awk '{print $$2}' | tr '\n' ' '); \
 	if [ -n "$$pids" ]; then \
 		echo $$pids | xargs kill; \
 		echo "Killed processes $$pids"; \
 	else \
 		echo "No processes to kill"; \
 	fi
-	rm -rf ~/.babylond ~/.bcd ~/.relayer
-	rm -rf /tmp/ZBcdTest* /tmp/ZRelayerTest* /tmp/ZBabylonTest*
+	rm -rf ~/.anond ~/.bcd ~/.relayer
+	rm -rf /tmp/ZBcdTest* /tmp/ZRelayerTest* /tmp/ZAnonTest*
 # Main test target that runs all e2e tests
-test-e2e: test-e2e-babylon
+test-e2e: test-e2e-anon
 
-test-e2e-babylon: clean-e2e
-	@go test -mod=readonly -timeout=25m -v $(PACKAGES_E2E) -count=1 --tags=e2e_babylon
+test-e2e-anon: clean-e2e
+	@go test -mod=readonly -timeout=25m -v $(PACKAGES_E2E) -count=1 --tags=e2e_anon
 
-test-e2e-babylon-ci: clean-e2e
-	go test -list . ./itest/babylon --tags=e2e_babylon | grep Test \
+test-e2e-anon-ci: clean-e2e
+	go test -list . ./itest/anon --tags=e2e_anon | grep Test \
 	| circleci tests run --command \
-	"xargs go test -mod=readonly -timeout=25m -v $(PACKAGES_E2E) -count=1 --tags=e2e_babylon --run" \
+	"xargs go test -mod=readonly -timeout=25m -v $(PACKAGES_E2E) -count=1 --tags=e2e_anon --run" \
 	--split-by=name --timings-type=name
 
 ###############################################################################
@@ -133,8 +133,8 @@ release-dry-run:
 		--rm \
 		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:/go/src/babylon \
-		-w /go/src/babylon \
+		-v `pwd`:/go/src/anon \
+		-w /go/src/anon \
 		$(GORELEASER_IMAGE) \
 		release \
 		--clean \
@@ -145,8 +145,8 @@ release-snapshot:
 		--rm \
 		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:/go/src/babylon \
-		-w /go/src/babylon \
+		-v `pwd`:/go/src/anon \
+		-w /go/src/anon \
 		$(GORELEASER_IMAGE) \
 		release \
 		--clean \
@@ -162,8 +162,8 @@ release:
 		-e GITHUB_TOKEN=$(GITHUB_TOKEN) \
 		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:/go/src/babylon \
-		-w /go/src/babylon \
+		-v `pwd`:/go/src/anon \
+		-w /go/src/anon \
 		$(GORELEASER_IMAGE) \
 		release \
 		--clean

@@ -3,8 +3,8 @@ package daemon
 import (
 	"encoding/hex"
 	"fmt"
-	eotsclient "github.com/babylonlabs-io/finality-provider/eotsmanager/client"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/config"
+	eotsclient "github.com/anon-org/finality-provider/eotsmanager/client"
+	"github.com/anon-org/finality-provider/eotsmanager/config"
 	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"

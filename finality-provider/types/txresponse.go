@@ -4,7 +4,7 @@ package types
 import (
 	"encoding/json"
 
-	"github.com/babylonlabs-io/babylon/v4/client/babylonclient"
+	"github.com/anon-org/anon/v4/client/anonclient"
 	"github.com/spf13/cobra"
 )
 
@@ -13,23 +13,23 @@ import (
 // so consumer client implementations need to care about Events field.
 type TxResponse struct {
 	TxHash string
-	Events []babylonclient.RelayerEvent
+	Events []anonclient.RelayerEvent
 }
 
-func NewBabylonTxResponse(resp *babylonclient.RelayerTxResponse) *babylonclient.RelayerTxResponse {
+func NewAnonTxResponse(resp *anonclient.RelayerTxResponse) *anonclient.RelayerTxResponse {
 	if resp == nil {
 		return nil
 	}
 
-	events := make([]babylonclient.RelayerEvent, len(resp.Events))
+	events := make([]anonclient.RelayerEvent, len(resp.Events))
 	for i, event := range resp.Events {
-		events[i] = babylonclient.RelayerEvent{
+		events[i] = anonclient.RelayerEvent{
 			EventType:  event.EventType,
 			Attributes: event.Attributes,
 		}
 	}
 
-	return &babylonclient.RelayerTxResponse{
+	return &anonclient.RelayerTxResponse{
 		Height:    resp.Height,
 		TxHash:    resp.TxHash,
 		Events:    events,

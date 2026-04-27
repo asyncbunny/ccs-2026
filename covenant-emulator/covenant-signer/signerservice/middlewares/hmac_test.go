@@ -1,7 +1,7 @@
 package middlewares_test
 
 import (
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice/middlewares"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice/middlewares"
 	"io"
 	"strings"
 	"testing"

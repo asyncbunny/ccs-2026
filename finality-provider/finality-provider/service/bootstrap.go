@@ -5,10 +5,10 @@ import (
 	"fmt"
 
 	"github.com/avast/retry-go/v4"
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
-	ccapi "github.com/babylonlabs-io/finality-provider/clientcontroller/api"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/types"
+	anctypes "github.com/anon-org/anon/v4/types"
+	ccapi "github.com/anon-org/finality-provider/clientcontroller/api"
+	"github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/types"
 	"go.uber.org/zap"
 )
 
@@ -17,7 +17,7 @@ var _ types.HeightDeterminer = (*StartHeightDeterminer)(nil)
 // StartHeightDeterminer is responsible for determining the appropriate starting height for block processing.
 // It uses configuration and consumer chain status to decide between static or automatic chain scanning modes.
 type StartHeightDeterminer struct {
-	btcPk       *bbntypes.BIP340PubKey
+	btcPk       *anctypes.BIP340PubKey
 	consumerCon ccapi.ConsumerController
 	cfg         *config.ChainPollerConfig
 	logger      *zap.Logger
@@ -54,7 +54,7 @@ func NewStartHeightDeterminer(consumerCon ccapi.ConsumerController, cfg *config.
 // may result in missed rewards, depending on the consumer chain's reward distribution mechanism.
 func (bt *StartHeightDeterminer) DetermineStartHeight(
 	ctx context.Context,
-	btcPk *bbntypes.BIP340PubKey,
+	btcPk *anctypes.BIP340PubKey,
 	lastVotedHeightFunc types.LastVotedHeightProvider,
 ) (uint64, error) {
 	if btcPk == nil {
@@ -86,7 +86,7 @@ func (bt *StartHeightDeterminer) DetermineStartHeight(
 	}
 
 	// Determine start height to be the max height among local last-voted height, highest voted height
-	// from Babylon, and the last finalized height
+	// from Anon, and the last finalized height
 	// NOTE: if highestVotedHeight is selected, it could lead to issues when there are missed blocks between
 	// the gap due to bugs. A potential solution is to check if the fp has voted for each block within
 	// the gap. This issue is not critical if we can assume the votes are sent in the monotonically
@@ -128,7 +128,7 @@ func (bt *StartHeightDeterminer) highestVotedHeightWithRetry(ctx context.Context
 		return nil
 	}, retry.Context(ctx), RtyAtt, RtyDel, RtyErr, retry.OnRetry(func(n uint, err error) {
 		bt.logger.Debug(
-			"failed to query babylon for the highest voted height",
+			"failed to query anon for the highest voted height",
 			zap.Uint("attempt", n+1),
 			zap.Uint("max_attempts", RtyAttNum),
 			zap.Error(err),
@@ -156,7 +156,7 @@ func (bt *StartHeightDeterminer) latestFinalizedHeightWithRetry(ctx context.Cont
 		return nil
 	}, retry.Context(ctx), RtyAtt, RtyDel, RtyErr, retry.OnRetry(func(n uint, err error) {
 		bt.logger.Debug(
-			"failed to query babylon for the latest finalised height",
+			"failed to query anon for the latest finalised height",
 			zap.Uint("attempt", n+1),
 			zap.Uint("max_attempts", RtyAttNum),
 			zap.Error(err),
@@ -180,7 +180,7 @@ func (bt *StartHeightDeterminer) getFinalityActivationHeightWithRetry(ctx contex
 		return nil
 	}, retry.Context(ctx), RtyAtt, RtyDel, RtyErr, retry.OnRetry(func(n uint, err error) {
 		bt.logger.Debug(
-			"failed to query babylon for the finality activation height",
+			"failed to query anon for the finality activation height",
 			zap.Uint("attempt", n+1),
 			zap.Uint("max_attempts", RtyAttNum),
 			zap.Error(err),

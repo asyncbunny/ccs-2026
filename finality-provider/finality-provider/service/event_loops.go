@@ -4,22 +4,22 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/babylonlabs-io/finality-provider/clientcontroller/api"
+	"github.com/anon-org/finality-provider/clientcontroller/api"
 	"time"
 
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
-	btcstakingtypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
+	anctypes "github.com/anon-org/anon/v4/types"
+	btcstakingtypes "github.com/anon-org/anon/v4/x/btcstaking/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
 )
 
 type CreateFinalityProviderRequest struct {
 	chainID         string
 	fpAddr          sdk.AccAddress
-	btcPubKey       *bbntypes.BIP340PubKey
+	btcPubKey       *anctypes.BIP340PubKey
 	pop             *btcstakingtypes.ProofOfPossessionBTC
 	description     *stakingtypes.Description
 	commission      btcstakingtypes.CommissionRates
@@ -37,7 +37,7 @@ type CreateFinalityProviderResult struct {
 }
 
 type UnjailFinalityProviderRequest struct {
-	btcPubKey       *bbntypes.BIP340PubKey
+	btcPubKey       *anctypes.BIP340PubKey
 	errResponse     chan error
 	successResponse chan *UnjailFinalityProviderResponse
 }
@@ -123,7 +123,7 @@ func (app *FinalityProviderApp) registrationLoop(ctx context.Context) {
 			}
 
 			app.logger.Info(
-				"successfully registered finality-provider on babylon",
+				"successfully registered finality-provider on anon",
 				zap.String("btc_pk", req.btcPubKey.MarshalHex()),
 				zap.String("fp_addr", req.fpAddr.String()),
 				zap.String("txHash", res.TxHash),
@@ -179,7 +179,7 @@ func (app *FinalityProviderApp) unjailFpLoop(ctx context.Context) {
 			}
 
 			app.logger.Info(
-				"successfully unjailed finality-provider on babylon",
+				"successfully unjailed finality-provider on anon",
 				zap.String("btc_pk", req.btcPubKey.MarshalHex()),
 				zap.String("txHash", res.TxHash),
 			)

@@ -10,11 +10,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/config"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/proto"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/types"
-	"github.com/babylonlabs-io/finality-provider/util"
+	"github.com/anon-org/finality-provider/eotsmanager"
+	"github.com/anon-org/finality-provider/eotsmanager/config"
+	"github.com/anon-org/finality-provider/eotsmanager/proto"
+	"github.com/anon-org/finality-provider/eotsmanager/types"
+	"github.com/anon-org/finality-provider/util"
 )
 
 // rpcServer is the main RPC server for the EOTS daemon that handles

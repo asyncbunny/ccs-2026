@@ -9,11 +9,11 @@ import (
 	"strings"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/babylonlabs-io/babylon/v4/btcstaking"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/utils"
+	"github.com/anon-org/anon/v4/btcstaking"
+	anc "github.com/anon-org/anon/v4/types"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/utils"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -52,7 +52,7 @@ type SlashResult struct {
 }
 
 func (bs *BTCSlasher) slashBTCDelegation(
-	fpBTCPK *bbn.BIP340PubKey,
+	fpBTCPK *anc.BIP340PubKey,
 	extractedfpBTCSK *btcec.PrivateKey,
 	del *bstypes.BTCDelegationResponse,
 ) {
@@ -141,7 +141,7 @@ func (bs *BTCSlasher) slashBTCDelegation(
 
 func (bs *BTCSlasher) sendSlashingTx(
 	ctx context.Context,
-	fpBTCPK *bbn.BIP340PubKey,
+	fpBTCPK *anc.BIP340PubKey,
 	extractedfpBTCSK *btcec.PrivateKey,
 	del *bstypes.BTCDelegationResponse,
 	isUnbondingSlashingTx bool,
@@ -170,7 +170,7 @@ func (bs *BTCSlasher) sendSlashingTx(
 	}
 
 	// check if the staking/unbonding tx's output is indeed spendable
-	// TODO: use bbn.GetOutputIdxInBTCTx
+	// TODO: use anc.GetOutputIdxInBTCTx
 	var spendable bool
 	if isUnbondingSlashingTx {
 		ubondingTx, errDecode := hex.DecodeString(del.UndelegationResponse.UnbondingTxHex)
@@ -205,7 +205,7 @@ func (bs *BTCSlasher) sendSlashingTx(
 	}
 
 	// get BTC staking parameter with the version in this BTC delegation
-	bsParamsResp, err := bs.BBNQuerier.BTCStakingParamsByVersion(del.ParamsVersion)
+	bsParamsResp, err := bs.ANCQuerier.BTCStakingParamsByVersion(del.ParamsVersion)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get BTC staking parameter at version %d", del.ParamsVersion)
 	}
@@ -221,7 +221,7 @@ func (bs *BTCSlasher) sendSlashingTx(
 	}
 	bs.mu.Unlock()
 	if err != nil {
-		// Warning: this can only be a programming error in Babylon side
+		// Warning: this can only be a programming error in Anon side
 		return nil, fmt.Errorf(
 			"failed to build witness for BTC delegation %s under finality provider %s: %w",
 			del.BtcPk.MarshalHex(),
@@ -252,7 +252,7 @@ func (bs *BTCSlasher) sendSlashingTx(
 		fpBTCPK.MarshalHex(),
 	)
 
-	checkPointParams, err := bs.BBNQuerier.BTCCheckpointParams()
+	checkPointParams, err := bs.ANCQuerier.BTCCheckpointParams()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get BTC staking parameter at version %d", del.ParamsVersion)
 	}
@@ -273,7 +273,7 @@ func buildSlashingTxWithWitness(
 	fpSK *btcec.PrivateKey,
 	config SlashingConfig,
 ) (*wire.MsgTx, error) {
-	msgTx, _, err := bbn.NewBTCTxFromHex(config.TxHex)
+	msgTx, _, err := anc.NewBTCTxFromHex(config.TxHex)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert tx to wire.MsgTx: %w", err)
 	}
@@ -291,7 +291,7 @@ func buildSlashingTxWithWitness(
 	}
 
 	// Find finality provider index
-	fpBTCPK := bbn.NewBIP340PubKeyFromBTCPK(fpSK.PubKey())
+	fpBTCPK := anc.NewBIP340PubKeyFromBTCPK(fpSK.PubKey())
 	fpIdx, err := findFPIdxForCovenantSignatures(fpBTCPK, d.FpBtcPkList)
 	if err != nil {
 		return nil, err
@@ -304,7 +304,7 @@ func buildSlashingTxWithWitness(
 	}
 
 	// Parse delegator slashing signature
-	delSlashingSig, err := bbn.NewBIP340SignatureFromHex(config.SlashingSigHex)
+	delSlashingSig, err := anc.NewBIP340SignatureFromHex(config.SlashingSigHex)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse delegator slashing signature: %w", err)
 	}
@@ -328,7 +328,7 @@ func buildSlashingTxWithWitness(
 		return nil, fmt.Errorf(
 			"failed to build witness for BTC delegation %s under finality provider %s: %w",
 			d.BtcPk.MarshalHex(),
-			bbn.NewBIP340PubKeyFromBTCPK(fpSK.PubKey()).MarshalHex(),
+			anc.NewBIP340PubKeyFromBTCPK(fpSK.PubKey()).MarshalHex(),
 			err,
 		)
 	}
@@ -354,17 +354,17 @@ func BuildUnbondingSlashingTxWithWitness(
 		CovenantSigs:   d.UndelegationResponse.CovenantSlashingSigs,
 		OutputIdx:      0,
 		InfoBuilder: func() (StakingInfoProvider, error) {
-			unbondingMsgTx, _, err := bbn.NewBTCTxFromHex(d.UndelegationResponse.UnbondingTxHex)
+			unbondingMsgTx, _, err := anc.NewBTCTxFromHex(d.UndelegationResponse.UnbondingTxHex)
 			if err != nil {
 				return nil, err
 			}
 
-			fpBtcPkList, err := bbn.NewBTCPKsFromBIP340PKs(d.FpBtcPkList)
+			fpBtcPkList, err := anc.NewBTCPKsFromBIP340PKs(d.FpBtcPkList)
 			if err != nil {
 				return nil, err
 			}
 
-			covenantBtcPkList, err := bbn.NewBTCPKsFromBIP340PKs(bsParams.CovenantPks)
+			covenantBtcPkList, err := anc.NewBTCPKsFromBIP340PKs(bsParams.CovenantPks)
 			if err != nil {
 				return nil, err
 			}
@@ -387,7 +387,7 @@ func BuildUnbondingSlashingTxWithWitness(
 
 // findFPIdxForCovenantSignatures returns the index of the given finality provider
 // among all restaked finality providers
-func findFPIdxForCovenantSignatures(fpBTCPK *bbn.BIP340PubKey, fpBtcPkList []bbn.BIP340PubKey) (int, error) {
+func findFPIdxForCovenantSignatures(fpBTCPK *anc.BIP340PubKey, fpBtcPkList []anc.BIP340PubKey) (int, error) {
 	for i, pk := range fpBtcPkList {
 		if pk.Equals(fpBTCPK) {
 			return i, nil
@@ -420,12 +420,12 @@ func BuildSlashingTxWithWitness(
 		CovenantSigs:   d.CovenantSigs,
 		OutputIdx:      d.StakingOutputIdx,
 		InfoBuilder: func() (StakingInfoProvider, error) {
-			fpBtcPkList, err := bbn.NewBTCPKsFromBIP340PKs(d.FpBtcPkList)
+			fpBtcPkList, err := anc.NewBTCPKsFromBIP340PKs(d.FpBtcPkList)
 			if err != nil {
 				return nil, err
 			}
 
-			covenantBtcPkList, err := bbn.NewBTCPKsFromBIP340PKs(bsParams.CovenantPks)
+			covenantBtcPkList, err := anc.NewBTCPKsFromBIP340PKs(bsParams.CovenantPks)
 			if err != nil {
 				return nil, err
 			}
@@ -449,10 +449,10 @@ func BuildSlashingTxWithWitness(
 // BTC slasher will try to slash via staking path for active BTC delegations,
 // and slash via unbonding path for unbonded delegations.
 //
-// An unbonded BTC delegation in Babylon's view might still
+// An unbonded BTC delegation in Anon's view might still
 // have an non-expired timelock in unbonding tx.
 func (bs *BTCSlasher) getAllActiveAndUnbondedBTCDelegations(
-	fpBTCPK *bbn.BIP340PubKey,
+	fpBTCPK *anc.BIP340PubKey,
 ) ([]*bstypes.BTCDelegationResponse, []*bstypes.BTCDelegationResponse, error) {
 	activeDels, unbondedDels := make([]*bstypes.BTCDelegationResponse, 0), make([]*bstypes.BTCDelegationResponse, 0)
 
@@ -462,7 +462,7 @@ func (bs *BTCSlasher) getAllActiveAndUnbondedBTCDelegations(
 	// get all active BTC delegations
 	pagination := query.PageRequest{Limit: defaultPaginationLimit}
 	for {
-		resp, err := bs.BBNQuerier.FinalityProviderDelegations(fpBTCPK.MarshalHex(), &pagination)
+		resp, err := bs.ANCQuerier.FinalityProviderDelegations(fpBTCPK.MarshalHex(), &pagination)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to get BTC delegations under finality provider %s: %w", fpBTCPK.MarshalHex(), err)
 		}
@@ -471,7 +471,7 @@ func (bs *BTCSlasher) getAllActiveAndUnbondedBTCDelegations(
 				// get the BTC staking parameter at that version
 				bsParams, ok := paramsMap[del.ParamsVersion]
 				if !ok {
-					bsParamsResp, err := bs.BBNQuerier.BTCStakingParamsByVersion(del.ParamsVersion)
+					bsParamsResp, err := bs.ANCQuerier.BTCStakingParamsByVersion(del.ParamsVersion)
 					if err != nil {
 						return nil, nil, fmt.Errorf("failed to get BTC staking parameter at version %d", del.ParamsVersion)
 					}
@@ -480,17 +480,17 @@ func (bs *BTCSlasher) getAllActiveAndUnbondedBTCDelegations(
 
 				// filter out all active and unbonded BTC delegations
 				// NOTE: slasher does not slash BTC delegations who
-				//   - is expired in Babylon due to the timelock of <w rest blocks, OR
+				//   - is expired in Anon due to the timelock of <w rest blocks, OR
 				//   - has an expired timelock but the delegator hasn't moved its stake yet
 				// This is because such BTC delegations do not have voting power thus do not
-				// affect Babylon's consensus.
+				// affect Anon's consensus.
 				if del.Active {
 					// avoid using del which changes over the iterations
 					activeDels = append(activeDels, dels.Dels[i])
 				}
 				if strings.EqualFold(del.StatusDesc, bstypes.BTCDelegationStatus_UNBONDED.String()) &&
 					len(del.UndelegationResponse.CovenantSlashingSigs) >= int(bsParams.CovenantQuorum) {
-					// NOTE: Babylon considers a BTC delegation to be unbonded once it
+					// NOTE: Anon considers a BTC delegation to be unbonded once it
 					// receives staker signature for unbonding transaction, no matter
 					// whether the unbonding tx's timelock has expired. In monitor's view we need to try to slash every
 					// BTC delegation with a non-nil BTC undelegation and with jury/delegator signature on slashing tx

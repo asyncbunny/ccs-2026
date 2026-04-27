@@ -8,20 +8,20 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
+	anctypes "github.com/anon-org/anon/v4/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 
-	fpcc "github.com/babylonlabs-io/finality-provider/clientcontroller"
-	"github.com/babylonlabs-io/finality-provider/clientcontroller/babylon"
-	eotsclient "github.com/babylonlabs-io/finality-provider/eotsmanager/client"
-	clientctx "github.com/babylonlabs-io/finality-provider/finality-provider/cmd/fpd/clientctx"
-	fpcfg "github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/service"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/store"
-	"github.com/babylonlabs-io/finality-provider/log"
-	"github.com/babylonlabs-io/finality-provider/metrics"
-	"github.com/babylonlabs-io/finality-provider/util"
+	fpcc "github.com/anon-org/finality-provider/clientcontroller"
+	"github.com/anon-org/finality-provider/clientcontroller/anon"
+	eotsclient "github.com/anon-org/finality-provider/eotsmanager/client"
+	clientctx "github.com/anon-org/finality-provider/finality-provider/cmd/fpd/clientctx"
+	fpcfg "github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/finality-provider/service"
+	"github.com/anon-org/finality-provider/finality-provider/store"
+	"github.com/anon-org/finality-provider/log"
+	"github.com/anon-org/finality-provider/metrics"
+	"github.com/anon-org/finality-provider/util"
 )
 
 // CommandCommitPubRand returns the commit-pubrand command by connecting to the fpd daemon.
@@ -67,7 +67,7 @@ func runCommandCommitPubRand(ctx client.Context, cmd *cobra.Command, args []stri
 }
 
 func RunCommandCommitPubRandWithConfig(_ client.Context, cmd *cobra.Command, homePath string, cfg *fpcfg.Config, args []string) error {
-	fpPk, err := bbntypes.NewBIP340PubKeyFromHex(args[0])
+	fpPk, err := anctypes.NewBIP340PubKeyFromHex(args[0])
 	if err != nil {
 		return fmt.Errorf("failed to parse BIP340 public key from hex: %w", err)
 	}
@@ -98,14 +98,14 @@ func RunCommandCommitPubRandWithConfig(_ client.Context, cmd *cobra.Command, hom
 	if err != nil {
 		return fmt.Errorf("failed to initiate public randomness store: %w", err)
 	}
-	cc, err := fpcc.NewBabylonController(cfg.BabylonConfig, logger)
+	cc, err := fpcc.NewAnonController(cfg.AnonConfig, logger)
 	if err != nil {
-		return fmt.Errorf("failed to create rpc client for the Babylon chain: %w", err)
+		return fmt.Errorf("failed to create rpc client for the Anon chain: %w", err)
 	}
 	if err := cc.Start(); err != nil {
 		return fmt.Errorf("failed to start client controller: %w", err)
 	}
-	consumerCon, err := babylon.NewBabylonConsumerController(cfg.BabylonConfig, logger)
+	consumerCon, err := anon.NewAnonConsumerController(cfg.AnonConfig, logger)
 	if err != nil {
 		return fmt.Errorf("failed to create rpc client for the consumer chain: %w", err)
 	}

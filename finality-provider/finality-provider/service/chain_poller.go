@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/avast/retry-go/v4"
-	ccapi "github.com/babylonlabs-io/finality-provider/clientcontroller/api"
-	cfg "github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/metrics"
-	"github.com/babylonlabs-io/finality-provider/types"
+	ccapi "github.com/anon-org/finality-provider/clientcontroller/api"
+	cfg "github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/metrics"
+	"github.com/anon-org/finality-provider/types"
 	"go.uber.org/atomic"
 	"go.uber.org/zap"
 )

@@ -1,0 +1,70 @@
+syntax = "proto3";
+package anon.btcstaking.v1;
+
+import "gogoproto/gogo.proto";
+import "anon/btcstaking/v1/params.proto";
+import "anon/btcstaking/v1/btcstaking.proto";
+import "anon/btcstaking/v1/events.proto";
+
+option go_package = "github.com/anon-org/anon/v4/x/btcstaking/types";
+
+// GenesisState defines the btcstaking module's genesis state.
+message GenesisState {
+  // different versions of params used through the history of the chain
+  repeated Params params = 1;
+  // finality_providers all the finality providers registered.
+  repeated FinalityProvider finality_providers = 2;
+  // btc_delegations all the btc delegations in the state.
+  repeated BTCDelegation btc_delegations = 3;
+  // block_height_chains the block height of anon and bitcoin.
+  repeated BlockHeightAncToBtc block_height_chains = 5;
+  // btc_delegators contains all the btc delegators with the associated finality
+  // provider.
+  repeated BTCDelegator btc_delegators = 6;
+  // all the events and its indexes.
+  repeated EventIndex events = 7;
+  // collection of the allowed staking transaction hashes (hex encoded)
+  repeated string allowed_staking_tx_hashes = 8;
+  // largest BTC block reorg
+  LargestBtcReOrg largest_btc_reorg = 9;
+  // Reserved for consumer chain events
+  reserved 10;
+  // Reserved for previous collection of the allowed multi-staking transaction hashes (hex encoded)
+  reserved 11;
+  // FpAncAddr defines a list of the finality provider indexed by their anon address.
+  repeated string fp_anc_addr = 12;
+  // DeletedFpsBtcPkHex defines a list of deleted finality providers btc pk that can't cast votes.
+  repeated string deleted_fps_btc_pk_hex = 13;
+}
+
+// BlockHeightAncToBtc stores the btc <-> anc block.
+message BlockHeightAncToBtc {
+  // block_height_anc is the height of the block in the anon chain.
+  uint64 block_height_anc = 1;
+  // block_height_btc is the height of the block in the BTC.
+  uint32 block_height_btc = 2;
+}
+
+// BTCDelegator BTC delegator information with the associated finality provider.
+message BTCDelegator {
+  // idx the btc delegator index.
+  BTCDelegatorDelegationIndex idx = 1;
+  // fp_btc_pk the finality provider btc public key.
+  bytes fp_btc_pk = 2
+      [ (gogoproto.customtype) =
+            "github.com/anon-org/anon/v4/types.BIP340PubKey" ];
+  // del_btc_pk the delegator btc public key.
+  bytes del_btc_pk = 3
+      [ (gogoproto.customtype) =
+            "github.com/anon-org/anon/v4/types.BIP340PubKey" ];
+}
+
+// EventIndex contains the event and its index.
+message EventIndex {
+  // idx is the index the event was stored.
+  uint64 idx = 1;
+  // block_height_btc is the height of the block in the BTC chain.
+  uint32 block_height_btc = 2;
+  // event the event stored.
+  EventPowerDistUpdate event = 3;
+}

@@ -1,0 +1,39 @@
+//go:build mainnet
+
+package app
+
+import (
+	"github.com/anon-org/anon/v4/app/upgrades"
+	"github.com/anon-org/anon/v4/app/upgrades/v1_1"
+	v2 "github.com/anon-org/anon/v4/app/upgrades/v2"
+	v22 "github.com/anon-org/anon/v4/app/upgrades/v2_2"
+	v23 "github.com/anon-org/anon/v4/app/upgrades/v2_3"
+	v4 "github.com/anon-org/anon/v4/app/upgrades/v4"
+	v41 "github.com/anon-org/anon/v4/app/upgrades/v4_1"
+	v42 "github.com/anon-org/anon/v4/app/upgrades/v4_2"
+	v43 "github.com/anon-org/anon/v4/app/upgrades/v4_3"
+)
+
+var WhitelistedChannelsID = map[string]struct{}{
+	"channel-0": struct{}{},
+	"channel-1": struct{}{},
+	"channel-2": struct{}{},
+	"channel-3": struct{}{},
+	"channel-4": struct{}{},
+	"channel-5": struct{}{},
+	"channel-6": struct{}{},
+}
+
+// init is used to include v2.2 upgrade for mainnet data
+func init() {
+	Upgrades = []upgrades.Upgrade{
+		v43.Upgrade,
+		v42.Upgrade,
+		v41.Upgrade,
+		v4.Upgrade,
+		v23.Upgrade, // same as v3rc3 testnet
+		v22.Upgrade,
+		v2.CreateUpgrade(false, WhitelistedChannelsID),
+		v1_1.Upgrade,
+	}
+}

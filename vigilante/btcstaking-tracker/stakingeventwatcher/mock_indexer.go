@@ -8,7 +8,7 @@ import (
 	context "context"
 	reflect "reflect"
 
-	indexer "github.com/babylonlabs-io/vigilante/btcstaking-tracker/indexer"
+	indexer "github.com/anon-org/vigilante/btcstaking-tracker/indexer"
 	gomock "github.com/golang/mock/gomock"
 )
 

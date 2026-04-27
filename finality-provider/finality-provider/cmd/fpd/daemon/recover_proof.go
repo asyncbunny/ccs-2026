@@ -3,26 +3,26 @@ package daemon
 import (
 	"bytes"
 	"fmt"
-	"github.com/babylonlabs-io/finality-provider/clientcontroller/api"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/service"
+	"github.com/anon-org/finality-provider/clientcontroller/api"
+	"github.com/anon-org/finality-provider/finality-provider/service"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/cometbft/cometbft/crypto/merkle"
 	"math"
 	"path/filepath"
 
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
+	anctypes "github.com/anon-org/anon/v4/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 
-	"github.com/babylonlabs-io/finality-provider/clientcontroller/babylon"
-	eotsclient "github.com/babylonlabs-io/finality-provider/eotsmanager/client"
-	clientctx "github.com/babylonlabs-io/finality-provider/finality-provider/cmd/fpd/clientctx"
-	fpcfg "github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/store"
-	"github.com/babylonlabs-io/finality-provider/log"
-	"github.com/babylonlabs-io/finality-provider/types"
-	"github.com/babylonlabs-io/finality-provider/util"
+	"github.com/anon-org/finality-provider/clientcontroller/anon"
+	eotsclient "github.com/anon-org/finality-provider/eotsmanager/client"
+	clientctx "github.com/anon-org/finality-provider/finality-provider/cmd/fpd/clientctx"
+	fpcfg "github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/finality-provider/store"
+	"github.com/anon-org/finality-provider/log"
+	"github.com/anon-org/finality-provider/types"
+	"github.com/anon-org/finality-provider/util"
 )
 
 func CommandRecoverProof(binaryName string) *cobra.Command {
@@ -37,7 +37,7 @@ func CommandRecoverProofTemplate(binaryName string) *cobra.Command {
 		Use:     "recover-rand-proof [fp-eots-pk-hex]",
 		Aliases: []string{"rrp"},
 		Short:   "Recover the public randomness' merkle proof for a finality provider",
-		Long:    "Recover the public randomness' merkle proof for a finality provider. Currently only Babylon consumer chain is supported.",
+		Long:    "Recover the public randomness' merkle proof for a finality provider. Currently only Anon consumer chain is supported.",
 		Example: fmt.Sprintf(`%s recover-rand-proof --home /home/user/.fpd [fp-eots-pk-hex]`, binaryName),
 		Args:    cobra.ExactArgs(1),
 	}
@@ -66,9 +66,9 @@ func runCommandRecoverProof(ctx client.Context, cmd *cobra.Command, args []strin
 		return fmt.Errorf("failed to initialize the logger: %w", err)
 	}
 
-	bcc, err := babylon.NewBabylonConsumerController(cfg.BabylonConfig, logger)
+	bcc, err := anon.NewAnonConsumerController(cfg.AnonConfig, logger)
 	if err != nil {
-		return fmt.Errorf("failed to create Babylon rpc client: %w", err)
+		return fmt.Errorf("failed to create Anon rpc client: %w", err)
 	}
 
 	db, err := cfg.DatabaseConfig.GetDBBackend()
@@ -113,7 +113,7 @@ func RunCommandRecoverProofWithConfig(_ client.Context, cmd *cobra.Command, cfg 
 		return fmt.Errorf("please specify chain-id")
 	}
 
-	fpPk, err := bbntypes.NewBIP340PubKeyFromHex(args[0])
+	fpPk, err := anctypes.NewBIP340PubKeyFromHex(args[0])
 	if err != nil {
 		return fmt.Errorf("failed to parse EOTS public key: %w", err)
 	}
@@ -146,7 +146,7 @@ func RunCommandRecoverProofWithConfig(_ client.Context, cmd *cobra.Command, cfg 
 		// generate commitment and proof for each public randomness
 		commitRoot, proofList := types.GetPubRandCommitAndProofs(pubRandList)
 		if !bytes.Equal(commitRoot, commit.GetCommitment()) {
-			return fmt.Errorf("the commit root on Babylon does not match the local one, expected: %x, got: %x", commit.GetCommitment(), commitRoot)
+			return fmt.Errorf("the commit root on Anon does not match the local one, expected: %x, got: %x", commit.GetCommitment(), commitRoot)
 		}
 
 		// store them to database

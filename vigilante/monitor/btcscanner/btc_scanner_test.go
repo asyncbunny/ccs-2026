@@ -4,12 +4,12 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/monitor/btcscanner"
-	vdatagen "github.com/babylonlabs-io/vigilante/testutil/datagen"
-	"github.com/babylonlabs-io/vigilante/testutil/mocks"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/monitor/btcscanner"
+	vdatagen "github.com/anon-org/vigilante/testutil/datagen"
+	"github.com/anon-org/vigilante/testutil/mocks"
+	"github.com/anon-org/vigilante/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 )

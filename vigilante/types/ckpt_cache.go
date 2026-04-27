@@ -7,12 +7,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/babylonlabs-io/babylon/v4/btctxformatter"
+	"github.com/anon-org/anon/v4/btctxformatter"
 )
 
 type CheckpointCache struct {
 	mu      sync.Mutex
-	Tag     btctxformatter.BabylonTag
+	Tag     btctxformatter.AnonTag
 	Version btctxformatter.FormatVersion
 
 	// list that contains matched checkpoints
@@ -24,7 +24,7 @@ type CheckpointCache struct {
 	Segments map[uint8]map[string]*CkptSegment
 }
 
-func NewCheckpointCache(tag btctxformatter.BabylonTag, version btctxformatter.FormatVersion) *CheckpointCache {
+func NewCheckpointCache(tag btctxformatter.AnonTag, version btctxformatter.FormatVersion) *CheckpointCache {
 	segMap := map[uint8]map[string]*CkptSegment{}
 	for i := uint8(0); i < btctxformatter.NumberOfParts; i++ {
 		segMap[i] = map[string]*CkptSegment{}

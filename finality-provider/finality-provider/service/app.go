@@ -7,12 +7,12 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/babylonlabs-io/finality-provider/clientcontroller/babylon"
+	"github.com/anon-org/finality-provider/clientcontroller/anon"
 
-	"github.com/babylonlabs-io/finality-provider/types"
+	"github.com/anon-org/finality-provider/types"
 
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
+	anctypes "github.com/anon-org/anon/v4/types"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,14 +20,14 @@ import (
 	"github.com/lightningnetwork/lnd/kvdb"
 	"go.uber.org/zap"
 
-	fpcc "github.com/babylonlabs-io/finality-provider/clientcontroller"
-	ccapi "github.com/babylonlabs-io/finality-provider/clientcontroller/api"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager"
-	fpcfg "github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/store"
-	fpkr "github.com/babylonlabs-io/finality-provider/keyring"
-	"github.com/babylonlabs-io/finality-provider/metrics"
+	fpcc "github.com/anon-org/finality-provider/clientcontroller"
+	ccapi "github.com/anon-org/finality-provider/clientcontroller/api"
+	"github.com/anon-org/finality-provider/eotsmanager"
+	fpcfg "github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
+	"github.com/anon-org/finality-provider/finality-provider/store"
+	fpkr "github.com/anon-org/finality-provider/keyring"
+	"github.com/anon-org/finality-provider/metrics"
 )
 
 type FinalityProviderApp struct {
@@ -36,7 +36,7 @@ type FinalityProviderApp struct {
 	wg        sync.WaitGroup
 	quit      chan struct{}
 
-	cc                ccapi.BabylonController
+	cc                ccapi.AnonController
 	consumerCon       ccapi.ConsumerController
 	kr                keyring.Keyring
 	fps               *store.FinalityProviderStore
@@ -65,17 +65,17 @@ func NewFinalityProviderAppFromConfig(
 	db kvdb.Backend,
 	logger *zap.Logger,
 ) (*FinalityProviderApp, error) {
-	cc, err := fpcc.NewBabylonController(cfg.BabylonConfig, logger)
+	cc, err := fpcc.NewAnonController(cfg.AnonConfig, logger)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create rpc client for the Babylon chain: %w", err)
+		return nil, fmt.Errorf("failed to create rpc client for the Anon chain: %w", err)
 	}
 	if err := cc.Start(); err != nil {
-		return nil, fmt.Errorf("failed to start rpc client for the Babylon chain: %w", err)
+		return nil, fmt.Errorf("failed to start rpc client for the Anon chain: %w", err)
 	}
 
-	consumerCon, err := babylon.NewBabylonConsumerController(cfg.BabylonConfig, logger)
+	consumerCon, err := anon.NewAnonConsumerController(cfg.AnonConfig, logger)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create rpc client for the consumer chain babylon: %w", err)
+		return nil, fmt.Errorf("failed to create rpc client for the consumer chain anon: %w", err)
 	}
 
 	// if the EOTSManagerAddress is empty, run a local EOTS manager;
@@ -117,7 +117,7 @@ func NewFinalityProviderAppFromConfig(
 
 func NewFinalityProviderApp(
 	config *fpcfg.Config,
-	cc ccapi.BabylonController,
+	cc ccapi.AnonController,
 	consumerCon ccapi.ConsumerController,
 	em eotsmanager.EOTSManager,
 	poller types.BlockPoller[types.BlockDescription],
@@ -138,9 +138,9 @@ func NewFinalityProviderApp(
 	}
 
 	kr, err := fpkr.CreateKeyring(
-		config.BabylonConfig.KeyDirectory,
-		config.BabylonConfig.ChainID,
-		config.BabylonConfig.KeyringBackend,
+		config.AnonConfig.KeyDirectory,
+		config.AnonConfig.ChainID,
+		config.AnonConfig.KeyringBackend,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create keyring: %w", err)
@@ -171,7 +171,7 @@ func (app *FinalityProviderApp) GetConfig() *fpcfg.Config {
 	return app.config
 }
 
-func (app *FinalityProviderApp) GetBabylonController() ccapi.BabylonController {
+func (app *FinalityProviderApp) GetAnonController() ccapi.AnonController {
 	return app.cc
 }
 
@@ -187,7 +187,7 @@ func (app *FinalityProviderApp) GetPubRandProofStore() *store.PubRandProofStore 
 	return app.pubRandStore
 }
 
-func (app *FinalityProviderApp) GetFinalityProviderInfo(fpPk *bbntypes.BIP340PubKey) (*proto.FinalityProviderInfo, error) {
+func (app *FinalityProviderApp) GetFinalityProviderInfo(fpPk *anctypes.BIP340PubKey) (*proto.FinalityProviderInfo, error) {
 	storedFp, err := app.fps.GetFinalityProvider(fpPk.MustToBTCPK())
 	if err != nil {
 		return nil, fmt.Errorf("failed to get finality provider: %w", err)
@@ -222,7 +222,7 @@ func (app *FinalityProviderApp) ListAllFinalityProvidersInfo() ([]*proto.Finalit
 	return fpsInfo, nil
 }
 
-// GetFinalityProviderInstance returns the finality-provider instance with the given Babylon public key
+// GetFinalityProviderInstance returns the finality-provider instance with the given Anon public key
 func (app *FinalityProviderApp) GetFinalityProviderInstance() (*FinalityProviderInstance, error) {
 	app.fpInsMu.RLock()
 	defer app.fpInsMu.RUnlock()
@@ -240,7 +240,7 @@ func (app *FinalityProviderApp) Logger() *zap.Logger {
 
 // StartFinalityProvider starts a finality provider instance with the given EOTS public key
 // Note: this should be called right after the finality-provider is registered
-func (app *FinalityProviderApp) StartFinalityProvider(ctx context.Context, fpPk *bbntypes.BIP340PubKey) error {
+func (app *FinalityProviderApp) StartFinalityProvider(ctx context.Context, fpPk *anctypes.BIP340PubKey) error {
 	app.logger.Info("starting finality provider", zap.String("pk", fpPk.MarshalHex()))
 
 	if err := app.startFinalityProviderInstance(ctx, fpPk); err != nil {
@@ -387,7 +387,7 @@ func (app *FinalityProviderApp) Stop() error {
 func (app *FinalityProviderApp) CreateFinalityProvider(
 	ctx context.Context,
 	keyName, chainID string,
-	eotsPk *bbntypes.BIP340PubKey,
+	eotsPk *anctypes.BIP340PubKey,
 	description *stakingtypes.Description,
 	commission bstypes.CommissionRates,
 ) (*CreateFinalityProviderResult, error) {
@@ -493,7 +493,7 @@ func (app *FinalityProviderApp) CreateFinalityProvider(
 }
 
 // UnjailFinalityProvider sends a transaction to unjail a finality-provider
-func (app *FinalityProviderApp) UnjailFinalityProvider(ctx context.Context, fpPk *bbntypes.BIP340PubKey) (*UnjailFinalityProviderResponse, error) {
+func (app *FinalityProviderApp) UnjailFinalityProvider(ctx context.Context, fpPk *anctypes.BIP340PubKey) (*UnjailFinalityProviderResponse, error) {
 	// send request to the loop to avoid blocking the main thread
 	request := &UnjailFinalityProviderRequest{
 		btcPubKey:       fpPk,
@@ -528,11 +528,11 @@ func (app *FinalityProviderApp) UnjailFinalityProvider(ctx context.Context, fpPk
 	}
 }
 
-func (app *FinalityProviderApp) CreatePop(_ context.Context, fpAddress sdk.AccAddress, fpPk *bbntypes.BIP340PubKey) (*bstypes.ProofOfPossessionBTC, error) {
+func (app *FinalityProviderApp) CreatePop(_ context.Context, fpAddress sdk.AccAddress, fpPk *anctypes.BIP340PubKey) (*bstypes.ProofOfPossessionBTC, error) {
 	pop := &bstypes.ProofOfPossessionBTC{
 		BtcSigType: bstypes.BTCSigType_BIP340, // by default, we use BIP-340 encoding for BTC signature
 	}
-	// generate pop.BtcSig = schnorr_sign(sk_BTC, hash(bbnAddress))
+	// generate pop.BtcSig = schnorr_sign(sk_BTC, hash(ancAddress))
 	// NOTE: *schnorr.Sign has to take the hash of the message.
 	// So we have to hash the address before signing
 	hasher := tmhash.New()
@@ -545,14 +545,14 @@ func (app *FinalityProviderApp) CreatePop(_ context.Context, fpAddress sdk.AccAd
 		return nil, fmt.Errorf("failed to get schnorr signature from the EOTS manager: %w", err)
 	}
 
-	pop.BtcSig = bbntypes.NewBIP340SignatureFromBTCSig(sig).MustMarshal()
+	pop.BtcSig = anctypes.NewBIP340SignatureFromBTCSig(sig).MustMarshal()
 
 	return pop, nil
 }
 
 func (app *FinalityProviderApp) startFinalityProviderInstance(
 	ctx context.Context,
-	pk *bbntypes.BIP340PubKey,
+	pk *anctypes.BIP340PubKey,
 ) error {
 	pkHex := pk.MarshalHex()
 	app.fpInsMu.Lock()
@@ -577,7 +577,7 @@ func (app *FinalityProviderApp) startFinalityProviderInstance(
 	return app.fpIns.Start(ctx)
 }
 
-func (app *FinalityProviderApp) IsFinalityProviderRunning(fpPk *bbntypes.BIP340PubKey) bool {
+func (app *FinalityProviderApp) IsFinalityProviderRunning(fpPk *anctypes.BIP340PubKey) bool {
 	app.fpInsMu.RLock()
 	defer app.fpInsMu.RUnlock()
 

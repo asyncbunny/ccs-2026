@@ -8,8 +8,8 @@ import (
 	"github.com/btcsuite/btcd/wire"
 	notifier "github.com/lightningnetwork/lnd/chainntnfs"
 
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/types"
 )
 
 type BTCClient interface {

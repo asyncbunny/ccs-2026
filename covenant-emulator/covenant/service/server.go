@@ -7,7 +7,7 @@ import (
 	"github.com/lightningnetwork/lnd/signal"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/covenant-emulator/covenant"
+	"github.com/anon-org/covenant-emulator/covenant"
 )
 
 // CovenantServer is the main daemon construct for the covenant emulator.

@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	protobuf "google.golang.org/protobuf/proto"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/proto"
+	"github.com/anon-org/finality-provider/eotsmanager/proto"
 )
 
 func TestHMACGeneration(t *testing.T) {

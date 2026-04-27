@@ -6,8 +6,8 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/spf13/cobra"
 
-	eotscfg "github.com/babylonlabs-io/finality-provider/eotsmanager/config"
-	"github.com/babylonlabs-io/finality-provider/util"
+	eotscfg "github.com/anon-org/finality-provider/eotsmanager/config"
+	"github.com/anon-org/finality-provider/util"
 )
 
 func NewInitCmd() *cobra.Command {

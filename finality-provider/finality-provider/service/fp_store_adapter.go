@@ -2,16 +2,16 @@ package service
 
 import (
 	"fmt"
-	"github.com/babylonlabs-io/finality-provider/metrics"
-	"github.com/babylonlabs-io/finality-provider/types"
+	"github.com/anon-org/finality-provider/metrics"
+	"github.com/anon-org/finality-provider/types"
 	"sync"
 
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
+	anctypes "github.com/anon-org/anon/v4/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/store"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
+	"github.com/anon-org/finality-provider/finality-provider/store"
 )
 
 var _ types.FinalityProviderState = (*FpState)(nil)
@@ -54,8 +54,8 @@ func (fps *FpState) GetBtcPk() *btcec.PublicKey {
 	return pk
 }
 
-func (fps *FpState) GetBtcPkBIP340() *bbntypes.BIP340PubKey {
-	var pk *bbntypes.BIP340PubKey
+func (fps *FpState) GetBtcPkBIP340() *anctypes.BIP340PubKey {
+	var pk *anctypes.BIP340PubKey
 	fps.withLock(func() {
 		pk = fps.sfp.GetBIP340BTCPK()
 	})

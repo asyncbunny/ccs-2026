@@ -7,18 +7,18 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/babylonlabs-io/finality-provider/clientcontroller/api"
+	"github.com/anon-org/finality-provider/clientcontroller/api"
 	"go.uber.org/zap"
 
 	sdkmath "cosmossdk.io/math"
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
+	anctypes "github.com/anon-org/anon/v4/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"google.golang.org/grpc"
 	protobuf "google.golang.org/protobuf/proto"
 
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
-	"github.com/babylonlabs-io/finality-provider/types"
-	"github.com/babylonlabs-io/finality-provider/version"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
+	"github.com/anon-org/finality-provider/types"
+	"github.com/anon-org/finality-provider/version"
 )
 
 // rpcServer is the main RPC server for the Finality Provider daemon that handles
@@ -123,7 +123,7 @@ func (r *rpcServer) CreateFinalityProvider(
 	}, nil
 }
 
-// AddFinalitySignature adds a manually constructed finality signature to Babylon
+// AddFinalitySignature adds a manually constructed finality signature to Anon
 // NOTE: this is only used for presentation/testing purposes
 func (r *rpcServer) AddFinalitySignature(ctx context.Context, req *proto.AddFinalitySignatureRequest) (
 	*proto.AddFinalitySignatureResponse,
@@ -174,7 +174,7 @@ func (r *rpcServer) AddFinalitySignature(ctx context.Context, req *proto.AddFina
 // UnjailFinalityProvider unjails a finality-provider
 func (r *rpcServer) UnjailFinalityProvider(ctx context.Context, req *proto.UnjailFinalityProviderRequest) (
 	*proto.UnjailFinalityProviderResponse, error) {
-	fpPk, err := bbntypes.NewBIP340PubKeyFromHex(req.BtcPk)
+	fpPk, err := anctypes.NewBIP340PubKeyFromHex(req.BtcPk)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse BTC public key: %w", err)
 	}
@@ -190,7 +190,7 @@ func (r *rpcServer) UnjailFinalityProvider(ctx context.Context, req *proto.Unjai
 // QueryFinalityProvider queries the information of the finality-provider
 func (r *rpcServer) QueryFinalityProvider(_ context.Context, req *proto.QueryFinalityProviderRequest) (
 	*proto.QueryFinalityProviderResponse, error) {
-	fpPk, err := bbntypes.NewBIP340PubKeyFromHex(req.BtcPk)
+	fpPk, err := anctypes.NewBIP340PubKeyFromHex(req.BtcPk)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse BTC public key: %w", err)
 	}
@@ -203,7 +203,7 @@ func (r *rpcServer) QueryFinalityProvider(_ context.Context, req *proto.QueryFin
 }
 
 func (r *rpcServer) EditFinalityProvider(ctx context.Context, req *proto.EditFinalityProviderRequest) (*proto.EmptyResponse, error) {
-	fpPk, err := bbntypes.NewBIP340PubKeyFromHex(req.BtcPk)
+	fpPk, err := anctypes.NewBIP340PubKeyFromHex(req.BtcPk)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse BTC public key: %w", err)
 	}
@@ -280,12 +280,12 @@ func (r *rpcServer) Backup(_ context.Context, req *proto.FpdBackupRequest) (*pro
 	}, nil
 }
 
-func parseEotsPk(eotsPkHex string) (*bbntypes.BIP340PubKey, error) {
+func parseEotsPk(eotsPkHex string) (*anctypes.BIP340PubKey, error) {
 	if eotsPkHex == "" {
 		return nil, fmt.Errorf("eots-pk cannot be empty")
 	}
 
-	pk, err := bbntypes.NewBIP340PubKeyFromHex(eotsPkHex)
+	pk, err := anctypes.NewBIP340PubKeyFromHex(eotsPkHex)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse EOTS public key: %w", err)
 	}

@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"fmt"
 
-	babylontypes "github.com/babylonlabs-io/babylon/v4/types"
-	btcctypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
+	anontypes "github.com/anon-org/anon/v4/types"
+	btcctypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
@@ -14,7 +14,7 @@ import (
 // IndexedBlock is a BTC block with some extra information compared to wire.MsgBlock, including:
 // - block height
 // - txHash, txHashWitness, txIndex for each Tx
-// These are necessary for generating Merkle proof (and thus the `MsgInsertBTCSpvProof` message in babylon) of a certain tx
+// These are necessary for generating Merkle proof (and thus the `MsgInsertBTCSpvProof` message in anon) of a certain tx
 type IndexedBlock struct {
 	Height uint32
 	Header *wire.BlockHeader
@@ -58,7 +58,7 @@ func (ib *IndexedBlock) GenSPVProof(txIdx int) (*btcctypes.BTCSpvProof, error) {
 		return nil, fmt.Errorf("transaction index is out of scope: idx=%d, len(Txs)=%d", txIdx, len(ib.Txs))
 	}
 
-	headerBytes := babylontypes.NewBTCHeaderBytesFromBlockHeader(ib.Header)
+	headerBytes := anontypes.NewBTCHeaderBytesFromBlockHeader(ib.Header)
 
 	var txsBytes [][]byte
 	for _, tx := range ib.Txs {

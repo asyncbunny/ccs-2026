@@ -1,11 +1,11 @@
-# Babylon Genesis Finality Provider Operation
+# Anon Genesis Finality Provider Operation
 
 This is an operational guide intended for technical finality provider administrators.
 This guide covers the complete
 lifecycle of running a finality provider, including:
 
-* Managing keys (EOTS key for EOTS signatures and Babylon Genesis key for rewards).
-* Registering a finality provider on Babylon Genesis.
+* Managing keys (EOTS key for EOTS signatures and Anon Genesis key for rewards).
+* Registering a finality provider on Anon Genesis.
 * Operating a finality provider.
 * Withdrawing finality provider commission rewards.
 
@@ -19,7 +19,7 @@ gain an overall understanding of the finality provider.
 3. [Keys Involved in Finality Provider Operation](#3-keys-involved-in-finality-provider-operation)
 4. [Setting up the Finality Provider](#4-setting-up-the-finality-provider)
    1. [Initialize the Finality Provider Daemon](#41-initialize-the-finality-provider-daemon)
-   2. [Add key for the Babylon Genesis account](#42-add-key-for-the-babylon-genesis-account)
+   2. [Add key for the Anon Genesis account](#42-add-key-for-the-anon-genesis-account)
    3. [Configure Your Finality Provider](#43-configure-your-finality-provider)
    4. [Starting the Finality Provider Daemon](#44-starting-the-finality-provider-daemon)
 5. [Finality Provider Operations](#5-finality-provider-operations)
@@ -81,19 +81,19 @@ and [Recovery and Backup](#6-recovery-and-backup).
 
 Operating a finality provider involves managing multiple keys, each serving distinct purposes. Understanding these keys, their relationships, and security implications is crucial for secure operation.
 
-| Aspect | EOTS Key                                                                                                                                                            | Babylon Genesis Key                                                                                                                                             | Operation Key                                                                                      |
+| Aspect | EOTS Key                                                                                                                                                            | Anon Genesis Key                                                                                                                                             | Operation Key                                                                                      |
 |--------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
-| **Functions** | • Unique identifier of a finality provider for BTC staking<br>• Initial registration<br>• Signs finality votes and Schnorr signatures<br>• Generates randomness<br> | • Unique identifier of a finality provider for Babylon Genesis<br>• Initial registration<br>• Withdrawing accumulated rewards<br>• Setting withdrawal addresses | • Daily operational transactions<br>• Can be the same as the Babylon Genesis key (not recommended) |
+| **Functions** | • Unique identifier of a finality provider for BTC staking<br>• Initial registration<br>• Signs finality votes and Schnorr signatures<br>• Generates randomness<br> | • Unique identifier of a finality provider for Anon Genesis<br>• Initial registration<br>• Withdrawing accumulated rewards<br>• Setting withdrawal addresses | • Daily operational transactions<br>• Can be the same as the Anon Genesis key (not recommended) |
 | **Managed By** | `eotsd`                                                                                                                                                             | • `fpd`<br>• Can kept isolated after Operation Key is set                                                                                                       | `fpd`                                                                                              |
-| **Mutability** | Immutable after registration                                                                                                                                        | Immutable after registration                                                                                                                                    | Rotatable (if separate from the Babylon Genesis key)                                               |
-| **Key Relationships** | Permanently paired with Babylon Genesis Key during registration                                                                                                     | • Permanently paired with EOTS Key during registration<br>• Can delegate operations to Operation Key                                                            | • Not associated with the other keys<br>• Should be set after the finality provider is registered   |
+| **Mutability** | Immutable after registration                                                                                                                                        | Immutable after registration                                                                                                                                    | Rotatable (if separate from the Anon Genesis key)                                               |
+| **Key Relationships** | Permanently paired with Anon Genesis Key during registration                                                                                                     | • Permanently paired with EOTS Key during registration<br>• Can delegate operations to Operation Key                                                            | • Not associated with the other keys<br>• Should be set after the finality provider is registered   |
 | **Recommended Practices** | • Store backups in multiple secure locations<br>• Use dedicated machine for EOTS Manager                                                                            | • Store backups in multiple secure locations<br>• Setup the Operation Key right after registration<br>• Only use for reward operations                          | • Maintain minimal balance<br>• Monitor for balance and fund it when needed                        |
 | **Security Implications** | • Loss is irrecoverable<br>• Cannot participate finality voting                                                                                                     | • Loss is irrecoverable<br>• Cannot withdraw rewards                                                                                                            | • Temporary service disruption<br>• Can be replaced with a new key<br>• Small loss of funds        |
 
 Instructions of setting up the three keys can be found in the following places:
 
 - [EOTS Daemon Setup - Add an EOTS Key](./eots-daemon.md#22-add-an-eots-key).
-- [4.2. Add key for the Babylon Genesis account](#42-add-key-for-the-babylon-genesis-account).
+- [4.2. Add key for the Anon Genesis account](#42-add-key-for-the-anon-genesis-account).
 - [5.3. Set Up Operation Key](#53-set-up-operation-key).
 
 ## 4. Setting up the Finality Provider
@@ -121,7 +121,7 @@ If the home directory already exists, `init` will not succeed.
 │   └── fpd.conf       # Configuration file for the finality provider
 ├── data/
 │   └── finality-provider.db         # Database containing finality provider data
-├── keyring-*/         # Directory containing Babylon Genesis keys
+├── keyring-*/         # Directory containing Anon Genesis keys
 └── logs/
     └── fpd.log        # Log file for the finality provider daemon
 ```
@@ -139,8 +139,8 @@ If the home directory already exists, `init` will not succeed.
   * Public randomness proofs
   * Last voted block height
 
-* **keyring-*** directory: Contains your Babylon Genesis account keys used for:
-  * Submitting finality signatures to Babylon
+* **keyring-*** directory: Contains your Anon Genesis account keys used for:
+  * Submitting finality signatures to Anon
   * Withdrawing rewards
   * Managing your finality provider
   * Loss means inability to operate until restored
@@ -151,9 +151,9 @@ If the home directory already exists, `init` will not succeed.
   * Error messages and debugging information
   * Service status updates
 
-### 4.2. Add key for the Babylon Genesis account
+### 4.2. Add key for the Anon Genesis account
 
-Each finality provider maintains a Babylon Genesis keyring containing
+Each finality provider maintains a Anon Genesis keyring containing
 an account used to receive BTC Staking reward commissions and pay fees for
 transactions necessary for the finality provider's operation.
 
@@ -172,12 +172,12 @@ funds for operations in the keyring, and extracting the rest into
 more secure locations.
 
 > ⚠️ **Important**:
-> To operate your Finality Provider, ensure your Babylon Genesis account is funded.
+> To operate your Finality Provider, ensure your Anon Genesis account is funded.
 > Block vote transactions have their gas fees refunded, but public randomness
 > submissions require gas payments. For testnet, you can obtain funds from our
 > testnet faucet.
 
-Use the following command to add the Babylon Genesis key for your finality provider:
+Use the following command to add the Anon Genesis key for your finality provider:
 
 ```shell
 fpd keys add <key-name> --keyring-backend test --home <path>
@@ -188,7 +188,7 @@ The output should look similar to the one below:
 
 ``` json
 {
-  "address": "bbn19gulf0a4yz87twpjl8cxnerc2wr2xqm9fsygn9",
+  "address": "anc19gulf0a4yz87twpjl8cxnerc2wr2xqm9fsygn9",
   "name": "finality-provider",
   "pubkey": {
     "@type": "/cosmos.crypto.secp256k1.PubKey",
@@ -209,31 +209,31 @@ EOTSManagerAddress = 127.0.0.1:12582
 RPCListener = 127.0.0.1:12581
 ContextSigningHeight = <v3-upgrade-height>
 
-[babylon]
+[anon]
 Key = <finality-provider-key-name-signer> # the key you used above
-ChainID = bbn-test-6 # chain ID of the Babylon Genesis
-RPCAddr = http://127.0.0.1:26657 # Your Babylon Genesis node's RPC endpoint
+ChainID = anc-test-6 # chain ID of the Anon Genesis
+RPCAddr = http://127.0.0.1:26657 # Your Anon Genesis node's RPC endpoint
 KeyDirectory = <path> # The `--home` path to the directory where the keyring is stored
 ```
 
 > ⚠️ **Important**: Operating a finality provider requires a connection to a
-> Babylon Genesis node. It is **highly recommended** to operate your own
-> Babylon Genesis full node instead of relying on third parties. You can find
-> instructions on setting up a Babylon Genesis node
-> [here](https://github.com/babylonlabs-io/networks/tree/main/bbn-test-6/babylon-node/README.md).
+> Anon Genesis node. It is **highly recommended** to operate your own
+> Anon Genesis full node instead of relying on third parties. You can find
+> instructions on setting up a Anon Genesis node
+> [here](https://github.com/anon-org/networks/tree/main/anc-test-6/anon-node/README.md).
 
 > ⚠️ **Critical RPC Configuration**:
-> When configuring your finality provider to a Babylon Genesis RPC node, you should
+> When configuring your finality provider to a Anon Genesis RPC node, you should
 > connect to a **single** node directly. Additionally you **must**
 > ensure that this node has transaction indexing enabled (`indexer = "kv"`).
 > Using multiple RPC nodes or load balancers can lead to sync issues.
 
 > ⚠️ **Critical Context Signing Value**:
->   The `ContextSigningHeight` configuration sets the Babylon Genesis block
+>   The `ContextSigningHeight` configuration sets the Anon Genesis block
 >   height at which context signing -- a method for embedding context strings
 >   in the
 >   [proof of
->   possession](https://github.com/babylonlabs-io/babylon/blob/release/v3.x/x/btcstaking/docs/proof-of-possesion.md)
+>   possession](https://github.com/anon-org/anon/blob/release/v3.x/x/btcstaking/docs/proof-of-possesion.md)
 >   -- becomes active.
 >   Once this upgrade is in effect, all finality signatures that do not include
 >   context signing **will be rejected**. Additionally, the finality provider will
@@ -241,33 +241,33 @@ KeyDirectory = <path> # The `--home` path to the directory where the keyring is 
 >   given height will already have been consumed.
 >
 >   *Choosing the Correct Context Signing Value*:
->   * **If you are running on a Babylon Genesis network that has not yet been
+>   * **If you are running on a Anon Genesis network that has not yet been
 >     upgraded to v3**:
 >     Set the `ContextSigningHeight` to the block **immediately before** the v3 upgrade
->     block. You can determine the v3 upgrade block height (`X`) from the Babylon
+>     block. You can determine the v3 upgrade block height (`X`) from the Anon
 >     Networks repository.
->     [networks](https://github.com/babylonlabs-io/networks)
+>     [networks](https://github.com/anon-org/networks)
 >     repository.
 >   * **If you are on a network that has already been upgraded to v3**:
->     You may select any value lower than the current Babylon Genesis height.
+>     You may select any value lower than the current Anon Genesis height.
 
 Configuration parameters explained:
 
 * `EOTSManagerAddress`: Address where your EOTS daemon is running
 * `RPCListener`: Address for the finality provider RPC server
-* `ContextSigningHeight`: The Babylon Genesis block height at which context
+* `ContextSigningHeight`: The Anon Genesis block height at which context
   takes effect
-* `Key`: Your Babylon Genesis key name from Step 2
-* `ChainID`: The Babylon Genesis chain ID
-* `RPCAddr`: Your Babylon Genesis node's RPC endpoint
+* `Key`: Your Anon Genesis key name from Step 2
+* `ChainID`: The Anon Genesis chain ID
+* `RPCAddr`: Your Anon Genesis node's RPC endpoint
 * `KeyDirectory`: Path to your keyring directory (same as `--home` path)
 
 Please verify the `chain-id` and other network parameters from the official
-[Babylon Genesis Networks
-repository](https://github.com/babylonlabs-io/networks).
+[Anon Genesis Networks
+repository](https://github.com/anon-org/networks).
 
 Another notable configurable parameter is `NumPubRand`, which is the number of
-public randomness that will be generated and submitted in one commit to Babylon
+public randomness that will be generated and submitted in one commit to Anon
 Genesis. This value is set to `50,000` by default, which is sufficient for
 roughly 5 days of usage with block production time at `10s`.
 Larger values can be set to tolerate longer downtime with larger size of
@@ -300,7 +300,7 @@ later [section](#51-create-finality-provider)), `fpd start` will also start
 the finality provider. If there are multiple finality providers created,
 `--eots-pk` is required.
 
-The daemon will establish a connection with the Babylon Genesis node and
+The daemon will establish a connection with the Anon Genesis node and
 boot up its RPC server for executing CLI requests.
 
 You should see logs indicating successful startup:
@@ -332,7 +332,7 @@ separate daemons (`eotsd` and `fpd`).
 The EOTS manager is responsible for managing the keys for finality providers and
 handles operations such as key management, signature generation, and randomness
 commitments. Whereas the finality provider is responsible for creating and
-registering finality providers and handling the monitoring of the Babylon Genesis.
+registering finality providers and handling the monitoring of the Anon Genesis.
 The finality provider daemon is also responsible for coordinating various
 operations.
 
@@ -340,7 +340,7 @@ The interactions between the EOTS Manager and the finality provider happen
 through RPC calls. These calls handle key operations, signature generation,
 and randomness commitments. An easy way to think about it is the EOTS Manager
 maintains the keys while the FP daemon coordinates any interactions with the
-Babylon Genesis.
+Anon Genesis.
 
 The EOTS Manager is designed to handle multiple finality provider keys, operating
 as a centralized key management system. When starting a finality provider instance,
@@ -359,7 +359,7 @@ finality provider instance at a time.
 ### 5.1. Create Finality Provider
 
 The `create-finality-provider` command initializes a new finality provider,
-submits `MsgCreateFinalityProvider` to register it on Babylon Genesis, and
+submits `MsgCreateFinalityProvider` to register it on Anon Genesis, and
 saves the finality provider information in the database.
 
 ``` shell
@@ -373,13 +373,13 @@ fpd create-finality-provider \
   --moniker "MyFinalityProvider" \
   --website "https://myfinalityprovider.com" \
   --security-contact "security@myfinalityprovider.com" \
-  --details "finality provider for the Babylon Genesis network" \
+  --details "finality provider for the Anon Genesis network" \
   --home ./fpHome
 ```
 
 Required parameters:
 
-* `--chain-id`: The Babylon Genesis chain ID (e.g., `bbn-1` and `bbn-test-6`
+* `--chain-id`: The Anon Genesis chain ID (e.g., `anc-1` and `anc-test-6`
   for mainnet and testnet, respectively).
 * `--eots-pk`: The EOTS public key maintained by the connected EOTS manager
   instance that the finality provider should use. If one is not provided the
@@ -391,12 +391,12 @@ Required parameters:
   you'll receive from delegators
 * `--commission-max-change-rate`: The maximum commission change rate percentage
   (per day)
-* `--key-name`: The key name in your Babylon Genesis keyring that your finality
+* `--key-name`: The key name in your Anon Genesis keyring that your finality
   provider will be associated with
 * `--moniker`: A human-readable name for your finality provider
 * `--home`: Path to your finality provider daemon home directory
 
-> ⚠️ **Important**: The EOTS key and the Babylon Genesis key used in registration is
+> ⚠️ **Important**: The EOTS key and the Anon Genesis key used in registration is
 > unique to the finality provider after registration. Either key cannot be
 > rotated. The EOTS key is for sending finality signatures while the latter is
 > for withdrawing rewards. You **MUST** keep both keys safe.
@@ -414,7 +414,7 @@ with the finality provider details, similar to the following:
 
 ```json
 {
-  "keyName": "The unique key name of the finality provider's Babylon Genesis account",
+  "keyName": "The unique key name of the finality provider's Anon Genesis account",
   "chainID": "The identifier of the consumer chain",
   "passphrase": "The pass phrase used to encrypt the keys",
   "commissionRate": "The commission rate for the finality provider, e.g., 0.05",
@@ -440,7 +440,7 @@ your finality provider's details:
 {
     "finality_provider":
     {
-      "fp_addr": "bbn1ht2nxa6hlyl89m8xpdde9xsj40n0sxd2f9shsq",
+      "fp_addr": "anc1ht2nxa6hlyl89m8xpdde9xsj40n0sxd2f9shsq",
       "eots_pk_hex":
       "cf0f03b9ee2d4a0f27240e2d8b8c8ef609e24358b2eb3cfd89ae4e4f472e1a41",
       "description":
@@ -448,7 +448,7 @@ your finality provider's details:
         "moniker": "MyFinalityProvider",
         "website": "https://myfinalityprovider.com",
         "security_contact": "security@myfinalityprovider.com",
-        "details": "finality provider for the Babylon Genesis network"
+        "details": "finality provider for the Anon Genesis network"
       },
       "commission": "0.050000000000000000",
       "status": "REGISTERED"
@@ -460,14 +460,14 @@ Your finality provider is successfully created. Please restart your fpd.
 
 The response includes:
 
-* `fp_addr`: Your Babylon Genesis account address of the finality provider
+* `fp_addr`: Your Anon Genesis account address of the finality provider
 * `eots_pk_hex`: Your unique EOTS public key identifier
 * `description`: Your finality provider's metadata
 * `commission`: Your set commission rate
 * `status`: Current status of the finality provider.
-* `tx_hash`: Babylon Genesis transaction hash of the finality provider creation
+* `tx_hash`: Anon Genesis transaction hash of the finality provider creation
   transaction, which you can use to verify the success of the transaction
-  on Babylon Genesis.
+  on Anon Genesis.
 
 ### 5.2. Rewards
 
@@ -481,13 +481,13 @@ relative to other voters.
 To query rewards of a given stakeholder address, use the following command.
 
 ```shell
-fpd reward-gauges <address> --node <babylon-genesis-rpc-address>
+fpd reward-gauges <address> --node <anon-genesis-rpc-address>
 ```
 
 Parameters:
 
-* `<address>`: The Babylon Genesis address of the stakeholder in bech32 string.
-* `--node <babylon-genesis-rpc-address>`: <host>:<port> to Babylon Genesis
+* `<address>`: The Anon Genesis address of the stakeholder in bech32 string.
+* `--node <anon-genesis-rpc-address>`: <host>:<port> to Anon Genesis
 RPC interface for this chain (default `tcp://localhost:26657`)
 
 #### 5.2.2. Withdraw Rewards
@@ -497,9 +497,9 @@ given finality provider. The finality provider must first be active and have
 sent finality votes to be eligible to receive rewards.
 
 ```shell
-fpd withdraw-reward <type> --from <registered-bbn-address>
+fpd withdraw-reward <type> --from <registered-anc-address>
 --keyring-backend test --home <home-dir> --fees <fees>
---node <babylon-genesis-rpc-address>
+--node <anon-genesis-rpc-address>
 ```
 
 > ⚠️ **Important**: The `fpd` should be **stopped** before performing this action.
@@ -508,7 +508,7 @@ fpd withdraw-reward <type> --from <registered-bbn-address>
 > sending operational transaction. This issue will be resolved after following the
 > setup instructions in [5.3. Set Up Operation Key](#53-set-up-operation-key).
 
-The rewards will go to `<registered-bbn-address>` by default. If you want to
+The rewards will go to `<registered-anc-address>` by default. If you want to
 set a different address to receive rewards, please refer to
 [5.2.3. Set Withdraw Address](#523-set-withdraw-address). But still, the
 registration key is always needed when withdrawing the rewards. So the
@@ -518,13 +518,13 @@ Parameters:
 
 * `<type>`: The type of reward to withdraw (one of `finality_provider`,
   `btc_delegation`)
-* `--from <registered-bbn-address>`: The finality provider's BABY address used
+* `--from <registered-anc-address>`: The finality provider's BABY address used
   in registration.
 * `--keyring-backend`: The keyring backend to use.
 * `--home`: The home directory for the finality provider.
-* `--fees`: The fees to pay for the transaction, should be over `400ubbn`.
+* `--fees`: The fees to pay for the transaction, should be over `400uanc`.
   These fees are paid from the account specified in `--from`.
-* `--node <babylon-genesis-rpc-address>`: <host>:<port> to Babylon Genesis
+* `--node <anon-genesis-rpc-address>`: <host>:<port> to Anon Genesis
     RPC interface for this chain (default `tcp://localhost:26657`).
 
 Again, this command should ask to
@@ -542,9 +542,9 @@ The default beneficiary is the address that corresponds to the registration key.
 To change the beneficiary address, use the following command:
 
 ```shell
-fpd set-withdraw-addr <beneficiary-address> --from <registered-bbn-address>
+fpd set-withdraw-addr <beneficiary-address> --from <registered-anc-address>
 --keyring-backend test --home <home-dir> --fees <fees>
---node <babylon-genesis-rpc-address>
+--node <anon-genesis-rpc-address>
 ```
 
 Note that change of the beneficiary address is unlimited but for every change,
@@ -554,14 +554,14 @@ Parameters:
 
 * `<beneficiary-address>`: Corresponds to the beneficiary key and is where
   withdraw rewards are sent to.
-* `<registered-bbn-address>`: Corresponds to the key used in registration and is where
+* `<registered-anc-address>`: Corresponds to the key used in registration and is where
   withdraw rewards are sent to by default if no other address is set via `set-withdraw-addr`
-* `--from`: The finality provider's registered Babylon Genesis address.
+* `--from`: The finality provider's registered Anon Genesis address.
 * `--keyring-backend`: The keyring backend to use.
 * `--home`: The home directory for the finality provider.
-* `--fees`: The fees to pay for the transaction, should be over `400ubbn`.
+* `--fees`: The fees to pay for the transaction, should be over `400uanc`.
   These fees are paid from the account specified in `--from`.
-* `--node <babylon-genesis-rpc-address>`: <host>:<port> to Babylon Genesis
+* `--node <anon-genesis-rpc-address>`: <host>:<port> to Anon Genesis
     RPC interface for this chain (default `tcp://localhost:26657`).
 
 This command should ask to
@@ -570,7 +570,7 @@ transaction hash.
 
 ### 5.3. Set Up Operation Key
 
-Finality providers consume gas for operations with Babylon Genesis.
+Finality providers consume gas for operations with Anon Genesis.
 Given that the cost of sending finality signatures is refunded automatically
 after success, the only cost of operating a finality provider is randomness
 commit, which is made periodically with low gas cost.
@@ -586,12 +586,12 @@ provider running for a long period of time.
 You may follow the following procedure to set up the operation key.
 
 1. Create an additional key for operation following steps in
-   [4.2 Add key for the Babylon Genesis account](#42-add-key-for-the-babylon-genesis-account).
+   [4.2 Add key for the Anon Genesis account](#42-add-key-for-the-anon-genesis-account).
 
 2. Fund the operation key with minimum BABY tokens for gas cost.
 
 3. Set the operation key name (`Key`) and the keyring directory (`KeyDirectory`)
-   under `[babylon]` in `fpd.conf`.
+   under `[anon]` in `fpd.conf`.
 
 4. Restart the finality provider daemon.
 
@@ -689,7 +689,7 @@ To unjail a finality provider, you must complete the following steps:
 1. Fix the underlying issue that caused jailing (e.g., ensure your node is
    properly synced and voting)
 2. Wait for the jailing period to pass (defined by finality module parameters)
-3. Send the unjail transaction to Babylon Genesis using the following command:
+3. Send the unjail transaction to Anon Genesis using the following command:
 
 ```shell
 fpd unjail-finality-provider <eots-pk> --daemon-address <rpc-address> --home <path>
@@ -712,7 +712,7 @@ If unjailing is successful, you may start running the finality provider by
 finality provider signs conflicting blocks at the same height. This results in
 the extraction of the finality provider's private key and their immediate
 removal from the active set. For details about how the slashing works in the
-BTC staking protocol, please refer to our [light paper](https://docs.babylonlabs.io/papers/btc_staking_litepaper(EN).pdf).
+BTC staking protocol, please refer to our [light paper](https://docs.anon.io/papers/btc_staking_litepaper(EN).pdf).
 
 > ⚠️ **Critical**: Slashing is irreversible and the finality provider can
 > no longer gain voting power from the network.
@@ -732,7 +732,7 @@ finality provider. The metrics endpoint is configurable in `fpd.conf`:
 
 1. **Status for Finality Providers**
    * `fp_status`: Current status of a finality provider
-   * `babylon_tip_height`: The current tip height of the Babylon Genesis network
+   * `anon_tip_height`: The current tip height of the Anon Genesis network
    * `last_polled_height`: The most recent block height checked by the poller
 
 2. **Key Operations**
@@ -764,8 +764,8 @@ For a complete list of available metrics, see:
 
 The following assets **must** be backed up frequently to prevent loss of service or funds:
 
-* **keyring-*** directory: Contains your Babylon Genesis account keys used for:
-  * Submitting finality signatures to Babylon
+* **keyring-*** directory: Contains your Anon Genesis account keys used for:
+  * Submitting finality signatures to Anon
   * Withdrawing rewards
   * Managing your finality provider
   * Loss means inability to operate until restored
@@ -819,15 +819,15 @@ type StoredFinalityProvider struct {
 }
 ```
 
-It can be recovered by downloading the finality provider's info from Babylon Genesis. Specifically, this can be achieved by repeating the
+It can be recovered by downloading the finality provider's info from Anon Genesis. Specifically, this can be achieved by repeating the
 [creation process](#51-create-finality-provider). The `create-finality-provider`
 cmd will download the info of the finality provider locally if it is already
-registered on Babylon.
+registered on Anon.
 
 #### 6.3.2. Recover public randomness proof
 
 Every finality vote must contain the public randomness proof to prove that the
-randomness used in the signature is already committed on Babylon. Loss of
+randomness used in the signature is already committed on Anon. Loss of
 public randomness proof leads to direct failure of the vote submission.
 
 To recover the public randomness proof, the following steps should be followed:
@@ -838,7 +838,7 @@ To recover the public randomness proof, the following steps should be followed:
 `fpd recover-rand-proof [eots-pk-hex] --start-height [height-to-recover] --chain-id [chain-id]`
 where `start-height` is the height from which you want to recover from. If
 the `start-height` is not specified, the command will recover all the proofs
-from the first commit on Babylon, which incurs longer time for recovery.
+from the first commit on Anon, which incurs longer time for recovery.
 The `chain-id` must be specified exactly the same as the `chain-id` used when
 creating the finality provider.
 4. Restart the finality provider

@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2022 The Babylon developers
+// Copyright (c) 2022-2022 The Anon developers
 // Copyright (c) 2013-2017 The btcsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
@@ -8,10 +8,10 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	btcctypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
-	vdatagen "github.com/babylonlabs-io/vigilante/testutil/datagen"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	btcctypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
+	vdatagen "github.com/anon-org/vigilante/testutil/datagen"
+	"github.com/anon-org/vigilante/types"
 	"github.com/btcsuite/btcd/chaincfg"
 	_ "github.com/btcsuite/btcd/database/ffldb"
 	"github.com/stretchr/testify/require"
@@ -24,11 +24,11 @@ func FuzzIndexedBlock(f *testing.F) {
 		t.Parallel()
 		r := rand.New(rand.NewSource(seed))
 
-		blocks, _, rawCkpts := vdatagen.GenRandomBlockchainWithBabylonTx(r, 100, 0, 0.4)
+		blocks, _, rawCkpts := vdatagen.GenRandomBlockchainWithAnonTx(r, 100, 0, 0.4)
 		for i, block := range blocks {
 			ib := types.NewIndexedBlockFromMsgBlock(uint32(i), block)
 
-			if rawCkpts[i] != nil { // Babylon tx
+			if rawCkpts[i] != nil { // Anon tx
 				spvProof, err := ib.GenSPVProof(1)
 				require.NoError(t, err)
 
@@ -42,9 +42,9 @@ func FuzzIndexedBlock(f *testing.F) {
 
 				require.NotNil(t, parsedProof)
 				require.NoError(t, err)
-			} else { // non-Babylon tx
+			} else { // non-Anon tx
 				spvProof, err := ib.GenSPVProof(1)
-				require.NoError(t, err) // GenSPVProof allows to generate spvProofs for non-Babylon tx
+				require.NoError(t, err) // GenSPVProof allows to generate spvProofs for non-Anon tx
 
 				parsedProof, err := btcctypes.ParseProof(
 					spvProof.BtcTransaction,

@@ -13,27 +13,27 @@ import (
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/decred/dcrd/dcrec/secp256k1/v4"
 
-	"github.com/babylonlabs-io/babylon/v4/btcstaking"
-	asig "github.com/babylonlabs-io/babylon/v4/crypto/schnorr-adaptor-signature"
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
+	"github.com/anon-org/anon/v4/btcstaking"
+	asig "github.com/anon-org/anon/v4/crypto/schnorr-adaptor-signature"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	anctypes "github.com/anon-org/anon/v4/types"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 
-	covcfg "github.com/babylonlabs-io/covenant-emulator/config"
-	"github.com/babylonlabs-io/covenant-emulator/covenant"
-	signerCfg "github.com/babylonlabs-io/covenant-emulator/covenant-signer/config"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/keystore/cosmos"
-	signerMetrics "github.com/babylonlabs-io/covenant-emulator/covenant-signer/observability/metrics"
-	signerApp "github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerapp"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice"
-	"github.com/babylonlabs-io/covenant-emulator/keyring"
-	"github.com/babylonlabs-io/covenant-emulator/remotesigner"
-	"github.com/babylonlabs-io/covenant-emulator/testutil"
-	"github.com/babylonlabs-io/covenant-emulator/types"
+	covcfg "github.com/anon-org/covenant-emulator/config"
+	"github.com/anon-org/covenant-emulator/covenant"
+	signerCfg "github.com/anon-org/covenant-emulator/covenant-signer/config"
+	"github.com/anon-org/covenant-emulator/covenant-signer/keystore/cosmos"
+	signerMetrics "github.com/anon-org/covenant-emulator/covenant-signer/observability/metrics"
+	signerApp "github.com/anon-org/covenant-emulator/covenant-signer/signerapp"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice"
+	"github.com/anon-org/covenant-emulator/keyring"
+	"github.com/anon-org/covenant-emulator/remotesigner"
+	"github.com/anon-org/covenant-emulator/testutil"
+	"github.com/anon-org/covenant-emulator/types"
 )
 
 const (
@@ -49,13 +49,13 @@ func FuzzAddCovenantSig(f *testing.F) {
 	// create a Covenant key pair in the keyring
 	covenantConfig := covcfg.DefaultConfig()
 
-	covenantConfig.BabylonConfig.KeyDirectory = f.TempDir()
+	covenantConfig.AnonConfig.KeyDirectory = f.TempDir()
 
 	signerConfig := signerCfg.DefaultConfig()
-	signerConfig.KeyStore.CosmosKeyStore.ChainID = covenantConfig.BabylonConfig.ChainID
-	signerConfig.KeyStore.CosmosKeyStore.KeyName = covenantConfig.BabylonConfig.Key
-	signerConfig.KeyStore.CosmosKeyStore.KeyringBackend = covenantConfig.BabylonConfig.KeyringBackend
-	signerConfig.KeyStore.CosmosKeyStore.KeyDirectory = covenantConfig.BabylonConfig.KeyDirectory
+	signerConfig.KeyStore.CosmosKeyStore.ChainID = covenantConfig.AnonConfig.ChainID
+	signerConfig.KeyStore.CosmosKeyStore.KeyName = covenantConfig.AnonConfig.Key
+	signerConfig.KeyStore.CosmosKeyStore.KeyringBackend = covenantConfig.AnonConfig.KeyringBackend
+	signerConfig.KeyStore.CosmosKeyStore.KeyDirectory = covenantConfig.AnonConfig.KeyDirectory
 	keyRetriever, err := cosmos.NewCosmosKeyringRetriever(signerConfig.KeyStore.CosmosKeyStore)
 	require.NoError(f, err)
 
@@ -142,10 +142,10 @@ func FuzzAddCovenantSig(f *testing.F) {
 				params.SlashingRate,
 				unbondingTime,
 			)
-			stakingTxBytes, err := bbntypes.SerializeBTCTx(testInfo.StakingTx)
+			stakingTxBytes, err := anctypes.SerializeBTCTx(testInfo.StakingTx)
 			require.NoError(t, err)
 			startHeight := uint32(datagen.RandomInt(r, 1000) + 100)
-			stakingOutputIdx, err := bbntypes.GetOutputIdxInBTCTx(testInfo.StakingTx, testInfo.StakingInfo.StakingOutput)
+			stakingOutputIdx, err := anctypes.GetOutputIdxInBTCTx(testInfo.StakingTx, testInfo.StakingInfo.StakingOutput)
 			require.NoError(t, err)
 			randParamsVersion := datagen.RandomInRange(r, 1, 10)
 			btcDel := &types.Delegation{
@@ -205,7 +205,7 @@ func FuzzAddCovenantSig(f *testing.F) {
 			unbondingSlashingPathInfo, err := testUnbondingInfo.UnbondingInfo.SlashingPathSpendInfo()
 			require.NoError(t, err)
 
-			serializedUnbondingTx, err := bbntypes.SerializeBTCTx(testUnbondingInfo.UnbondingTx)
+			serializedUnbondingTx, err := anctypes.SerializeBTCTx(testUnbondingInfo.UnbondingTx)
 			require.NoError(t, err)
 			undel := &types.Undelegation{
 				UnbondingTxHex: hex.EncodeToString(serializedUnbondingTx),
@@ -321,13 +321,13 @@ func TestIsKeyInCommittee(t *testing.T) {
 
 	// create a Covenant key pair in the keyring
 	covenantConfig := covcfg.DefaultConfig()
-	covenantConfig.BabylonConfig.KeyDirectory = t.TempDir()
+	covenantConfig.AnonConfig.KeyDirectory = t.TempDir()
 
 	covKeyPair, err := keyring.CreateCovenantKey(
-		covenantConfig.BabylonConfig.KeyDirectory,
-		covenantConfig.BabylonConfig.ChainID,
-		covenantConfig.BabylonConfig.Key,
-		covenantConfig.BabylonConfig.KeyringBackend,
+		covenantConfig.AnonConfig.KeyDirectory,
+		covenantConfig.AnonConfig.ChainID,
+		covenantConfig.AnonConfig.Key,
+		covenantConfig.AnonConfig.KeyringBackend,
 		passphrase,
 		hdPath,
 	)
@@ -416,13 +416,13 @@ func TestValidateStakeExpansion(t *testing.T) {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
 
 	covenantConfig := covcfg.DefaultConfig()
-	covenantConfig.BabylonConfig.KeyDirectory = t.TempDir()
+	covenantConfig.AnonConfig.KeyDirectory = t.TempDir()
 
 	covKeyPairInCommittee, err := keyring.CreateCovenantKey(
-		covenantConfig.BabylonConfig.KeyDirectory,
-		covenantConfig.BabylonConfig.ChainID,
-		covenantConfig.BabylonConfig.Key,
-		covenantConfig.BabylonConfig.KeyringBackend,
+		covenantConfig.AnonConfig.KeyDirectory,
+		covenantConfig.AnonConfig.ChainID,
+		covenantConfig.AnonConfig.Key,
+		covenantConfig.AnonConfig.KeyringBackend,
 		passphrase,
 		hdPath,
 	)
@@ -433,10 +433,10 @@ func TestValidateStakeExpansion(t *testing.T) {
 	require.NoError(t, err)
 
 	badCovKey, err := keyring.CreateCovenantKey(
-		covenantConfig.BabylonConfig.KeyDirectory,
-		covenantConfig.BabylonConfig.ChainID,
+		covenantConfig.AnonConfig.KeyDirectory,
+		covenantConfig.AnonConfig.ChainID,
 		"other-covenant-key",
-		covenantConfig.BabylonConfig.KeyringBackend,
+		covenantConfig.AnonConfig.KeyringBackend,
 		passphrase,
 		hdPath,
 	)
@@ -456,7 +456,7 @@ func TestValidateStakeExpansion(t *testing.T) {
 	})
 
 	stkTxHex := "02000000012c1ca601b81bf5bdd97081d1bf17241d4d688f51ccbe8be3d3f3174d0e4e4aa40100000000ffffffff0250c3000000000000225120d0d55103aa70a12162f733805c3a2f5ff8e857d5fc92381c3d6f22a791165ac115400f00000000002251206f5ec73002ee8b5b2bb942f26e169354821e6ec06f9b3a1d3cf355d6f276c5d800000000"
-	stakingMsgTx, _, err := bbntypes.NewBTCTxFromHex(stkTxHex)
+	stakingMsgTx, _, err := anctypes.NewBTCTxFromHex(stkTxHex)
 	require.NoError(t, err)
 
 	prevStakingTxHashHex := stakingMsgTx.TxHash().String()

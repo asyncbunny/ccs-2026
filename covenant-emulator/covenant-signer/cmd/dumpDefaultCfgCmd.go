@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/config"
+	"github.com/anon-org/covenant-emulator/covenant-signer/config"
 	"github.com/spf13/cobra"
 )
 

@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/babylonlabs-io/vigilante/version"
+	"github.com/anon-org/vigilante/version"
 	"github.com/spf13/cobra"
 	"strings"
 )

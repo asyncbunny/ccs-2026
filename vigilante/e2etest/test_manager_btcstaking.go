@@ -9,22 +9,22 @@ import (
 	"testing"
 	"time"
 
-	"github.com/babylonlabs-io/babylon/v4/client/babylonclient"
+	"github.com/anon-org/anon/v4/client/anonclient"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/avast/retry-go/v4"
-	"github.com/babylonlabs-io/babylon/v4/btcstaking"
-	txformat "github.com/babylonlabs-io/babylon/v4/btctxformatter"
-	"github.com/babylonlabs-io/babylon/v4/crypto/eots"
-	asig "github.com/babylonlabs-io/babylon/v4/crypto/schnorr-adaptor-signature"
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	btcctypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
-	btclctypes "github.com/babylonlabs-io/babylon/v4/x/btclightclient/types"
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
-	ckpttypes "github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
-	ftypes "github.com/babylonlabs-io/babylon/v4/x/finality/types"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/anon/v4/btcstaking"
+	txformat "github.com/anon-org/anon/v4/btctxformatter"
+	"github.com/anon-org/anon/v4/crypto/eots"
+	asig "github.com/anon-org/anon/v4/crypto/schnorr-adaptor-signature"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	anc "github.com/anon-org/anon/v4/types"
+	btcctypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
+	btclctypes "github.com/anon-org/anon/v4/x/btclightclient/types"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
+	ckpttypes "github.com/anon-org/anon/v4/x/checkpointing/types"
+	ftypes "github.com/anon-org/anon/v4/x/finality/types"
+	"github.com/anon-org/vigilante/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/btcsuite/btcd/btcutil"
@@ -44,7 +44,7 @@ var (
 )
 
 func (tm *TestManager) getBTCUnbondingTime(t *testing.T) uint32 {
-	bsParams, err := tm.BabylonClient.BTCStakingParams()
+	bsParams, err := tm.AnonClient.BTCStakingParams()
 	require.NoError(t, err)
 
 	return bsParams.Params.UnbondingTimeBlocks
@@ -52,7 +52,7 @@ func (tm *TestManager) getBTCUnbondingTime(t *testing.T) uint32 {
 
 func (tm *TestManager) CreateFinalityProvider(t *testing.T) (*bstypes.FinalityProvider, *btcec.PrivateKey) {
 	var err error
-	signerAddr := tm.BabylonClient.MustGetAddr()
+	signerAddr := tm.AnonClient.MustGetAddr()
 	addr := sdk.MustAccAddressFromBech32(signerAddr)
 
 	fpSK, _, err := datagen.GenRandomBTCKeyPair(r)
@@ -69,7 +69,7 @@ func (tm *TestManager) CreateFinalityProvider(t *testing.T) (*bstypes.FinalityPr
 		BtcPk:       btcFp.BtcPk,
 		Pop:         btcFp.Pop,
 	}
-	_, err = tm.BabylonClient.ReliablySendMsg(context.Background(), msgNewVal, nil, nil)
+	_, err = tm.AnonClient.ReliablySendMsg(context.Background(), msgNewVal, nil, nil)
 	require.NoError(t, err)
 
 	return btcFp, fpSK
@@ -77,7 +77,7 @@ func (tm *TestManager) CreateFinalityProvider(t *testing.T) (*bstypes.FinalityPr
 
 func (tm *TestManager) CreateFinalityProviderBSN(t *testing.T, bsnID string) (*bstypes.FinalityProvider, *btcec.PrivateKey) {
 	var err error
-	signerAddr := tm.BabylonClient.MustGetAddr()
+	signerAddr := tm.AnonClient.MustGetAddr()
 	addr := sdk.MustAccAddressFromBech32(signerAddr)
 
 	fpSK, _, err := datagen.GenRandomBTCKeyPair(r)
@@ -94,7 +94,7 @@ func (tm *TestManager) CreateFinalityProviderBSN(t *testing.T, bsnID string) (*b
 		BtcPk:       btcFp.BtcPk,
 		Pop:         btcFp.Pop,
 	}
-	_, err = tm.BabylonClient.ReliablySendMsg(context.Background(), msgNewVal, nil, nil)
+	_, err = tm.AnonClient.ReliablySendMsg(context.Background(), msgNewVal, nil, nil)
 	require.NoError(t, err)
 
 	return btcFp, fpSK
@@ -104,7 +104,7 @@ func (tm *TestManager) CreateBTCDelegation(
 	t *testing.T,
 	fpSK *btcec.PrivateKey,
 ) (*datagen.TestStakingSlashingInfo, *datagen.TestUnbondingSlashingInfo, *btcec.PrivateKey) {
-	signerAddr := tm.BabylonClient.MustGetAddr()
+	signerAddr := tm.AnonClient.MustGetAddr()
 	addr := sdk.MustAccAddressFromBech32(signerAddr)
 
 	fpPK := fpSK.PubKey()
@@ -113,9 +113,9 @@ func (tm *TestManager) CreateBTCDelegation(
 		create BTC delegation
 	*/
 	// generate staking tx and slashing tx
-	bsParams, err := tm.BabylonClient.BTCStakingParams()
+	bsParams, err := tm.AnonClient.BTCStakingParams()
 	require.NoError(t, err)
-	covenantBtcPks, err := bbnPksToBtcPks(bsParams.Params.CovenantPks)
+	covenantBtcPks, err := ancPksToBtcPks(bsParams.Params.CovenantPks)
 	require.NoError(t, err)
 	stakingTimeBlocks := bsParams.Params.MaxStakingTimeBlocks
 	// get top UTXO
@@ -151,7 +151,7 @@ func (tm *TestManager) CreateBTCDelegation(
 	stakingTxInfo := getTxInfo(t, mBlock)
 
 	// insert k empty blocks to Bitcoin
-	btccParamsResp, err := tm.BabylonClient.BTCCheckpointParams()
+	btccParamsResp, err := tm.AnonClient.BTCCheckpointParams()
 	require.NoError(t, err)
 	btccParams := btccParamsResp.Params
 	for i := 0; i < int(btccParams.BtcConfirmationDepth); i++ {
@@ -193,12 +193,12 @@ func (tm *TestManager) CreateBTCDelegation(
 	tm.CatchUpBTCLightClient(t)
 
 	// 	Build a message to send
-	// submit BTC delegation to Babylon
+	// submit BTC delegation to Anon
 	msgBTCDel := &bstypes.MsgCreateBTCDelegation{
 		StakerAddr:   signerAddr,
 		Pop:          pop,
-		BtcPk:        bbn.NewBIP340PubKeyFromBTCPK(tm.WalletPrivKey.PubKey()),
-		FpBtcPkList:  []bbn.BIP340PubKey{*bbn.NewBIP340PubKeyFromBTCPK(fpPK)},
+		BtcPk:        anc.NewBIP340PubKeyFromBTCPK(tm.WalletPrivKey.PubKey()),
+		FpBtcPkList:  []anc.BIP340PubKey{*anc.NewBIP340PubKeyFromBTCPK(fpPK)},
 		StakingTime:  stakingTimeBlocks,
 		StakingValue: stakingValue,
 		StakingTx:    stakingTxInfo.Transaction,
@@ -215,7 +215,7 @@ func (tm *TestManager) CreateBTCDelegation(
 		UnbondingSlashingTx:           unbondingSlashingInfo.SlashingTx,
 		DelegatorUnbondingSlashingSig: slashingTxSig,
 	}
-	_, err = tm.BabylonClient.ReliablySendMsg(context.Background(), msgBTCDel, nil, nil)
+	_, err = tm.AnonClient.ReliablySendMsg(context.Background(), msgBTCDel, nil, nil)
 	require.NoError(t, err)
 	t.Logf("submitted MsgCreateBTCDelegation")
 
@@ -239,7 +239,7 @@ func (tm *TestManager) CreateBTCDelegationWithoutIncl(
 	t *testing.T,
 	fpSK *btcec.PrivateKey,
 ) (*wire.MsgTx, *datagen.TestStakingSlashingInfo, *datagen.TestUnbondingSlashingInfo, *btcec.PrivateKey) {
-	signerAddr := tm.BabylonClient.MustGetAddr()
+	signerAddr := tm.AnonClient.MustGetAddr()
 	addr := sdk.MustAccAddressFromBech32(signerAddr)
 
 	fpPK := fpSK.PubKey()
@@ -248,9 +248,9 @@ func (tm *TestManager) CreateBTCDelegationWithoutIncl(
 		create BTC delegation
 	*/
 	// generate staking tx and slashing tx
-	bsParams, err := tm.BabylonClient.BTCStakingParams()
+	bsParams, err := tm.AnonClient.BTCStakingParams()
 	require.NoError(t, err)
-	covenantBtcPks, err := bbnPksToBtcPks(bsParams.Params.CovenantPks)
+	covenantBtcPks, err := ancPksToBtcPks(bsParams.Params.CovenantPks)
 	require.NoError(t, err)
 	stakingTimeBlocks := bsParams.Params.MaxStakingTimeBlocks
 	// get top UTXO
@@ -300,12 +300,12 @@ func (tm *TestManager) CreateBTCDelegationWithoutIncl(
 	err = stakingMsgTx.Serialize(&stakingTxBuf)
 	require.NoError(t, err)
 
-	// submit BTC delegation to Babylon
+	// submit BTC delegation to Anon
 	msgBTCDel := &bstypes.MsgCreateBTCDelegation{
 		StakerAddr:              signerAddr,
 		Pop:                     pop,
-		BtcPk:                   bbn.NewBIP340PubKeyFromBTCPK(tm.WalletPrivKey.PubKey()),
-		FpBtcPkList:             []bbn.BIP340PubKey{*bbn.NewBIP340PubKeyFromBTCPK(fpPK)},
+		BtcPk:                   anc.NewBIP340PubKeyFromBTCPK(tm.WalletPrivKey.PubKey()),
+		FpBtcPkList:             []anc.BIP340PubKey{*anc.NewBIP340PubKeyFromBTCPK(fpPK)},
 		StakingTime:             stakingTimeBlocks,
 		StakingValue:            stakingValue,
 		StakingTx:               stakingTxBuf.Bytes(),
@@ -319,7 +319,7 @@ func (tm *TestManager) CreateBTCDelegationWithoutIncl(
 		UnbondingSlashingTx:           unbondingSlashingInfo.SlashingTx,
 		DelegatorUnbondingSlashingSig: slashingTxSig,
 	}
-	_, err = tm.BabylonClient.ReliablySendMsg(context.Background(), msgBTCDel, nil, nil)
+	_, err = tm.AnonClient.ReliablySendMsg(context.Background(), msgBTCDel, nil, nil)
 	require.NoError(t, err)
 	t.Logf("submitted MsgCreateBTCDelegation")
 
@@ -441,7 +441,7 @@ func (tm *TestManager) createUnbondingData(
 	stakingOutIdx uint32,
 	stakingTimeBlocks uint32,
 	unbondingTime uint16,
-) (*datagen.TestUnbondingSlashingInfo, *btcstaking.SpendInfo, []byte, *bbn.BIP340Signature) {
+) (*datagen.TestUnbondingSlashingInfo, *btcstaking.SpendInfo, []byte, *anc.BIP340Signature) {
 	fee := int64(1000)
 	unbondingValue := stakingSlashingInfo.StakingInfo.StakingOutput.Value - fee
 	unbondingSlashingInfo := datagen.GenBTCUnbondingSlashingInfo(
@@ -459,7 +459,7 @@ func (tm *TestManager) createUnbondingData(
 		bsParams.Params.SlashingRate,
 		unbondingTime,
 	)
-	unbondingTxBytes, err := bbn.SerializeBTCTx(unbondingSlashingInfo.UnbondingTx)
+	unbondingTxBytes, err := anc.SerializeBTCTx(unbondingSlashingInfo.UnbondingTx)
 	require.NoError(t, err)
 
 	unbondingSlashingPathSpendInfo, err := unbondingSlashingInfo.UnbondingInfo.SlashingPathSpendInfo()
@@ -486,8 +486,8 @@ func (tm *TestManager) addCovenantSig(
 	unbondingSlashingInfo *datagen.TestUnbondingSlashingInfo,
 	unbondingSlashingPathSpendInfo *btcstaking.SpendInfo,
 	stakingOutIdx uint32,
-) []*bbn.BIP340Signature {
-	var unbondingTxSigs []*bbn.BIP340Signature
+) []*anc.BIP340Signature {
+	var unbondingTxSigs []*anc.BIP340Signature
 	for _, key := range tm.CovenantPrivKeys {
 		msgAddCovenantSig := tm.createMsgAddCovenantSigs(t,
 			signerAddr,
@@ -499,7 +499,7 @@ func (tm *TestManager) addCovenantSig(
 			unbondingSlashingInfo,
 			unbondingSlashingPathSpendInfo,
 			stakingOutIdx, key)
-		_, err := tm.BabylonClient.ReliablySendMsg(t.Context(), msgAddCovenantSig, nil, nil)
+		_, err := tm.AnonClient.ReliablySendMsg(t.Context(), msgAddCovenantSig, nil, nil)
 		require.NoError(t, err)
 		unbondingTxSigs = append(unbondingTxSigs, msgAddCovenantSig.UnbondingTxSig)
 		t.Logf("submitted covenant signature for key %s", hex.EncodeToString(key.PubKey().SerializeCompressed()))
@@ -521,8 +521,8 @@ func (tm *TestManager) addCovenantSigStkExp(
 	stakingOutIdx uint32,
 	prevStakingSlashingInfo *datagen.TestStakingSlashingInfo,
 	fundingTxOut *wire.TxOut,
-) []*bbn.BIP340Signature {
-	var unbondingTxSigs []*bbn.BIP340Signature
+) []*anc.BIP340Signature {
+	var unbondingTxSigs []*anc.BIP340Signature
 	for _, key := range tm.CovenantPrivKeys {
 		msgAddCovenantSig := tm.createMsgAddCovenantSigs(t,
 			signerAddr,
@@ -539,7 +539,7 @@ func (tm *TestManager) addCovenantSigStkExp(
 		stkExpSig := tm.signStakeExpansionTx(t, stakingExpMsgTx, prevStakingSlashingInfo, fundingTxOut, key)
 		msgAddCovenantSig.StakeExpansionTxSig = stkExpSig
 
-		_, err := tm.BabylonClient.ReliablySendMsg(context.Background(), msgAddCovenantSig, nil, nil)
+		_, err := tm.AnonClient.ReliablySendMsg(context.Background(), msgAddCovenantSig, nil, nil)
 		require.NoError(t, err)
 		unbondingTxSigs = append(unbondingTxSigs, msgAddCovenantSig.UnbondingTxSig)
 
@@ -588,7 +588,7 @@ func (tm *TestManager) createMsgAddCovenantSigs(
 		covenantSk,
 	)
 	require.NoError(t, err)
-	covenantUnbondingSig := bbn.NewBIP340SignatureFromBTCSig(unbondingTxCovenantSchnorrSig)
+	covenantUnbondingSig := anc.NewBIP340SignatureFromBTCSig(unbondingTxCovenantSchnorrSig)
 	// covenant adaptor sig on unbonding slashing tx
 	require.NoError(t, err)
 
@@ -608,7 +608,7 @@ func (tm *TestManager) createMsgAddCovenantSigs(
 
 	msgAddCovenantSig := &bstypes.MsgAddCovenantSigs{
 		Signer:                  signerAddr,
-		Pk:                      bbn.NewBIP340PubKeyFromBTCPK(covenantSk.PubKey()),
+		Pk:                      anc.NewBIP340PubKeyFromBTCPK(covenantSk.PubKey()),
 		StakingTxHash:           stakingMsgTxHash.String(),
 		SlashingTxSigs:          slashingTxSigs,
 		UnbondingTxSig:          covenantUnbondingSig,
@@ -626,7 +626,7 @@ func (tm *TestManager) signStakeExpansionTx(
 	originalStakingSlashingInfo *datagen.TestStakingSlashingInfo,
 	fundingTxOut *wire.TxOut,
 	covenantSk *btcec.PrivateKey,
-) *bbn.BIP340Signature {
+) *anc.BIP340Signature {
 	// Get the unbonding path spend info from the original staking transaction
 	// This is what the expansion transaction will spend from
 	prevDelUnbondPathSpendInfo, err := originalStakingSlashingInfo.StakingInfo.UnbondingPathSpendInfo()
@@ -644,7 +644,7 @@ func (tm *TestManager) signStakeExpansionTx(
 	)
 	require.NoError(t, err)
 
-	return bbn.NewBIP340SignatureFromBTCSig(sig)
+	return anc.NewBIP340SignatureFromBTCSig(sig)
 }
 
 func (tm *TestManager) Undelegate(
@@ -653,7 +653,7 @@ func (tm *TestManager) Undelegate(
 	unbondingSlashingInfo *datagen.TestUnbondingSlashingInfo,
 	delSK *btcec.PrivateKey,
 	catchUpLightClientFunc func()) (*datagen.TestUnbondingSlashingInfo, *schnorr.Signature) {
-	signerAddr := tm.BabylonClient.MustGetAddr()
+	signerAddr := tm.AnonClient.MustGetAddr()
 
 	// TODO: This generates unbonding tx signature, move it to undelegate
 	unbondingPathSpendInfo, err := stakingSlashingInfo.StakingInfo.UnbondingPathSpendInfo()
@@ -672,7 +672,7 @@ func (tm *TestManager) Undelegate(
 	)
 	require.NoError(t, err)
 
-	resp, err := tm.BabylonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
+	resp, err := tm.AnonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
 	require.NoError(t, err)
 	covenantSigs := resp.BtcDelegation.UndelegationResponse.CovenantUnbondingSigList
 	witness, err := unbondingPathSpendInfo.CreateUnbondingPathWitness(
@@ -682,7 +682,7 @@ func (tm *TestManager) Undelegate(
 	require.NoError(t, err)
 	unbondingSlashingInfo.UnbondingTx.TxIn[0].Witness = witness
 
-	serializedUnbondingTx, err := bbn.SerializeBTCTx(unbondingSlashingInfo.UnbondingTx)
+	serializedUnbondingTx, err := anc.SerializeBTCTx(unbondingSlashingInfo.UnbondingTx)
 	require.NoError(t, err)
 
 	// send unbonding tx to Bitcoin node's mempool
@@ -720,7 +720,7 @@ func (tm *TestManager) Undelegate(
 			Proof: unbondingTxInfo.Proof,
 		},
 	}
-	_, err = tm.BabylonClient.ReliablySendMsg(context.Background(), msgUndel, nil, nil)
+	_, err = tm.AnonClient.ReliablySendMsg(context.Background(), msgUndel, nil, nil)
 	require.NoError(t, err)
 	t.Logf("submitted MsgBTCUndelegate")
 
@@ -738,15 +738,15 @@ func (tm *TestManager) Undelegate(
 }
 
 func (tm *TestManager) VoteAndEquivocate(t *testing.T, fpSK *btcec.PrivateKey) {
-	signerAddr := tm.BabylonClient.MustGetAddr()
+	signerAddr := tm.AnonClient.MustGetAddr()
 
 	// get the finality provider
-	fpBTCPK := bbn.NewBIP340PubKeyFromBTCPK(fpSK.PubKey())
-	fpResp, err := tm.BabylonClient.FinalityProvider(fpBTCPK.MarshalHex())
+	fpBTCPK := anc.NewBIP340PubKeyFromBTCPK(fpSK.PubKey())
+	fpResp, err := tm.AnonClient.FinalityProvider(fpBTCPK.MarshalHex())
 	require.NoError(t, err)
 	btcFp := fpResp.FinalityProvider
 
-	_, err = tm.BabylonClient.ActivatedHeight()
+	_, err = tm.AnonClient.ActivatedHeight()
 	require.Error(t, err)
 
 	activatedHeight := uint64(1)
@@ -758,7 +758,7 @@ func (tm *TestManager) VoteAndEquivocate(t *testing.T, fpSK *btcec.PrivateKey) {
 	srList, msgCommitPubRandList, err := datagen.GenRandomMsgCommitPubRandList(r, fpSK, activatedHeight, 100)
 	require.NoError(t, err)
 	msgCommitPubRandList.Signer = signerAddr
-	_, err = tm.BabylonClient.ReliablySendMsg(context.Background(), msgCommitPubRandList, nil, nil)
+	_, err = tm.AnonClient.ReliablySendMsg(context.Background(), msgCommitPubRandList, nil, nil)
 	require.NoError(t, err)
 	t.Logf("committed public randomness")
 
@@ -767,7 +767,7 @@ func (tm *TestManager) VoteAndEquivocate(t *testing.T, fpSK *btcec.PrivateKey) {
 	tm.waitForFpPubRandTimestamped(t, fpSK.PubKey())
 
 	require.Eventually(t, func() bool {
-		acr, err := tm.BabylonClient.ActivatedHeight()
+		acr, err := tm.AnonClient.ActivatedHeight()
 		if err != nil {
 			return false
 		}
@@ -779,7 +779,7 @@ func (tm *TestManager) VoteAndEquivocate(t *testing.T, fpSK *btcec.PrivateKey) {
 		submit finality signature
 	*/
 	// get block to vote
-	blockToVote, err := tm.BabylonClient.GetBlock(int64(activatedHeight))
+	blockToVote, err := tm.AnonClient.GetBlock(int64(activatedHeight))
 	require.NoError(t, err)
 	msgToSign := sdk.Uint64ToBigEndian(activatedHeight)
 	msgToSign = append(msgToSign, blockToVote.Block.AppHash...)
@@ -787,7 +787,7 @@ func (tm *TestManager) VoteAndEquivocate(t *testing.T, fpSK *btcec.PrivateKey) {
 	idx := activatedHeight - commitStartHeight
 	sig, err := eots.Sign(fpSK, srList.SRList[idx], msgToSign)
 	require.NoError(t, err)
-	eotsSig := bbn.NewSchnorrEOTSSigFromModNScalar(sig)
+	eotsSig := anc.NewSchnorrEOTSSigFromModNScalar(sig)
 	// submit finality signature
 	msgAddFinalitySig := &ftypes.MsgAddFinalitySig{
 		Signer:       signerAddr,
@@ -798,7 +798,7 @@ func (tm *TestManager) VoteAndEquivocate(t *testing.T, fpSK *btcec.PrivateKey) {
 		BlockAppHash: blockToVote.Block.AppHash,
 		FinalitySig:  eotsSig,
 	}
-	_, err = tm.BabylonClient.ReliablySendMsg(context.Background(), msgAddFinalitySig, nil, nil)
+	_, err = tm.AnonClient.ReliablySendMsg(context.Background(), msgAddFinalitySig, nil, nil)
 	require.NoError(t, err)
 	t.Logf("submitted finality signature")
 
@@ -810,7 +810,7 @@ func (tm *TestManager) VoteAndEquivocate(t *testing.T, fpSK *btcec.PrivateKey) {
 	invalidMsgToSign = append(invalidMsgToSign, invalidAppHash...)
 	invalidSig, err := eots.Sign(fpSK, srList.SRList[idx], invalidMsgToSign)
 	require.NoError(t, err)
-	invalidEotsSig := bbn.NewSchnorrEOTSSigFromModNScalar(invalidSig)
+	invalidEotsSig := anc.NewSchnorrEOTSSigFromModNScalar(invalidSig)
 	invalidMsgAddFinalitySig := &ftypes.MsgAddFinalitySig{
 		Signer:       signerAddr,
 		FpBtcPk:      btcFp.BtcPk,
@@ -820,13 +820,13 @@ func (tm *TestManager) VoteAndEquivocate(t *testing.T, fpSK *btcec.PrivateKey) {
 		BlockAppHash: invalidAppHash,
 		FinalitySig:  invalidEotsSig,
 	}
-	_, err = tm.BabylonClient.ReliablySendMsg(context.Background(), invalidMsgAddFinalitySig, nil, nil)
+	_, err = tm.AnonClient.ReliablySendMsg(context.Background(), invalidMsgAddFinalitySig, nil, nil)
 	require.NoError(t, err)
 	t.Logf("submitted equivocating finality signature")
 }
 
 func getTxInfo(t *testing.T, block *wire.MsgBlock) *btcctypes.TransactionInfo {
-	mHeaderBytes := bbn.NewBTCHeaderBytesFromBlockHeader(&block.Header)
+	mHeaderBytes := anc.NewBTCHeaderBytesFromBlockHeader(&block.Header)
 	var txBytes [][]byte
 	for _, tx := range block.Transactions {
 		buf := bytes.NewBuffer(make([]byte, 0, tx.SerializeSize()))
@@ -838,8 +838,8 @@ func getTxInfo(t *testing.T, block *wire.MsgBlock) *btcctypes.TransactionInfo {
 	return btcctypes.NewTransactionInfoFromSpvProof(spvProof)
 }
 
-// TODO: these functions should be enabled by Babylon
-func bbnPksToBtcPks(pks []bbn.BIP340PubKey) ([]*btcec.PublicKey, error) {
+// TODO: these functions should be enabled by Anon
+func ancPksToBtcPks(pks []anc.BIP340PubKey) ([]*btcec.PublicKey, error) {
 	btcPks := make([]*btcec.PublicKey, 0, len(pks))
 	for _, pk := range pks {
 		btcPk, err := pk.ToBTCPK()
@@ -875,12 +875,12 @@ func (tm *TestManager) waitForFpPubRandTimestamped(t *testing.T, fpPk *btcec.Pub
 	t.Logf("public randomness is successfully committed, last committed height: %d", lastCommittedHeight)
 
 	// wait until the last registered epoch is finalized
-	currentEpoch, err := tm.BabylonClient.CurrentEpoch()
+	currentEpoch, err := tm.AnonClient.CurrentEpoch()
 	require.NoError(t, err)
 
 	tm.finalizeUntilEpoch(t, currentEpoch.CurrentEpoch)
 
-	res, err := tm.BabylonClient.LatestEpochFromStatus(ckpttypes.Finalized)
+	res, err := tm.AnonClient.LatestEpochFromStatus(ckpttypes.Finalized)
 	require.NoError(t, err)
 	t.Logf("last finalized epoch: %d", res.RawCheckpoint.EpochNum)
 
@@ -889,14 +889,14 @@ func (tm *TestManager) waitForFpPubRandTimestamped(t *testing.T, fpPk *btcec.Pub
 
 // queryLastCommittedPublicRand returns the last public randomness commitments
 func (tm *TestManager) queryLastCommittedPublicRand(fpPk *btcec.PublicKey, count uint64) (map[uint64]*ftypes.PubRandCommitResponse, error) {
-	fpBtcPk := bbn.NewBIP340PubKeyFromBTCPK(fpPk)
+	fpBtcPk := anc.NewBIP340PubKeyFromBTCPK(fpPk)
 
 	pagination := &sdkquery.PageRequest{
 		Limit:   count,
 		Reverse: true,
 	}
 
-	res, err := tm.BabylonClient.QueryClient.ListPubRandCommit(fpBtcPk.MarshalHex(), pagination)
+	res, err := tm.AnonClient.QueryClient.ListPubRandCommit(fpBtcPk.MarshalHex(), pagination)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query committed public randomness: %w", err)
 	}
@@ -947,11 +947,11 @@ func (tm *TestManager) getLastCommittedHeight(btcPk *btcec.PublicKey) (uint64, e
 }
 
 func (tm *TestManager) finalizeUntilEpoch(t *testing.T, epoch uint64) {
-	bbnClient := tm.BabylonClient
+	ancClient := tm.AnonClient
 
 	// wait until the checkpoint of this epoch is sealed
 	require.Eventually(t, func() bool {
-		lastSealedCkpt, err := bbnClient.LatestEpochFromStatus(ckpttypes.Sealed)
+		lastSealedCkpt, err := ancClient.LatestEpochFromStatus(ckpttypes.Sealed)
 		if err != nil {
 			return false
 		}
@@ -967,17 +967,17 @@ func (tm *TestManager) finalizeUntilEpoch(t *testing.T, epoch uint64) {
 		Key:   ckpttypes.CkptsObjectKey(0),
 		Limit: epoch,
 	}
-	resp, err := bbnClient.RawCheckpoints(pagination)
+	resp, err := ancClient.RawCheckpoints(pagination)
 	require.NoError(t, err)
 	require.Equal(t, int(epoch), len(resp.RawCheckpoints))
 
-	submitterAddr, err := sdk.AccAddressFromBech32(tm.BabylonClient.MustGetAddr())
+	submitterAddr, err := sdk.AccAddressFromBech32(tm.AnonClient.MustGetAddr())
 	require.NoError(t, err)
 
 	for _, checkpoint := range resp.RawCheckpoints {
-		currentBtcTipResp, err := tm.BabylonClient.QueryClient.BTCHeaderChainTip()
+		currentBtcTipResp, err := tm.AnonClient.QueryClient.BTCHeaderChainTip()
 		require.NoError(t, err)
-		tipHeader, err := bbn.NewBTCHeaderBytesFromHex(currentBtcTipResp.Header.HeaderHex)
+		tipHeader, err := anc.NewBTCHeaderBytesFromHex(currentBtcTipResp.Header.HeaderHex)
 		require.NoError(t, err)
 
 		rawCheckpoint, err := checkpoint.Ckpt.ToRawCheckpoint()
@@ -986,11 +986,11 @@ func (tm *TestManager) finalizeUntilEpoch(t *testing.T, epoch uint64) {
 		btcCheckpoint, err := ckpttypes.FromRawCkptToBTCCkpt(rawCheckpoint, submitterAddr)
 		require.NoError(t, err)
 
-		babylonTagBytes, err := hex.DecodeString("01020304")
+		anonTagBytes, err := hex.DecodeString("01020304")
 		require.NoError(t, err)
 
 		p1, p2, err := txformat.EncodeCheckpointData(
-			babylonTagBytes,
+			anonTagBytes,
 			txformat.CurrentVersion,
 			btcCheckpoint,
 		)
@@ -1003,7 +1003,7 @@ func (tm *TestManager) finalizeUntilEpoch(t *testing.T, epoch uint64) {
 		opReturn2 := datagen.CreateBlockWithTransaction(r, opReturn1.HeaderBytes.ToBlockHeader(), tx2)
 
 		// insert headers and proofs
-		_, err = tm.insertBtcBlockHeaders([]bbn.BTCHeaderBytes{
+		_, err = tm.insertBtcBlockHeaders([]anc.BTCHeaderBytes{
 			opReturn1.HeaderBytes,
 			opReturn2.HeaderBytes,
 		})
@@ -1017,7 +1017,7 @@ func (tm *TestManager) finalizeUntilEpoch(t *testing.T, epoch uint64) {
 
 		// wait until this checkpoint is submitted
 		require.Eventually(t, func() bool {
-			ckpt, err := bbnClient.RawCheckpoint(checkpoint.Ckpt.EpochNum)
+			ckpt, err := ancClient.RawCheckpoint(checkpoint.Ckpt.EpochNum)
 			if err != nil {
 				return false
 			}
@@ -1030,7 +1030,7 @@ func (tm *TestManager) finalizeUntilEpoch(t *testing.T, epoch uint64) {
 
 	// wait until the checkpoint of this epoch is finalised
 	require.Eventually(t, func() bool {
-		lastFinalizedCkpt, err := bbnClient.LatestEpochFromStatus(ckpttypes.Finalized)
+		lastFinalizedCkpt, err := ancClient.LatestEpochFromStatus(ckpttypes.Finalized)
 		if err != nil {
 			t.Logf("failed to get last finalized epoch: %v", err)
 			return false
@@ -1041,13 +1041,13 @@ func (tm *TestManager) finalizeUntilEpoch(t *testing.T, epoch uint64) {
 	t.Logf("epoch %d is finalised", epoch)
 }
 
-func (tm *TestManager) insertBtcBlockHeaders(headers []bbn.BTCHeaderBytes) (*babylonclient.RelayerTxResponse, error) {
+func (tm *TestManager) insertBtcBlockHeaders(headers []anc.BTCHeaderBytes) (*anonclient.RelayerTxResponse, error) {
 	msg := &btclctypes.MsgInsertHeaders{
-		Signer:  tm.MustGetBabylonSigner(),
+		Signer:  tm.MustGetAnonSigner(),
 		Headers: headers,
 	}
 
-	res, err := tm.BabylonClient.ReliablySendMsg(context.Background(), msg, nil, nil)
+	res, err := tm.AnonClient.ReliablySendMsg(context.Background(), msg, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1055,13 +1055,13 @@ func (tm *TestManager) insertBtcBlockHeaders(headers []bbn.BTCHeaderBytes) (*bab
 	return res, nil
 }
 
-func (tm *TestManager) insertSpvProofs(submitter string, proofs []*btcctypes.BTCSpvProof) (*babylonclient.RelayerTxResponse, error) {
+func (tm *TestManager) insertSpvProofs(submitter string, proofs []*btcctypes.BTCSpvProof) (*anonclient.RelayerTxResponse, error) {
 	msg := &btcctypes.MsgInsertBTCSpvProof{
 		Submitter: submitter,
 		Proofs:    proofs,
 	}
 
-	res, err := tm.BabylonClient.ReliablySendMsg(context.Background(), msg, nil, nil)
+	res, err := tm.AnonClient.ReliablySendMsg(context.Background(), msg, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1070,11 +1070,11 @@ func (tm *TestManager) insertSpvProofs(submitter string, proofs []*btcctypes.BTC
 }
 
 func (tm *TestManager) insertWBTCHeaders(t *testing.T, r *rand.Rand) {
-	ckptParamRes, err := tm.BabylonClient.QueryClient.BTCCheckpointParams()
+	ckptParamRes, err := tm.AnonClient.QueryClient.BTCCheckpointParams()
 	require.NoError(t, err)
-	btcTipResp, err := tm.BabylonClient.QueryClient.BTCHeaderChainTip()
+	btcTipResp, err := tm.AnonClient.QueryClient.BTCHeaderChainTip()
 	require.NoError(t, err)
-	tipHeader, err := bbn.NewBTCHeaderBytesFromHex(btcTipResp.Header.HeaderHex)
+	tipHeader, err := anc.NewBTCHeaderBytesFromHex(btcTipResp.Header.HeaderHex)
 	require.NoError(t, err)
 	kHeaders := datagen.NewBTCHeaderChainFromParentInfo(r, &btclctypes.BTCHeaderInfo{
 		Header: &tipHeader,
@@ -1092,7 +1092,7 @@ func (tm *TestManager) getFundingTxs(t *testing.T, tx *wire.MsgTx) [][]byte {
 		rawTx, err := tm.BTCClient.GetRawTransaction(&txIn.PreviousOutPoint.Hash)
 		require.NoError(t, err)
 
-		serializedTx, err := bbn.SerializeBTCTx(rawTx.MsgTx())
+		serializedTx, err := anc.SerializeBTCTx(rawTx.MsgTx())
 		require.NoError(t, err)
 
 		fundingTxs = append(fundingTxs, serializedTx)
@@ -1109,15 +1109,15 @@ func (tm *TestManager) CreateBTCStakeExpansion(
 	previousStakingTxHash string,
 	prevDelStakingOutputIdx uint32,
 ) (*wire.MsgTx, *wire.MsgTx, *datagen.TestStakingSlashingInfo, *datagen.TestUnbondingSlashingInfo, *btcec.PrivateKey) {
-	signerAddr := tm.BabylonClient.MustGetAddr()
+	signerAddr := tm.AnonClient.MustGetAddr()
 	addr := sdk.MustAccAddressFromBech32(signerAddr)
 
 	fpPK := fpSK.PubKey()
 
 	// generate staking tx and slashing tx for expansion
-	bsParams, err := tm.BabylonClient.BTCStakingParams()
+	bsParams, err := tm.AnonClient.BTCStakingParams()
 	require.NoError(t, err)
-	covenantBtcPks, err := bbnPksToBtcPks(bsParams.Params.CovenantPks)
+	covenantBtcPks, err := ancPksToBtcPks(bsParams.Params.CovenantPks)
 	require.NoError(t, err)
 	stakingTimeBlocks := bsParams.Params.MaxStakingTimeBlocks
 
@@ -1192,15 +1192,15 @@ func (tm *TestManager) CreateBTCStakeExpansion(
 	require.NoError(t, err)
 
 	// Get and serialize the separate funding transaction
-	fundingTxBytes, err := bbn.SerializeBTCTx(fundingRawTx.MsgTx())
+	fundingTxBytes, err := anc.SerializeBTCTx(fundingRawTx.MsgTx())
 	require.NoError(t, err)
 
-	// submit BTC stake expansion to Babylon
+	// submit BTC stake expansion to Anon
 	msgBTCStakeExpansion := &bstypes.MsgBtcStakeExpand{
 		StakerAddr:                    signerAddr,
 		Pop:                           pop,
-		BtcPk:                         bbn.NewBIP340PubKeyFromBTCPK(tm.WalletPrivKey.PubKey()),
-		FpBtcPkList:                   []bbn.BIP340PubKey{*bbn.NewBIP340PubKeyFromBTCPK(fpPK)},
+		BtcPk:                         anc.NewBIP340PubKeyFromBTCPK(tm.WalletPrivKey.PubKey()),
+		FpBtcPkList:                   []anc.BIP340PubKey{*anc.NewBIP340PubKeyFromBTCPK(fpPK)},
 		StakingTime:                   stakingTimeBlocks,
 		StakingValue:                  int64(totalStakingValue),
 		StakingTx:                     stakingTxBuf.Bytes(),
@@ -1214,7 +1214,7 @@ func (tm *TestManager) CreateBTCStakeExpansion(
 		PreviousStakingTxHash:         previousStakingTxHash,
 		FundingTx:                     fundingTxBytes,
 	}
-	_, err = tm.BabylonClient.ReliablySendMsg(context.Background(), msgBTCStakeExpansion, nil, nil)
+	_, err = tm.AnonClient.ReliablySendMsg(context.Background(), msgBTCStakeExpansion, nil, nil)
 	require.NoError(t, err)
 	t.Logf("submitted MsgBtcStakeExpand for previous staking tx: %s", previousStakingTxHash)
 

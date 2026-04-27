@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	"cosmossdk.io/math"
-	clientctx "github.com/babylonlabs-io/finality-provider/finality-provider/cmd/fpd/clientctx"
-	commoncmd "github.com/babylonlabs-io/finality-provider/finality-provider/cmd/fpd/common"
-	fpcfg "github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
-	dc "github.com/babylonlabs-io/finality-provider/finality-provider/service/client"
-	"github.com/babylonlabs-io/finality-provider/types"
+	clientctx "github.com/anon-org/finality-provider/finality-provider/cmd/fpd/clientctx"
+	commoncmd "github.com/anon-org/finality-provider/finality-provider/cmd/fpd/common"
+	fpcfg "github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
+	dc "github.com/anon-org/finality-provider/finality-provider/service/client"
+	"github.com/anon-org/finality-provider/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -54,7 +54,7 @@ Or providing the path to finality-provider.json:
 Where finality-provider.json contains:
 
 {
-  "keyName": "The unique key name of the finality provider's Babylon account",
+  "keyName": "The unique key name of the finality provider's Anon account",
   "chainID": "The identifier of the consumer chain",
   "passphrase": "The pass phrase used to encrypt the keys",
   "commissionRate": "The initial commission rate for the finality provider, e.g., 0.05",
@@ -73,7 +73,7 @@ Where finality-provider.json contains:
 
 	f := cmd.Flags()
 	f.String(commoncmd.FpdDaemonAddressFlag, defaultFpdDaemonAddress, "The RPC server address of fpd")
-	f.String(commoncmd.KeyNameFlag, "", "The unique key name of the finality provider's Babylon account")
+	f.String(commoncmd.KeyNameFlag, "", "The unique key name of the finality provider's Anon account")
 	f.String(sdkflags.FlagHome, fpcfg.DefaultFpdDir, "The application home directory")
 	f.String(commoncmd.ChainIDFlag, "", "The identifier of the consumer chain")
 	f.String(commoncmd.CommissionRateFlag, "", "The initial commission rate for the finality provider, e.g., 0.05")
@@ -143,7 +143,7 @@ func runCommandCreateFP(ctx client.Context, cmd *cobra.Command, _ []string) erro
 		if err != nil {
 			return fmt.Errorf("failed to load config from %s: %w", fpcfg.CfgFile(ctx.HomeDir), err)
 		}
-		fp.KeyName = cfg.BabylonConfig.Key
+		fp.KeyName = cfg.AnonConfig.Key
 		if fp.KeyName == "" {
 			return fmt.Errorf("the key is neither in config nor provided")
 		}

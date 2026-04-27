@@ -3,15 +3,15 @@ package cmd
 import (
 	"fmt"
 
-	bbnqccfg "github.com/babylonlabs-io/babylon/v4/client/config"
-	bbnqc "github.com/babylonlabs-io/babylon/v4/client/query"
+	ancqccfg "github.com/anon-org/anon/v4/client/config"
+	ancqc "github.com/anon-org/anon/v4/client/query"
 	"github.com/spf13/cobra"
 
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/monitor"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/monitor"
+	"github.com/anon-org/vigilante/types"
 )
 
 const (
@@ -26,13 +26,13 @@ func GetMonitorCmd() *cobra.Command {
 	// Group monitor queries under a subcommand
 	cmd := &cobra.Command{
 		Use:   "monitor",
-		Short: "Vigilante monitor constantly checks the consistency between the Babylon node and BTC and detects censorship of BTC checkpoints",
+		Short: "Vigilante monitor constantly checks the consistency between the Anon node and BTC and detects censorship of BTC checkpoints",
 		Run: func(_ *cobra.Command, _ []string) {
 			var (
 				err              error
 				cfg              config.Config
 				btcClient        *btcclient.Client
-				bbnQueryClient   *bbnqc.QueryClient
+				ancQueryClient   *ancqc.QueryClient
 				vigilanteMonitor *monitor.Monitor
 			)
 
@@ -46,17 +46,17 @@ func GetMonitorCmd() *cobra.Command {
 				panic(fmt.Errorf("failed to create logger: %w", err))
 			}
 
-			// create Babylon query client. Note that requests from Babylon client are ad hoc
-			queryCfg := &bbnqccfg.BabylonQueryConfig{
-				RPCAddr: cfg.Babylon.RPCAddr,
-				Timeout: cfg.Babylon.Timeout,
+			// create Anon query client. Note that requests from Anon client are ad hoc
+			queryCfg := &ancqccfg.AnonQueryConfig{
+				RPCAddr: cfg.Anon.RPCAddr,
+				Timeout: cfg.Anon.Timeout,
 			}
 			if err := queryCfg.Validate(); err != nil {
 				panic(fmt.Errorf("invalid config for query client: %w", err))
 			}
-			bbnQueryClient, err = bbnqc.New(queryCfg)
+			ancQueryClient, err = ancqc.New(queryCfg)
 			if err != nil {
-				panic(fmt.Errorf("failed to create babylon query client: %w", err))
+				panic(fmt.Errorf("failed to create anon query client: %w", err))
 			}
 
 			// create BTC client and connect to BTC server
@@ -89,7 +89,7 @@ func GetMonitorCmd() *cobra.Command {
 				&cfg.Common,
 				rootLogger,
 				genesisInfo,
-				bbnQueryClient,
+				ancQueryClient,
 				btcClient,
 				btcNotifier,
 				monitorMetrics,

@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/proto"
+	"github.com/anon-org/finality-provider/eotsmanager"
+	"github.com/anon-org/finality-provider/eotsmanager/proto"
 )
 
 var _ eotsmanager.EOTSManager = &EOTSManagerGRPCClient{}

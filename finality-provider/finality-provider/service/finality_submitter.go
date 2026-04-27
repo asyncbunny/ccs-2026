@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/avast/retry-go/v4"
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
-	fpcc "github.com/babylonlabs-io/finality-provider/clientcontroller"
-	"github.com/babylonlabs-io/finality-provider/clientcontroller/api"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
-	"github.com/babylonlabs-io/finality-provider/metrics"
-	"github.com/babylonlabs-io/finality-provider/types"
+	anctypes "github.com/anon-org/anon/v4/types"
+	fpcc "github.com/anon-org/finality-provider/clientcontroller"
+	"github.com/anon-org/finality-provider/clientcontroller/api"
+	"github.com/anon-org/finality-provider/eotsmanager"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
+	"github.com/anon-org/finality-provider/metrics"
+	"github.com/anon-org/finality-provider/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"go.uber.org/zap"
 )
@@ -77,7 +77,7 @@ func (ds *DefaultFinalitySubmitter) GetBtcPk() *btcec.PublicKey {
 	return ds.State.GetBtcPk()
 }
 
-func (ds *DefaultFinalitySubmitter) GetBtcPkBIP340() *bbntypes.BIP340PubKey {
+func (ds *DefaultFinalitySubmitter) GetBtcPkBIP340() *anctypes.BIP340PubKey {
 	return ds.State.GetBtcPkBIP340()
 }
 
@@ -364,7 +364,7 @@ func (ds *DefaultFinalitySubmitter) CheckBlockFinalization(ctx context.Context, 
 	return b.IsFinalized(), nil
 }
 
-func (ds *DefaultFinalitySubmitter) SignFinalitySig(_ context.Context, b types.BlockDescription) (*bbntypes.SchnorrEOTSSig, error) {
+func (ds *DefaultFinalitySubmitter) SignFinalitySig(_ context.Context, b types.BlockDescription) (*anctypes.SchnorrEOTSSig, error) {
 	sig, err := ds.Em.SignEOTS(ds.GetBtcPkBIP340().MustMarshal(), ds.State.GetChainID(), b.MsgToSign(""), b.GetHeight())
 	if err != nil {
 		if strings.Contains(err.Error(), failedPreconditionErrStr) {
@@ -374,10 +374,10 @@ func (ds *DefaultFinalitySubmitter) SignFinalitySig(_ context.Context, b types.B
 		return nil, fmt.Errorf("failed to sign EOTS: %w", err)
 	}
 
-	return bbntypes.NewSchnorrEOTSSigFromModNScalar(sig), nil
+	return anctypes.NewSchnorrEOTSSigFromModNScalar(sig), nil
 }
 
-func (ds *DefaultFinalitySubmitter) SignFinalitySigBatch(_ context.Context, blocks []types.BlockDescription) (map[uint64]*bbntypes.SchnorrEOTSSig, error) {
+func (ds *DefaultFinalitySubmitter) SignFinalitySigBatch(_ context.Context, blocks []types.BlockDescription) (map[uint64]*anctypes.SchnorrEOTSSig, error) {
 	signDataReq := make([]*eotsmanager.SignDataRequest, 0, len(blocks))
 	for _, b := range blocks {
 		signDataReq = append(signDataReq, &eotsmanager.SignDataRequest{
@@ -400,9 +400,9 @@ func (ds *DefaultFinalitySubmitter) SignFinalitySigBatch(_ context.Context, bloc
 	}
 
 	// Create a map of height -> signature for easy lookup
-	sigMap := make(map[uint64]*bbntypes.SchnorrEOTSSig)
+	sigMap := make(map[uint64]*anctypes.SchnorrEOTSSig)
 	for _, sig := range resp {
-		sigMap[sig.Height] = bbntypes.NewSchnorrEOTSSigFromModNScalar(sig.Signature)
+		sigMap[sig.Height] = anctypes.NewSchnorrEOTSSigFromModNScalar(sig.Signature)
 	}
 
 	return sigMap, nil

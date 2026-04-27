@@ -6,15 +6,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/babylonlabs-io/vigilante/testutil"
+	"github.com/anon-org/vigilante/testutil"
 	"go.uber.org/zap"
 
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	bst "github.com/babylonlabs-io/vigilante/btcstaking-tracker"
-	"github.com/babylonlabs-io/vigilante/btcstaking-tracker/btcslasher"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
+	"github.com/anon-org/vigilante/btcclient"
+	bst "github.com/anon-org/vigilante/btcstaking-tracker"
+	"github.com/anon-org/vigilante/btcstaking-tracker/btcslasher"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/stretchr/testify/require"
@@ -30,10 +30,10 @@ func TestAtomicSlasher(t *testing.T) {
 	tm := StartManager(t, WithNumMatureOutputs(numMatureOutputs), WithEpochInterval(defaultEpochInterval))
 	defer tm.Stop(t)
 
-	// start WebSocket connection with Babylon for subscriber services
-	err := tm.BabylonClient.Start()
+	// start WebSocket connection with Anon for subscriber services
+	err := tm.AnonClient.Start()
 	require.NoError(t, err)
-	// Insert all existing BTC headers to babylon node
+	// Insert all existing BTC headers to anon node
 	tm.CatchUpBTCLightClient(t)
 
 	backend, err := btcclient.NewNodeBackend(
@@ -54,7 +54,7 @@ func TestAtomicSlasher(t *testing.T) {
 	bsTracker := bst.NewBTCStakingTracker(
 		tm.BTCClient,
 		backend,
-		tm.BabylonClient,
+		tm.AnonClient,
 		&bstCfg,
 		&commonCfg,
 		zap.NewNop(),
@@ -64,7 +64,7 @@ func TestAtomicSlasher(t *testing.T) {
 	go bsTracker.Start()
 	defer bsTracker.Stop()
 
-	bsParamsResp, err := tm.BabylonClient.BTCStakingParams()
+	bsParamsResp, err := tm.AnonClient.BTCStakingParams()
 	require.NoError(t, err)
 	bsParams := bsParamsResp.Params
 
@@ -75,7 +75,7 @@ func TestAtomicSlasher(t *testing.T) {
 	tm.CreateBTCDelegation(t, fpSK)
 
 	// retrieve 2 BTC delegations
-	btcDelsResp, err := tm.BabylonClient.BTCDelegations(bstypes.BTCDelegationStatus_ACTIVE, nil)
+	btcDelsResp, err := tm.AnonClient.BTCDelegations(bstypes.BTCDelegationStatus_ACTIVE, nil)
 	require.NoError(t, err)
 	require.Len(t, btcDelsResp.BtcDelegations, 2)
 	btcDels := btcDelsResp.BtcDelegations
@@ -107,14 +107,14 @@ func TestAtomicSlasher(t *testing.T) {
 
 	/*
 		atomic slasher will detect the selective slashing on victim BTC delegation
-		the finality provider will get slashed on Babylon
+		the finality provider will get slashed on Anon
 	*/
 	require.Eventually(t, func() bool {
-		resp, err := tm.BabylonClient.FinalityProvider(btcFP.BtcPk.MarshalHex())
+		resp, err := tm.AnonClient.FinalityProvider(btcFP.BtcPk.MarshalHex())
 		if err != nil {
 			return false
 		}
-		return resp.FinalityProvider.SlashedBabylonHeight > 0
+		return resp.FinalityProvider.SlashedAnonHeight > 0
 	}, eventuallyWaitTimeOut, eventuallyPollTime)
 
 	/*
@@ -154,10 +154,10 @@ func TestAtomicSlasher_Unbonding(t *testing.T) {
 	tm := StartManager(t, WithNumMatureOutputs(numMatureOutputs), WithEpochInterval(defaultEpochInterval))
 	defer tm.Stop(t)
 
-	// start WebSocket connection with Babylon for subscriber services
-	err := tm.BabylonClient.Start()
+	// start WebSocket connection with Anon for subscriber services
+	err := tm.AnonClient.Start()
 	require.NoError(t, err)
-	// Insert all existing BTC headers to babylon node
+	// Insert all existing BTC headers to anon node
 	tm.CatchUpBTCLightClient(t)
 
 	emptyHintCache := btcclient.EmptyHintCache{}
@@ -182,7 +182,7 @@ func TestAtomicSlasher_Unbonding(t *testing.T) {
 	bsTracker := bst.NewBTCStakingTracker(
 		tm.BTCClient,
 		backend,
-		tm.BabylonClient,
+		tm.AnonClient,
 		&bstCfg,
 		&commonCfg,
 		zap.NewNop(),
@@ -192,7 +192,7 @@ func TestAtomicSlasher_Unbonding(t *testing.T) {
 	go bsTracker.Start()
 	defer bsTracker.Stop()
 
-	bsParamsResp, err := tm.BabylonClient.BTCStakingParams()
+	bsParamsResp, err := tm.AnonClient.BTCStakingParams()
 	require.NoError(t, err)
 	bsParams := bsParamsResp.Params
 
@@ -201,14 +201,14 @@ func TestAtomicSlasher_Unbonding(t *testing.T) {
 
 	// set up 1st BTC delegation, which will be later used as the victim
 	stakingSlashingInfo, unbondingSlashingInfo, btcDelSK := tm.CreateBTCDelegation(t, fpSK)
-	btcDelsResp, err := tm.BabylonClient.BTCDelegations(bstypes.BTCDelegationStatus_ACTIVE, nil)
+	btcDelsResp, err := tm.AnonClient.BTCDelegations(bstypes.BTCDelegationStatus_ACTIVE, nil)
 	require.NoError(t, err)
 	require.Len(t, btcDelsResp.BtcDelegations, 1)
 	victimBTCDel := btcDelsResp.BtcDelegations[0]
 
 	// set up 2nd BTC delegation, which will be subjected to atomic slashing
 	tm.CreateBTCDelegation(t, fpSK)
-	btcDelsResp2, err := tm.BabylonClient.BTCDelegations(bstypes.BTCDelegationStatus_ACTIVE, nil)
+	btcDelsResp2, err := tm.AnonClient.BTCDelegations(bstypes.BTCDelegationStatus_ACTIVE, nil)
 	require.NoError(t, err)
 	require.Len(t, btcDelsResp2.BtcDelegations, 2)
 
@@ -268,14 +268,14 @@ func TestAtomicSlasher_Unbonding(t *testing.T) {
 
 	/*
 		atomic slasher will detect the selective slashing on victim BTC delegation
-		the finality provider will get slashed on Babylon
+		the finality provider will get slashed on Anon
 	*/
 	require.Eventually(t, func() bool {
-		resp, err := tm.BabylonClient.FinalityProvider(btcFP.BtcPk.MarshalHex())
+		resp, err := tm.AnonClient.FinalityProvider(btcFP.BtcPk.MarshalHex())
 		if err != nil {
 			return false
 		}
-		return resp.FinalityProvider.SlashedBabylonHeight > 0
+		return resp.FinalityProvider.SlashedAnonHeight > 0
 	}, eventuallyWaitTimeOut, eventuallyPollTime)
 
 	/*

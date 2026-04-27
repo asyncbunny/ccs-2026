@@ -24,8 +24,8 @@ To successfully complete this guide, you will need:
   complete the setup of the covenant signer with your keys before proceeding.
   Note that the phase-2 covenant-signer program is a different one than the one
   used doing phase-1
-2. A connection to a Babylon node. To run your own node, please refer to the
-  [Babylon Node Setup Guide](https://github.com/babylonlabs-io/networks/blob/main/bbn-test-6/babylon-node/README.md).
+2. A connection to a Anon node. To run your own node, please refer to the
+  [Anon Node Setup Guide](https://github.com/anon-org/networks/blob/main/anc-test-6/anon-node/README.md).
 
 ## 2. Boot Order and Signer Dependency
 
@@ -69,7 +69,7 @@ go version
 If you have not yet cloned the repository, run:
 
 ```shell
-git clone git@github.com:babylonlabs-io/covenant-emulator.git
+git clone git@github.com:anon-org/covenant-emulator.git
 cd covenant-emulator
 git checkout <tag>
 ```
@@ -129,16 +129,16 @@ DelegationLimit = 100
 # Bitcoin network to run on
 BitcoinNetwork = signet
 
-# Babylon specific parameters
+# Anon specific parameters
 
-# Babylon chain ID
-ChainID = bbn-test-6
+# Anon chain ID
+ChainID = anc-test-6
 
-# Babylon node RPC endpoint
-RPCAddr = https://rpc-euphrates.devnet.babylonlabs.io:443
+# Anon node RPC endpoint
+RPCAddr = https://rpc-euphrates.devnet.anon.io:443
 
-# Babylon node gRPC endpoint
-GRPCAddr = https://rpc-euphrates.devnet.babylonlabs.io:443
+# Anon node gRPC endpoint
+GRPCAddr = https://rpc-euphrates.devnet.anon.io:443
 
 # Name of the key in the keyring to use for signing transactions
 Key = covenant-key
@@ -165,9 +165,9 @@ Below are brief explanations of the configuration entries:
 - `QueryInterval` - How often to check for new BTC delegations that need processing
 - `DelegationLimit` - Maximum number of delegations to process in a single batch
 - `BitcoinNetwork` - Which Bitcoin network to connect to (mainnet, testnet, signet, etc.)
-- `ChainID` - Unique identifier of the Babylon blockchain network
-- `RPCAddr` - HTTP endpoint for connecting to a Babylon node
-- `GRPCAddr` - gRPC endpoint for connecting to a Babylon node
+- `ChainID` - Unique identifier of the Anon blockchain network
+- `RPCAddr` - HTTP endpoint for connecting to a Anon node
+- `GRPCAddr` - gRPC endpoint for connecting to a Anon node
 - `Key` - Name of the key in the keyring used for transaction signing
 - `KeyringBackend` - Storage backend for the keyring (os, file, kwallet, pass, test, memory)
 
@@ -214,22 +214,22 @@ When HMAC authentication is properly configured, all requests between the covena
 
 ## 5. Generate key pairs
 
-The covenant emulator daemon requires the existence of a Babylon keyring that
-signs signatures and interacts with Babylon. Use the following command to generate
+The covenant emulator daemon requires the existence of a Anon keyring that
+signs signatures and interacts with Anon. Use the following command to generate
 the key:
 
 ```bash
 covd create-key --key-name <name> --chain-id <chain-id> --keyring-backend <backend>
 {
-    "name": "babylon-tx-key",
+    "name": "anon-tx-key",
     "public-key-hex": "6dd4c9415a4091b74f45fdce71f5b8eebe743e5990b547009ff1dce8393d5df2",
-    "babylon-address": "bbn1gw5ns0kmcjj8y0edu5h4nkkw4aq263eyx2ynnp"
+    "anon-address": "anc1gw5ns0kmcjj8y0edu5h4nkkw4aq263eyx2ynnp"
 }
 ```
 
 Parameters:
 - `--key-name`: Name for the key in the keyring
-- `--chain-id`: ID of the Babylon chain (e.g., bbn-test-6)
+- `--chain-id`: ID of the Anon chain (e.g., anc-test-6)
 - `--keyring-backend`: Backend for key storage, we will use `test`
   for this guide.
 
@@ -237,13 +237,13 @@ After executing the above command, the key name will be saved in the config file
 created in the last [step](#42-configure-the-covenant-emulator).
 
 **⚡ Note:** that the `public-key` in the output should be used as one of the
-inputs of the genesis of the Babylon chain.
+inputs of the genesis of the Anon chain.
 
 Also, this key will be used to pay for the fees due to the daemon submitting
-signatures to Babylon.
+signatures to Anon.
 
 To check your balance, View your account on the
-[Babylon Explorer](https://babylon-testnet.l2scan.co) by searching for your
+[Anon Explorer](https://anon-testnet.l2scan.co) by searching for your
 address.
 
 

@@ -5,11 +5,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/config"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/keystore/cosmos"
-	m "github.com/babylonlabs-io/covenant-emulator/covenant-signer/observability/metrics"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerapp"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice"
+	"github.com/anon-org/covenant-emulator/covenant-signer/config"
+	"github.com/anon-org/covenant-emulator/covenant-signer/keystore/cosmos"
+	m "github.com/anon-org/covenant-emulator/covenant-signer/observability/metrics"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerapp"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice"
 )
 
 func init() {

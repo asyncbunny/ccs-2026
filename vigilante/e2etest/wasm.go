@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 	wasmtypes "github.com/CosmWasm/wasmd/x/wasm/types"
-	bbnclient "github.com/babylonlabs-io/babylon/v4/client/client"
+	ancclient "github.com/anon-org/anon/v4/client/client"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkquery "github.com/cosmos/cosmos-sdk/types/query"
 	"os"
@@ -14,7 +14,7 @@ import (
 	"strings"
 )
 
-func StoreWasmCode(ctx context.Context, bbnClient *bbnclient.Client, wasmFile string) error {
+func StoreWasmCode(ctx context.Context, ancClient *ancclient.Client, wasmFile string) error {
 	wasmCode, err := os.ReadFile(wasmFile) // #nosec G304
 	if err != nil {
 		return err
@@ -34,10 +34,10 @@ func StoreWasmCode(ctx context.Context, bbnClient *bbnclient.Client, wasmFile st
 	}
 
 	storeMsg := &wasmtypes.MsgStoreCode{
-		Sender:       bbnClient.MustGetAddr(),
+		Sender:       ancClient.MustGetAddr(),
 		WASMByteCode: wasmCode,
 	}
-	_, err = bbnClient.ReliablySendMsg(ctx, storeMsg, nil, nil)
+	_, err = ancClient.ReliablySendMsg(ctx, storeMsg, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -45,17 +45,17 @@ func StoreWasmCode(ctx context.Context, bbnClient *bbnclient.Client, wasmFile st
 	return nil
 }
 
-func InstantiateContract(bbnClient *bbnclient.Client, ctx context.Context, codeID uint64, initMsg []byte) error {
+func InstantiateContract(ancClient *ancclient.Client, ctx context.Context, codeID uint64, initMsg []byte) error {
 	instantiateMsg := &wasmtypes.MsgInstantiateContract{
-		Sender: bbnClient.MustGetAddr(),
-		Admin:  bbnClient.MustGetAddr(),
+		Sender: ancClient.MustGetAddr(),
+		Admin:  ancClient.MustGetAddr(),
 		CodeID: codeID,
 		Label:  "cw",
 		Msg:    initMsg,
 		Funds:  nil,
 	}
 
-	_, err := bbnClient.ReliablySendMsg(ctx, instantiateMsg, nil, nil)
+	_, err := ancClient.ReliablySendMsg(ctx, instantiateMsg, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -63,8 +63,8 @@ func InstantiateContract(bbnClient *bbnclient.Client, ctx context.Context, codeI
 	return nil
 }
 
-func ListCodes(ctx context.Context, bbnClient *bbnclient.Client, pagination *sdkquery.PageRequest) (*wasmtypes.QueryCodesResponse, error) {
-	clientCtx := client.Context{Client: bbnClient.RPCClient}
+func ListCodes(ctx context.Context, ancClient *ancclient.Client, pagination *sdkquery.PageRequest) (*wasmtypes.QueryCodesResponse, error) {
+	clientCtx := client.Context{Client: ancClient.RPCClient}
 	queryClient := wasmtypes.NewQueryClient(clientCtx)
 
 	resp, err := queryClient.Codes(ctx, &wasmtypes.QueryCodesRequest{
@@ -74,12 +74,12 @@ func ListCodes(ctx context.Context, bbnClient *bbnclient.Client, pagination *sdk
 	return resp, err
 }
 
-func GetLatestCodeID(ctx context.Context, bbnClient *bbnclient.Client) (uint64, error) {
+func GetLatestCodeID(ctx context.Context, ancClient *ancclient.Client) (uint64, error) {
 	pagination := &sdkquery.PageRequest{
 		Limit:   1,
 		Reverse: true,
 	}
-	resp, err := ListCodes(ctx, bbnClient, pagination)
+	resp, err := ListCodes(ctx, ancClient, pagination)
 	if err != nil {
 		return 0, err
 	}
@@ -91,8 +91,8 @@ func GetLatestCodeID(ctx context.Context, bbnClient *bbnclient.Client) (uint64, 
 	return resp.CodeInfos[0].CodeID, nil
 }
 
-func ListContractsByCode(ctx context.Context, bbnClient *bbnclient.Client, codeID uint64, pagination *sdkquery.PageRequest) (*wasmtypes.QueryContractsByCodeResponse, error) {
-	clientCtx := client.Context{Client: bbnClient.RPCClient}
+func ListContractsByCode(ctx context.Context, ancClient *ancclient.Client, codeID uint64, pagination *sdkquery.PageRequest) (*wasmtypes.QueryContractsByCodeResponse, error) {
+	clientCtx := client.Context{Client: ancClient.RPCClient}
 	queryClient := wasmtypes.NewQueryClient(clientCtx)
 
 	resp, err := queryClient.ContractsByCode(ctx, &wasmtypes.QueryContractsByCodeRequest{

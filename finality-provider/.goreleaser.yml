@@ -63,7 +63,7 @@ checksum:
 
 release:
   github:
-    owner: babylonlabs-io
+    owner: anon-org
     name: finality-provider
 
 # Docs: https://goreleaser.com/customization/changelog/

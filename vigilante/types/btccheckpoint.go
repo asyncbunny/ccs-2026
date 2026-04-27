@@ -3,8 +3,8 @@ package types // nolint:revive
 import (
 	"fmt"
 
-	"github.com/babylonlabs-io/babylon/v4/btctxformatter"
-	btcctypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
+	"github.com/anon-org/anon/v4/btctxformatter"
+	btcctypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
 )
 
 // MustNewMsgInsertBTCSpvProof returns a MsgInsertBTCSpvProof msg given the submitter address and SPV proofs of two BTC txs

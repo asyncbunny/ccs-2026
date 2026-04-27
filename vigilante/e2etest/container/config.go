@@ -1,7 +1,7 @@
 package container
 
 import (
-	"github.com/babylonlabs-io/vigilante/testutil"
+	"github.com/anon-org/vigilante/testutil"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -11,8 +11,8 @@ import (
 type ImageConfig struct {
 	BitcoindRepository string
 	BitcoindVersion    string
-	BabylonRepository  string
-	BabylonVersion     string
+	AnonRepository  string
+	AnonVersion     string
 	ElectrsRepository  string
 	ElectrsVersion     string
 }
@@ -21,21 +21,21 @@ type ImageConfig struct {
 const (
 	dockerBitcoindRepository = "lncm/bitcoind"
 	dockerBitcoindVersionTag = "v28.0"
-	dockerBabylondRepository = "babylonlabs/babylond"
+	dockerAnondRepository = "anon/anond"
 	dockerElectrsRepository  = "mempool/electrs"
 	dockerElectrsVersionTag  = "v3.1.0"
 )
 
 // NewImageConfig returns ImageConfig needed for running e2e test.
 func NewImageConfig(t *testing.T) ImageConfig {
-	babylonVersion, err := testutil.GetBabylonVersion()
+	anonVersion, err := testutil.GetAnonVersion()
 	require.NoError(t, err)
 
 	return ImageConfig{
 		BitcoindRepository: dockerBitcoindRepository,
 		BitcoindVersion:    dockerBitcoindVersionTag,
-		BabylonRepository:  dockerBabylondRepository,
-		BabylonVersion:     babylonVersion,
+		AnonRepository:  dockerAnondRepository,
+		AnonVersion:     anonVersion,
 		ElectrsRepository:  dockerElectrsRepository,
 		ElectrsVersion:     dockerElectrsVersionTag,
 	}

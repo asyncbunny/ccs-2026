@@ -6,9 +6,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
 	"github.com/btcsuite/btcd/btcec/v2"
 	notifier "github.com/lightningnetwork/lnd/chainntnfs"
 	"go.uber.org/zap"
@@ -25,7 +25,7 @@ type AtomicSlasher struct {
 	logger      *zap.Logger
 	btcClient   btcclient.BTCClient
 	btcNotifier notifier.ChainNotifier
-	bbnAdapter  *BabylonAdapter
+	ancAdapter  *AnonAdapter
 
 	// config parameters
 	cfg               *config.BTCStakingTrackerConfig
@@ -50,12 +50,12 @@ func New(
 	maxRetryTimes uint,
 	btcClient btcclient.BTCClient,
 	btcNotifier notifier.ChainNotifier,
-	bbnClient BabylonClient,
+	ancClient AnonClient,
 	slashedFPSKChan chan *btcec.PrivateKey,
 	metrics *metrics.AtomicSlasherMetrics,
 ) *AtomicSlasher {
 	logger := parentLogger.With(zap.String("module", "atomic_slasher"))
-	bbnAdapter := NewBabylonAdapter(logger, cfg, retrySleepTime, maxRetrySleepTime, maxRetryTimes, bbnClient)
+	ancAdapter := NewAnonAdapter(logger, cfg, retrySleepTime, maxRetrySleepTime, maxRetryTimes, ancClient)
 
 	return &AtomicSlasher{
 		quit:              make(chan struct{}),
@@ -65,7 +65,7 @@ func New(
 		logger:            logger,
 		btcClient:         btcClient,
 		btcNotifier:       btcNotifier,
-		bbnAdapter:        bbnAdapter,
+		ancAdapter:        ancAdapter,
 		btcDelIndex:       NewBTCDelegationIndex(),
 		slashingTxChan:    make(chan *SlashingTxInfo, 100), // TODO: parameterise
 		slashedFPSKChan:   slashedFPSKChan,

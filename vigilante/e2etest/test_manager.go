@@ -14,17 +14,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/babylonlabs-io/babylon/v4/client/babylonclient"
-	"github.com/babylonlabs-io/vigilante/e2etest/container"
+	"github.com/anon-org/anon/v4/client/anonclient"
+	"github.com/anon-org/vigilante/e2etest/container"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/ory/dockertest/v3"
 	"go.uber.org/zap"
 
-	bbnclient "github.com/babylonlabs-io/babylon/v4/client/client"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	btclctypes "github.com/babylonlabs-io/babylon/v4/x/btclightclient/types"
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/config"
+	ancclient "github.com/anon-org/anon/v4/client/client"
+	anc "github.com/anon-org/anon/v4/types"
+	btclctypes "github.com/anon-org/anon/v4/x/btclightclient/types"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/config"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -35,9 +35,9 @@ import (
 )
 
 var (
-	submitterAddrStr = "bbn1eppc73j56382wjn6nnq3quu5eye4pmm087xfdh" //nolint:unused
-	babylonTag       = []byte{1, 2, 3, 4}                           //nolint:unused
-	babylonTagHex    = hex.EncodeToString(babylonTag)               //nolint:unused
+	submitterAddrStr = "anc1eppc73j56382wjn6nnq3quu5eye4pmm087xfdh" //nolint:unused
+	anonTag       = []byte{1, 2, 3, 4}                           //nolint:unused
+	anonTagHex    = hex.EncodeToString(anonTag)               //nolint:unused
 
 	eventuallyWaitTimeOut = 40 * time.Second
 	eventuallyPollTime    = 1 * time.Second
@@ -95,7 +95,7 @@ type TestManager struct {
 	TestRpcClient    *rpcclient.Client
 	BitcoindHandler  *BitcoindTestHandler
 	Electrs          *ElectrsTestHandler
-	BabylonClient    *bbnclient.Client
+	AnonClient    *ancclient.Client
 	BTCClient        *btcclient.Client
 	Config           *config.Config
 	WalletPrivKey    *btcec.PrivateKey
@@ -196,7 +196,7 @@ func StartManager(t *testing.T, options ...TestManagerOption) *TestManager {
 	pkScript, err := txscript.PayToAddrScript(minerAddressDecoded)
 	require.NoError(t, err)
 
-	// start Babylon node
+	// start Anon node
 	tmpDir, err := tempDir(t)
 	require.NoError(t, err)
 
@@ -206,44 +206,44 @@ func StartManager(t *testing.T, options ...TestManagerOption) *TestManager {
 		covPubKeys[i] = pk.PubKey()
 	}
 
-	var babylond *dockertest.Resource
+	var anond *dockertest.Resource
 	require.Eventually(t, func() bool {
-		babylond, err = manager.RunBabylondResource(
+		anond, err = manager.RunAnondResource(
 			t, tmpDir, baseHeaderHex, hex.EncodeToString(pkScript), tmCfg.EpochInterval, covPubKeys...)
 		if err != nil {
-			t.Logf("failed to start babylond, test: %s err: %v", t.Name(), err)
-			errResource := manager.RemoveContainer(fmt.Sprintf("babylond-%s", t.Name()))
+			t.Logf("failed to start anond, test: %s err: %v", t.Name(), err)
+			errResource := manager.RemoveContainer(fmt.Sprintf("anond-%s", t.Name()))
 			require.NoError(t, errResource)
 		}
 		return err == nil
 	}, 25*time.Second, 500*time.Millisecond)
 
-	// create Babylon client
-	cfg.Babylon.KeyDirectory = filepath.Join(tmpDir, "node0", "babylond")
-	cfg.Babylon.Key = "test-spending-key" // keyring to bbn node
-	cfg.Babylon.GasAdjustment = 3.0
-	cfg.Babylon.BlockTimeout = 30 * time.Second
+	// create Anon client
+	cfg.Anon.KeyDirectory = filepath.Join(tmpDir, "node0", "anond")
+	cfg.Anon.Key = "test-spending-key" // keyring to anc node
+	cfg.Anon.GasAdjustment = 3.0
+	cfg.Anon.BlockTimeout = 30 * time.Second
 
 	// update port with the dynamically allocated one from docker
-	cfg.Babylon.RPCAddr = fmt.Sprintf("http://localhost:%s", babylond.GetPort("26657/tcp"))
-	cfg.Babylon.GRPCAddr = fmt.Sprintf("https://localhost:%s", babylond.GetPort("9090/tcp"))
+	cfg.Anon.RPCAddr = fmt.Sprintf("http://localhost:%s", anond.GetPort("26657/tcp"))
+	cfg.Anon.GRPCAddr = fmt.Sprintf("https://localhost:%s", anond.GetPort("9090/tcp"))
 
-	babylonClient, err := bbnclient.New(&cfg.Babylon, nil)
+	anonClient, err := ancclient.New(&cfg.Anon, nil)
 	require.NoError(t, err)
 
-	// wait until Babylon is ready
+	// wait until Anon is ready
 	require.Eventually(t, func() bool {
-		resp, err := babylonClient.CurrentEpoch()
+		resp, err := anonClient.CurrentEpoch()
 		if err != nil {
 			return false
 		}
-		log.Infof("Babylon is ready: %v", resp)
+		log.Infof("Anon is ready: %v", resp)
 		return true
 	}, eventuallyWaitTimeOut, eventuallyPollTime)
 
 	return &TestManager{
 		TestRpcClient:    testRpcClient,
-		BabylonClient:    babylonClient,
+		AnonClient:    anonClient,
 		BitcoindHandler:  btcHandler,
 		Electrs:          electrsHandler,
 		BTCClient:        btcClient,
@@ -255,8 +255,8 @@ func StartManager(t *testing.T, options ...TestManagerOption) *TestManager {
 }
 
 func (tm *TestManager) Stop(t *testing.T) {
-	if tm.BabylonClient.IsRunning() {
-		err := tm.BabylonClient.Stop()
+	if tm.AnonClient.IsRunning() {
+		err := tm.AnonClient.Stop()
 		require.NoError(t, err)
 	}
 }
@@ -274,8 +274,8 @@ func (tm *TestManager) mineBlock(t *testing.T) *wire.MsgBlock {
 	return header
 }
 
-func (tm *TestManager) MustGetBabylonSigner() string {
-	return tm.BabylonClient.MustGetAddr()
+func (tm *TestManager) MustGetAnonSigner() string {
+	return tm.AnonClient.MustGetAddr()
 }
 
 // RetrieveTransactionFromMempool fetches transactions from the mempool for the given hashes
@@ -292,26 +292,26 @@ func (tm *TestManager) RetrieveTransactionFromMempool(t *testing.T, hashes []*ch
 	return txs, nil
 }
 
-func (tm *TestManager) InsertBTCHeadersToBabylon(headers []*wire.BlockHeader) (*babylonclient.RelayerTxResponse, error) {
-	var headersBytes []bbn.BTCHeaderBytes
+func (tm *TestManager) InsertBTCHeadersToAnon(headers []*wire.BlockHeader) (*anonclient.RelayerTxResponse, error) {
+	var headersBytes []anc.BTCHeaderBytes
 
 	for _, h := range headers {
-		headersBytes = append(headersBytes, bbn.NewBTCHeaderBytesFromBlockHeader(h))
+		headersBytes = append(headersBytes, anc.NewBTCHeaderBytesFromBlockHeader(h))
 	}
 
 	msg := btclctypes.MsgInsertHeaders{
 		Headers: headersBytes,
-		Signer:  tm.MustGetBabylonSigner(),
+		Signer:  tm.MustGetAnonSigner(),
 	}
 
-	return tm.BabylonClient.InsertHeaders(context.Background(), &msg)
+	return tm.AnonClient.InsertHeaders(context.Background(), &msg)
 }
 
 func (tm *TestManager) CatchUpBTCLightClient(t *testing.T) {
 	btcHeight, err := tm.TestRpcClient.GetBlockCount()
 	require.NoError(t, err)
 
-	tipResp, err := tm.BabylonClient.BTCHeaderChainTip()
+	tipResp, err := tm.AnonClient.BTCHeaderChainTip()
 	require.NoError(t, err)
 	btclcHeight := tipResp.Header.Height
 
@@ -325,7 +325,7 @@ func (tm *TestManager) CatchUpBTCLightClient(t *testing.T) {
 	}
 
 	for headersChunk := range slices.Chunk(headers, 100) {
-		_, err := tm.InsertBTCHeadersToBabylon(headersChunk)
+		_, err := tm.InsertBTCHeadersToAnon(headersChunk)
 		require.NoError(t, err)
 
 	}
@@ -365,7 +365,7 @@ func importPrivateKey(btcHandler *BitcoindTestHandler) (*btcec.PrivateKey, error
 }
 
 func tempDir(t *testing.T) (string, error) {
-	tempPath, err := os.MkdirTemp(os.TempDir(), "babylon-test-*")
+	tempPath, err := os.MkdirTemp(os.TempDir(), "anon-test-*")
 	if err != nil {
 		return "", err
 	}
@@ -382,26 +382,26 @@ func tempDir(t *testing.T) (string, error) {
 }
 
 func (tm *TestManager) DeployCwContract(t *testing.T) string {
-	err := StoreWasmCode(t.Context(), tm.BabylonClient, "./bytecode/testdata.wasm")
+	err := StoreWasmCode(t.Context(), tm.AnonClient, "./bytecode/testdata.wasm")
 	require.NoError(t, err)
 
 	var codeId uint64
 	require.Eventually(t, func() bool {
-		codeId, _ = GetLatestCodeID(t.Context(), tm.BabylonClient)
+		codeId, _ = GetLatestCodeID(t.Context(), tm.AnonClient)
 		return codeId > 0
 	}, eventuallyWaitTimeOut, eventuallyPollTime)
 
 	require.Equal(t, uint64(1), codeId, "first deployed contract code_id should be 1")
 	initMsgBz := []byte("{}")
 
-	err = InstantiateContract(tm.BabylonClient, t.Context(), codeId, initMsgBz)
+	err = InstantiateContract(tm.AnonClient, t.Context(), codeId, initMsgBz)
 	require.NoError(t, err)
 
 	var listContractsResponse *wasmtypes.QueryContractsByCodeResponse
 	require.Eventually(t, func() bool {
 		listContractsResponse, err = ListContractsByCode(
 			t.Context(),
-			tm.BabylonClient,
+			tm.AnonClient,
 			codeId,
 			&sdkquerytypes.PageRequest{},
 		)

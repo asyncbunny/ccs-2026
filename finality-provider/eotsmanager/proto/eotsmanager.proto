@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package proto;
 
-option go_package = "github.com/babylonlabs-io/finality-provider/eotsmanager/proto";
+option go_package = "github.com/anon-org/finality-provider/eotsmanager/proto";
 
 // EOTSManager is the service for managing EOTS keys and randomness pairs
 service EOTSManager {

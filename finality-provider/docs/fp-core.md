@@ -28,7 +28,7 @@ We define invariants that the finality provider should satisfy:
   - the finality provider has not committed any randomness for this block
 
 - A finality provider instance should not be running if it’s status is `slashed`
-  or `jailed` on Babylon.
+  or `jailed` on Anon.
 
 ### Internal variables
 
@@ -56,11 +56,11 @@ Internal variables need to satisfy the following rules:
 ### Committing public randomness
 
 * Finality providers should start to send public randomness commit right
-  after it is registered on Babylon. This is because a public randomness commit
+  after it is registered on Anon. This is because a public randomness commit
   only takes into effect after the committed epoch is finalized. So the finality
   provider should start sending the commit as soon as possible.
 * If the remaining randomness is not sufficient (defined by config) by the
-  current Babylon Genesis height, the finality provider should make a new commit.
+  current Anon Genesis height, the finality provider should make a new commit.
 * The next commit should be made with `start_height` right after the last
   committed height. This is to ensure no gap between each commit.
 
@@ -86,7 +86,7 @@ During fast sync:
 2. find a range of blocks starting from `last_processed_height + 1` to
    `current_block_height`,
 3. check invariant against each of the blocks, batch signature messages, and
-   send it to Babylon,
+   send it to Anon,
 4. clear the buffer of the poller and reset the next height of the poller to
    `last_processed_height + 1`, and
 5. unblock the poller.

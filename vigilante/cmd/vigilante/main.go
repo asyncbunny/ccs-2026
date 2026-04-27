@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/babylonlabs-io/babylon/v4/app/params"
-	"github.com/babylonlabs-io/vigilante/cmd/vigilante/cmd"
+	"github.com/anon-org/anon/v4/app/params"
+	"github.com/anon-org/vigilante/cmd/vigilante/cmd"
 )
 
 // TODO: init log

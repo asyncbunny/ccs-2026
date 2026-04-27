@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sync"
 
-	asig "github.com/babylonlabs-io/babylon/v4/crypto/schnorr-adaptor-signature"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
+	asig "github.com/anon-org/anon/v4/crypto/schnorr-adaptor-signature"
+	anc "github.com/anon-org/anon/v4/types"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
@@ -44,7 +44,7 @@ type TrackedDelegation struct {
 }
 
 func NewTrackedBTCDelegation(btcDel *bstypes.BTCDelegationResponse) (*TrackedDelegation, error) {
-	stakingTxHash, _, err := bbn.NewBTCTxFromHex(btcDel.StakingTxHex)
+	stakingTxHash, _, err := anc.NewBTCTxFromHex(btcDel.StakingTxHex)
 	if err != nil {
 		return nil, err
 	}
@@ -162,22 +162,22 @@ func (bdi *BTCDelegationIndex) FindSlashedBTCDelegation(txHash chainhash.Hash) (
 // TODO: fuzz test
 func parseSlashingTxWitness(
 	witnessStack wire.TxWitness,
-	covPKs []bbn.BIP340PubKey,
-	fpPKs []bbn.BIP340PubKey,
-) (map[string]*bbn.BIP340Signature, int, *bbn.BIP340PubKey, error) {
+	covPKs []anc.BIP340PubKey,
+	fpPKs []anc.BIP340PubKey,
+) (map[string]*anc.BIP340Signature, int, *anc.BIP340PubKey, error) {
 	// sort covenant PKs and finality provider PKs as per the tx script structure
-	orderedCovPKs := bbn.SortBIP340PKs(covPKs)
-	orderedfpPKs := bbn.SortBIP340PKs(fpPKs)
+	orderedCovPKs := anc.SortBIP340PKs(covPKs)
+	orderedfpPKs := anc.SortBIP340PKs(fpPKs)
 
 	// decode covenant signatures
-	covSigMap := make(map[string]*bbn.BIP340Signature)
+	covSigMap := make(map[string]*anc.BIP340Signature)
 	covWitnessStack := witnessStack[0:len(orderedCovPKs)]
 	for i := range covWitnessStack {
 		if len(covWitnessStack[i]) == 0 {
 			// this covenant member does not sign, skip
 			continue
 		}
-		sig, err := bbn.NewBIP340Signature(covWitnessStack[i])
+		sig, err := anc.NewBIP340Signature(covWitnessStack[i])
 		if err != nil {
 			return nil, 0, nil, err
 		}
@@ -186,7 +186,7 @@ func parseSlashingTxWitness(
 
 	// decode finality provider signatures
 	var fpIdx int
-	var fpPK *bbn.BIP340PubKey
+	var fpPK *anc.BIP340PubKey
 	fpWitnessStack := witnessStack[len(orderedCovPKs) : len(orderedCovPKs)+len(orderedfpPKs)]
 	for i := range fpWitnessStack {
 		if len(fpWitnessStack[i]) != 0 {
@@ -202,9 +202,9 @@ func parseSlashingTxWitness(
 
 // TODO: fuzz test
 func tryExtractFPSK(
-	covSigMap map[string]*bbn.BIP340Signature,
+	covSigMap map[string]*anc.BIP340Signature,
 	fpIdx int,
-	fpPK *bbn.BIP340PubKey,
+	fpPK *anc.BIP340PubKey,
 	covASigLists []*bstypes.CovenantAdaptorSignatures,
 ) (*btcec.PrivateKey, error) {
 	// try to recover
@@ -232,7 +232,7 @@ func tryExtractFPSK(
 			return nil, err
 		}
 		fpSK := extracted.ToBTCSK()
-		actualfpPK := bbn.NewBIP340PubKeyFromBTCPK(fpSK.PubKey())
+		actualfpPK := anc.NewBIP340PubKeyFromBTCPK(fpSK.PubKey())
 		if !fpPK.Equals(actualfpPK) {
 			// this covenant member must have colluded with finality provider and
 			// signed a new Schnorr signature. try the next covenant member

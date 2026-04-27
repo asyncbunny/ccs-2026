@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	"github.com/babylonlabs-io/vigilante/testutil"
+	anc "github.com/anon-org/anon/v4/types"
+	"github.com/anon-org/vigilante/testutil"
 	"github.com/btcsuite/btcd/btcec/v2"
 
 	"github.com/ory/dockertest/v3"
@@ -21,7 +21,7 @@ import (
 
 const (
 	bitcoindContainerName = "bitcoind"
-	babylondContainerName = "babylond"
+	anondContainerName = "anond"
 	electrsContainerName  = "electrs"
 )
 
@@ -187,8 +187,8 @@ func (m *Manager) RunBitcoindResource(
 	return bitcoindResource, nil
 }
 
-// RunBabylondResource starts a babylond container
-func (m *Manager) RunBabylondResource(
+// RunAnondResource starts a anond container
+func (m *Manager) RunAnondResource(
 	t *testing.T,
 	mounthPath string,
 	baseHeaderHex string,
@@ -198,29 +198,29 @@ func (m *Manager) RunBabylondResource(
 ) (*dockertest.Resource, error) {
 	covenantPksStr := make([]string, len(covenantPks))
 	for i, cvPk := range covenantPks {
-		covenantPksStr[i] = bbn.NewBIP340PubKeyFromBTCPK(cvPk).MarshalHex()
+		covenantPksStr[i] = anc.NewBIP340PubKeyFromBTCPK(cvPk).MarshalHex()
 	}
 	quorumSize := (len(covenantPks) / 2) + 1
 
 	cmd := []string{
 		"sh", "-c", fmt.Sprintf(
-			"babylond testnet --v=1 --output-dir=/home --starting-ip-address=192.168.10.2 "+
+			"anond testnet --v=1 --output-dir=/home --starting-ip-address=192.168.10.2 "+
 				"--keyring-backend=test --chain-id=chain-test --btc-finalization-timeout=4 "+
 				"--btc-confirmation-depth=3 --additional-sender-account --btc-network=regtest "+
 				"--min-staking-time-blocks=200 --min-staking-amount-sat=10000 "+
 				"--epoch-interval=%d --slashing-pk-script=%s --btc-base-header=%s "+
 				"--covenant-quorum=%d --covenant-pks=%s && chmod -R 777 /home && "+
-				"export BABYLON_BLS_PASSWORD=password && babylond start --home=/home/node0/babylond",
+				"export ANON_BLS_PASSWORD=password && anond start --home=/home/node0/anond",
 			epochInterval, slashingPkScript, baseHeaderHex, quorumSize, strings.Join(covenantPksStr, ",")),
 	}
 
 	resource, err := m.pool.RunWithOptions(
 		&dockertest.RunOptions{
-			Name:       fmt.Sprintf("%s-%s", babylondContainerName, t.Name()),
-			Repository: m.cfg.BabylonRepository,
-			Tag:        m.cfg.BabylonVersion,
+			Name:       fmt.Sprintf("%s-%s", anondContainerName, t.Name()),
+			Repository: m.cfg.AnonRepository,
+			Tag:        m.cfg.AnonVersion,
 			Labels: map[string]string{
-				"e2e": "babylond",
+				"e2e": "anond",
 			},
 			User: "root:root",
 			Mounts: []string{
@@ -244,7 +244,7 @@ func (m *Manager) RunBabylondResource(
 		return nil, err
 	}
 
-	m.resources[babylondContainerName] = resource
+	m.resources[anondContainerName] = resource
 
 	return resource, nil
 }

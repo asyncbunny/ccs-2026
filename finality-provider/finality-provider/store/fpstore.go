@@ -14,8 +14,8 @@ import (
 	pm "google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
 )
 
 var (

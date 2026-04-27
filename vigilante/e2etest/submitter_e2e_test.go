@@ -5,21 +5,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/babylonlabs-io/vigilante/testutil"
+	"github.com/anon-org/vigilante/testutil"
 	"github.com/btcsuite/btcd/btcjson"
 	promtestutil "github.com/prometheus/client_golang/prometheus/testutil"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	btcctypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
-	checkpointingtypes "github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	btcctypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
+	checkpointingtypes "github.com/anon-org/anon/v4/x/checkpointing/types"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/submitter"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/submitter"
 )
 
 func TestSubmitterSubmission(t *testing.T) {
@@ -35,18 +35,18 @@ func TestSubmitterSubmission(t *testing.T) {
 	randomCheckpoint.Ckpt.EpochNum = 1
 
 	ctl := gomock.NewController(t)
-	mockBabylonClient := submitter.NewMockBabylonQueryClient(ctl)
+	mockAnonClient := submitter.NewMockAnonQueryClient(ctl)
 	subAddr, _ := sdk.AccAddressFromBech32(submitterAddrStr)
 
-	mockBabylonClient.EXPECT().BTCCheckpointParams().Return(
+	mockAnonClient.EXPECT().BTCCheckpointParams().Return(
 		&btcctypes.QueryParamsResponse{
 			Params: btcctypes.Params{
-				CheckpointTag:                 babylonTagHex,
+				CheckpointTag:                 anonTagHex,
 				BtcConfirmationDepth:          2,
 				CheckpointFinalizationTimeout: 4,
 			},
 		}, nil)
-	mockBabylonClient.EXPECT().RawCheckpointList(gomock.Any(), gomock.Any()).Return(
+	mockAnonClient.EXPECT().RawCheckpointList(gomock.Any(), gomock.Any()).Return(
 		&checkpointingtypes.QueryRawCheckpointListResponse{
 			RawCheckpoints: []*checkpointingtypes.RawCheckpointWithMetaResponse{
 				randomCheckpoint.ToResponse(),
@@ -60,7 +60,7 @@ func TestSubmitterSubmission(t *testing.T) {
 		&tm.Config.Submitter,
 		logger,
 		tm.BTCClient,
-		mockBabylonClient,
+		mockAnonClient,
 		subAddr,
 		tm.Config.Common.RetrySleepTime,
 		tm.Config.Common.MaxRetrySleepTime,
@@ -113,18 +113,18 @@ func TestSubmitterSubmissionReplace(t *testing.T) {
 	randomCheckpoint.Ckpt.EpochNum = 1
 
 	ctl := gomock.NewController(t)
-	mockBabylonClient := submitter.NewMockBabylonQueryClient(ctl)
+	mockAnonClient := submitter.NewMockAnonQueryClient(ctl)
 	subAddr, _ := sdk.AccAddressFromBech32(submitterAddrStr)
 
-	mockBabylonClient.EXPECT().BTCCheckpointParams().Return(
+	mockAnonClient.EXPECT().BTCCheckpointParams().Return(
 		&btcctypes.QueryParamsResponse{
 			Params: btcctypes.Params{
-				CheckpointTag:                 babylonTagHex,
+				CheckpointTag:                 anonTagHex,
 				BtcConfirmationDepth:          2,
 				CheckpointFinalizationTimeout: 4,
 			},
 		}, nil)
-	mockBabylonClient.EXPECT().RawCheckpointList(gomock.Any(), gomock.Any()).Return(
+	mockAnonClient.EXPECT().RawCheckpointList(gomock.Any(), gomock.Any()).Return(
 		&checkpointingtypes.QueryRawCheckpointListResponse{
 			RawCheckpoints: []*checkpointingtypes.RawCheckpointWithMetaResponse{
 				randomCheckpoint.ToResponse(),
@@ -139,7 +139,7 @@ func TestSubmitterSubmissionReplace(t *testing.T) {
 		&tm.Config.Submitter,
 		logger,
 		tm.BTCClient,
-		mockBabylonClient,
+		mockAnonClient,
 		subAddr,
 		tm.Config.Common.RetrySleepTime,
 		tm.Config.Common.MaxRetrySleepTime,
@@ -212,18 +212,18 @@ func TestSubmitterSubmissionReplaceDust(t *testing.T) {
 	randomCheckpoint.Ckpt.EpochNum = 1
 
 	ctl := gomock.NewController(t)
-	mockBabylonClient := submitter.NewMockBabylonQueryClient(ctl)
+	mockAnonClient := submitter.NewMockAnonQueryClient(ctl)
 	subAddr, _ := sdk.AccAddressFromBech32(submitterAddrStr)
 
-	mockBabylonClient.EXPECT().BTCCheckpointParams().Return(
+	mockAnonClient.EXPECT().BTCCheckpointParams().Return(
 		&btcctypes.QueryParamsResponse{
 			Params: btcctypes.Params{
-				CheckpointTag:                 babylonTagHex,
+				CheckpointTag:                 anonTagHex,
 				BtcConfirmationDepth:          2,
 				CheckpointFinalizationTimeout: 4,
 			},
 		}, nil)
-	mockBabylonClient.EXPECT().RawCheckpointList(gomock.Any(), gomock.Any()).Return(
+	mockAnonClient.EXPECT().RawCheckpointList(gomock.Any(), gomock.Any()).Return(
 		&checkpointingtypes.QueryRawCheckpointListResponse{
 			RawCheckpoints: []*checkpointingtypes.RawCheckpointWithMetaResponse{
 				randomCheckpoint.ToResponse(),
@@ -264,7 +264,7 @@ func TestSubmitterSubmissionReplaceDust(t *testing.T) {
 		&tm.Config.Submitter,
 		logger,
 		tm.BTCClient,
-		mockBabylonClient,
+		mockAnonClient,
 		subAddr,
 		tm.Config.Common.RetrySleepTime,
 		tm.Config.Common.MaxRetrySleepTime,

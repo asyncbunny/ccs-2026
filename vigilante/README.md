@@ -1,12 +1,12 @@
 # vigilante
 
-This repository contains vigilante programs for Babylon. They are daemon programs that relay information between Babylon and Bitcoin for facilitating the Bitcoin timestamping protocol and the Bitcoin staking protocol.
+This repository contains vigilante programs for Anon. They are daemon programs that relay information between Anon and Bitcoin for facilitating the Bitcoin timestamping protocol and the Bitcoin staking protocol.
 
 There are four vigilante programs:
 
-- [Submitter](./submitter/README.md): submitting Babylon checkpoints to Bitcoin.
-- [Reporter](./reporter/README.md): reporting Bitcoin headers and checkpoints to Babylon.
-- [BTC timestamping monitor](./monitor/README.md): monitoring censorship of Babylon checkpoints in Babylon.
+- [Submitter](./submitter/README.md): submitting Anon checkpoints to Bitcoin.
+- [Reporter](./reporter/README.md): reporting Bitcoin headers and checkpoints to Anon.
+- [BTC timestamping monitor](./monitor/README.md): monitoring censorship of Anon checkpoints in Anon.
 - [BTC staking tracker](./btcstaking-tracker/README.md): monitoring early unbonding of BTC delegations and slashing adversarial finality providers.
 
 ## Requirements
@@ -28,19 +28,19 @@ make build
 For the following:
 
 ```shell
-BABYLON_PATH="path_where_babylon_is_built" # example: $HOME/Projects/Babylon/babylon
-VIGILANTE_PATH="root_vigilante_dir" # example: $HOME/Projects/Babylon/vigilante
-TESTNET_PATH="path_where_the_testnet_files_will_be_stored" # example: $HOME/Projects/Babylon/babylon/.testnet
+ANON_PATH="path_where_anon_is_built" # example: $HOME/Projects/Anon/anon
+VIGILANTE_PATH="root_vigilante_dir" # example: $HOME/Projects/Anon/vigilante
+TESTNET_PATH="path_where_the_testnet_files_will_be_stored" # example: $HOME/Projects/Anon/anon/.testnet
 ```
 
-### Babylon configuration
+### Anon configuration
 
-Initially, create a testnet files for Babylon.
+Initially, create a testnet files for Anon.
 In this snippet, we create only one node, but this can work
 for an arbitrary number of nodes.
 
 ```shell
-$BABYLON_PATH/build/babylond testnet \
+$ANON_PATH/build/anond testnet \
     --v                     1 \
     --output-dir            $TESTNET_PATH \
     --starting-ip-address   192.168.10.2 \
@@ -51,10 +51,10 @@ $BABYLON_PATH/build/babylond testnet \
 Using this configuration, start the testnet for the single node.
 
 ```shell
-$BABYLON_PATH/build/babylond start --home $TESTNET_PATH/node0/babylond
+$ANON_PATH/build/anond start --home $TESTNET_PATH/node0/anond
 ```
 
-This will result in a Babylon node running in port `26657` and
+This will result in a Anon node running in port `26657` and
 a GRPC instance running in port `9090`.
 
 ### Bitcoin configuration
@@ -166,7 +166,7 @@ nano $TESTNET_PATH/vigilante/vigilante.yml # edit the config file to replace $TE
 ```shell
 go run $VIGILANTE_PATH/cmd/main.go reporter \
          --config $TESTNET_PATH/vigilante/vigilante.yml \
-         --babylon-key-dir $BABYLON_PATH/.testnet/node0/babylond
+         --anon-key-dir $ANON_PATH/.testnet/node0/anond
 ```
 
 #### Running the vigilante submitter
@@ -178,19 +178,19 @@ go run $VIGILANTE_PATH/cmd/main.go submitter \
 
 #### Running the vigilante monitor
 
-We first need to ensure that a BTC full node and the Babylon node that we want to monitor are started running.
+We first need to ensure that a BTC full node and the Anon node that we want to monitor are started running.
 
 Then we start the vigilante monitor:
 
 ```shell
 go run $VIGILANTE_PATH/cmd/main.go monitor \
-         --genesis $BABYLON_NODE_PATH/config/genesis.json
+         --genesis $ANON_NODE_PATH/config/genesis.json
          --config $TESTNET_PATH/vigilante/vigilante.yml
 ```
 
 #### Running the BTC staking tracker
 
-We first need to ensure that a BTC full node and the Babylon node that we want to monitor are started running.
+We first need to ensure that a BTC full node and the Anon node that we want to monitor are started running.
 Additionally, we need to have an instance of [electrs indexer](https://github.com/mempool/electrs) running. 
 Follow the instructions in the `electrs` repository to set up the indexer. We recommend using their [docker image](https://hub.docker.com/r/mempool/electrs).
 
@@ -230,7 +230,7 @@ go run $VIGILANTE_PATH/cmd/main.go bstracker \
 
 #### Running the vigilante reporter in Docker container
 
-Initially, build a Docker image named `babylonchain/vigilante-reporter`
+Initially, build a Docker image named `anon/vigilante-reporter`
 
 ```shell
 cp sample-vigilante-docker.yml $TESTNET_PATH/vigilante/vigilante.yml
@@ -238,50 +238,50 @@ make reporter-build
 ```
 
 Afterward, run the above image and attach the directories
-that contain the configuration for Babylon, Bitcoin, and the vigilante.
+that contain the configuration for Anon, Bitcoin, and the vigilante.
 
 ```shell
 docker run --rm \
          -v $TESTNET_PATH/bitcoin:/bitcoin \
-         -v $TESTNET_PATH/node0/babylond:/babylon \
+         -v $TESTNET_PATH/node0/anond:/anon \
          -v $TESTNET_PATH/vigilante:/vigilante \
-         babylonchain/vigilante-reporter
+         anon/vigilante-reporter
 ```
 
 #### Running the vigilante submitter in Docker container
 
-Follow the same steps as above, but with the `babylonchain/vigilante-submitter` Docker image.
+Follow the same steps as above, but with the `anon/vigilante-submitter` Docker image.
 
 ```shell
 docker run --rm \
          -v $TESTNET_PATH/bitcoin:/bitcoin \
-         -v $TESTNET_PATH/node0/babylond:/babylon \
+         -v $TESTNET_PATH/node0/anond:/anon \
          -v $TESTNET_PATH/vigilante:/vigilante \
-         babylonchain/vigilante-submitter
+         anon/vigilante-submitter
 ```
 
 #### Running the vigilante monitor in Docker container
 
-Follow the same steps as above, but with the `babylonchain/vigilante-monitor` Docker image.
+Follow the same steps as above, but with the `anon/vigilante-monitor` Docker image.
 
 ```shell
 docker run --rm \
          -v $TESTNET_PATH/bitcoin:/bitcoin \
-         -v $TESTNET_PATH/node0/babylond:/babylon \
+         -v $TESTNET_PATH/node0/anond:/anon \
          -v $TESTNET_PATH/vigilante:/vigilante \
-         babylonchain/vigilante-monitor
+         anon/vigilante-monitor
 ```
 
 #### Running the BTC staking tracker in Docker container
 
-Follow the same steps as above, but with the `babylonchain/btc-staking-tracker` Docker image.
+Follow the same steps as above, but with the `anon/btc-staking-tracker` Docker image.
 
 ```shell
 docker run --rm \
          -v $TESTNET_PATH/bitcoin:/bitcoin \
-         -v $TESTNET_PATH/node0/babylond:/babylon \
+         -v $TESTNET_PATH/node0/anond:/anon \
          -v $TESTNET_PATH/vigilante:/vigilante \
-         babylonchain/btc-staking-tracker
+         anon/btc-staking-tracker
 ```
 
 #### buildx

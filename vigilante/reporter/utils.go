@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/babylonlabs-io/babylon/v4/client/babylonclient"
-	"github.com/babylonlabs-io/vigilante/retrywrap"
+	"github.com/anon-org/anon/v4/client/anonclient"
+	"github.com/anon-org/vigilante/retrywrap"
 	"github.com/cockroachdb/errors"
 
 	coserrors "cosmossdk.io/errors"
 	"github.com/avast/retry-go/v4"
-	btcctypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
-	btclctypes "github.com/babylonlabs-io/babylon/v4/x/btclightclient/types"
-	"github.com/babylonlabs-io/vigilante/types"
+	btcctypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
+	btclctypes "github.com/anon-org/anon/v4/x/btclightclient/types"
+	"github.com/anon-org/vigilante/types"
 )
 
 func chunkBy[T any](items []T, chunkSize int) [][]T {
@@ -26,7 +26,7 @@ func chunkBy[T any](items []T, chunkSize int) [][]T {
 }
 
 // getHeaderMsgsToSubmit creates a set of MsgInsertHeaders messages corresponding to headers that
-// should be submitted to Babylon from a given set of indexed blocks
+// should be submitted to Anon from a given set of indexed blocks
 func (r *Reporter) getHeaderMsgsToSubmit(signer string, ibs []*types.IndexedBlock) ([]*btclctypes.MsgInsertHeaders, error) {
 	var (
 		startPoint  = -1
@@ -34,12 +34,12 @@ func (r *Reporter) getHeaderMsgsToSubmit(signer string, ibs []*types.IndexedBloc
 		err         error
 	)
 
-	// find the first header that is not contained in BBN header chain, then submit since this header
+	// find the first header that is not contained in ANC header chain, then submit since this header
 	for i, header := range ibs {
 		blockHash := header.BlockHash()
 		var res *btclctypes.QueryContainsBytesResponse
 		err = retrywrap.Do(func() error {
-			res, err = r.babylonClient.ContainsBTCBlock(&blockHash)
+			res, err = r.anonClient.ContainsBTCBlock(&blockHash)
 
 			return err
 		},
@@ -78,13 +78,13 @@ func (r *Reporter) getHeaderMsgsToSubmit(signer string, ibs []*types.IndexedBloc
 	return headerMsgsToSubmit, nil
 }
 
-// submitHeaderMsgs attempts to submit a batch of headers to the Babylon client.
+// submitHeaderMsgs attempts to submit a batch of headers to the Anon client.
 // It handles specific expected errors like ErrForkStartWithKnownHeader gracefully,
 // and records relevant metrics for both success and failure cases.
 func (r *Reporter) submitHeaderMsgs(msg *btclctypes.MsgInsertHeaders) error {
 	err := retrywrap.Do(
 		func() error {
-			res, err := r.babylonClient.ReliablySendMsg(
+			res, err := r.anonClient.ReliablySendMsg(
 				context.Background(),
 				msg,
 				[]*coserrors.Error{btclctypes.ErrForkStartWithKnownHeader}, // expected
@@ -120,7 +120,7 @@ func (r *Reporter) submitHeaderMsgs(msg *btclctypes.MsgInsertHeaders) error {
 		r.metrics.FailedHeadersCounter.Add(float64(len(msg.Headers)))
 
 		switch {
-		case errors.Is(err, babylonclient.ErrTimeoutAfterWaitingForTxBroadcast):
+		case errors.Is(err, anonclient.ErrTimeoutAfterWaitingForTxBroadcast):
 			r.metrics.HeadersCensorshipGauge.Inc()
 
 			return fmt.Errorf("tx broadcast timeout: %w", err)
@@ -169,7 +169,7 @@ func (r *Reporter) ProcessHeaders(signer string, ibs []*types.IndexedBlock) (int
 				return numSubmitted, fmt.Errorf("failed to submit headers: %w", err)
 			}
 
-			res, err := r.babylonClient.BTCHeaderChainTip()
+			res, err := r.anonClient.BTCHeaderChainTip()
 			if err != nil {
 				return numSubmitted, fmt.Errorf("failed to get BTC header chain tip: %w", err)
 			}
@@ -271,7 +271,7 @@ func (r *Reporter) matchAndSubmitCheckpoints(signer string) int {
 		return numMatchedCkpts
 	}
 
-	// for each matched checkpoint, wrap to MsgInsertBTCSpvProof and send to Babylon
+	// for each matched checkpoint, wrap to MsgInsertBTCSpvProof and send to Anon
 	// Note that this is a while loop that keeps popping checkpoints in the cache
 	for {
 		// pop the earliest checkpoint
@@ -291,8 +291,8 @@ func (r *Reporter) matchAndSubmitCheckpoints(signer string) int {
 		tx1Block := ckpt.Segments[0].AssocBlock
 		tx2Block := ckpt.Segments[1].AssocBlock
 
-		// submit the checkpoint to Babylon
-		res, err := r.babylonClient.ReliablySendMsg(
+		// submit the checkpoint to Anon
+		res, err := r.anonClient.ReliablySendMsg(
 			context.Background(),
 			msgInsertBTCSpvProof,
 			[]*coserrors.Error{
@@ -307,8 +307,8 @@ func (r *Reporter) matchAndSubmitCheckpoints(signer string) int {
 			r.logger.Errorf("Failed to submit MsgInsertBTCSpvProof with error %v", err)
 			r.metrics.FailedCheckpointsCounter.Inc()
 
-			if errors.Is(err, babylonclient.ErrTimeoutAfterWaitingForTxBroadcast) {
-				r.logger.Warnf("Censorship detected in inserting checkpoints to Babylon, for epoch %d, tx1 %s, tx2 %s, height %d",
+			if errors.Is(err, anonclient.ErrTimeoutAfterWaitingForTxBroadcast) {
+				r.logger.Warnf("Censorship detected in inserting checkpoints to Anon, for epoch %d, tx1 %s, tx2 %s, height %d",
 					ckpt.Epoch,
 					tx1Block.Txs[ckpt.Segments[0].TxIdx].Hash().String(),
 					tx2Block.Txs[ckpt.Segments[1].TxIdx].Hash().String(),

@@ -6,14 +6,14 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice/middlewares"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice/middlewares"
 	"io"
 	"net/http"
 	"time"
 
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerapp"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice/handlers"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice/types"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerapp"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice/handlers"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 )
 

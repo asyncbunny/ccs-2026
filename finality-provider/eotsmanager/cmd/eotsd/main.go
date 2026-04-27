@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/cmd/eotsd/daemon"
+	"github.com/anon-org/finality-provider/eotsmanager/cmd/eotsd/daemon"
 )
 
 func main() {

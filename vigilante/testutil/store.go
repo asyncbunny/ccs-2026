@@ -1,7 +1,7 @@
 package testutil
 
 import (
-	"github.com/babylonlabs-io/vigilante/config"
+	"github.com/anon-org/vigilante/config"
 	"github.com/lightningnetwork/lnd/kvdb"
 	"github.com/stretchr/testify/require"
 	"testing"

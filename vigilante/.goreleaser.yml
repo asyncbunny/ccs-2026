@@ -83,7 +83,7 @@ checksum:
 
 release:
   github:
-    owner: babylonlabs-io
+    owner: anon-org
     name: vigilante
 
 # Docs: https://goreleaser.com/customization/changelog/

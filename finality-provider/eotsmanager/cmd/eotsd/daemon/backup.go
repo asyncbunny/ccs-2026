@@ -3,7 +3,7 @@ package daemon
 import (
 	"fmt"
 
-	eotsclient "github.com/babylonlabs-io/finality-provider/eotsmanager/client"
+	eotsclient "github.com/anon-org/finality-provider/eotsmanager/client"
 	"github.com/spf13/cobra"
 )
 

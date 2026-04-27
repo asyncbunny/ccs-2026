@@ -4,14 +4,14 @@ import (
 	"errors"
 	"fmt"
 
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
+	anctypes "github.com/anon-org/anon/v4/types"
 )
 
 const instanceTerminatingMsg = "terminating the finality-provider instance due to critical error"
 
 type CriticalError struct {
 	err     error
-	fpBtcPk *bbntypes.BIP340PubKey
+	fpBtcPk *anctypes.BIP340PubKey
 }
 
 func (ce *CriticalError) Error() string {

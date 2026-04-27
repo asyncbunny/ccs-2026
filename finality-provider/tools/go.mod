@@ -1,9 +1,9 @@
-module github.com/babylonlabs-io/finality-provider/tools
+module github.com/anon-org/finality-provider/tools
 
 go 1.25.0
 
 require (
-	github.com/babylonlabs-io/babylon-sdk/demo v0.0.0-20250819005731-171062db6830
+	github.com/anon-org/anon-sdk/demo v0.0.0-20250819005731-171062db6830
 	github.com/cosmos/relayer/v2 v2.5.3
 )
 
@@ -46,7 +46,7 @@ require (
 	github.com/VictoriaMetrics/fastcache v1.12.2 // indirect
 	github.com/avast/retry-go/v4 v4.5.1 // indirect
 	github.com/aws/aws-sdk-go v1.49.0 // indirect
-	github.com/babylonlabs-io/babylon-sdk/x v0.0.0-20250819005731-171062db6830 // indirect
+	github.com/anon-org/anon-sdk/x v0.0.0-20250819005731-171062db6830 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect

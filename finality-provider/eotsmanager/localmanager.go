@@ -7,10 +7,10 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/babylonlabs-io/finality-provider/metrics"
+	"github.com/anon-org/finality-provider/metrics"
 
-	"github.com/babylonlabs-io/babylon/v4/crypto/eots"
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
+	"github.com/anon-org/anon/v4/crypto/eots"
+	anctypes "github.com/anon-org/anon/v4/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -19,11 +19,11 @@ import (
 	"github.com/lightningnetwork/lnd/kvdb"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/finality-provider/codec"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/randgenerator"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/store"
-	eotstypes "github.com/babylonlabs-io/finality-provider/eotsmanager/types"
-	"github.com/babylonlabs-io/finality-provider/util"
+	"github.com/anon-org/finality-provider/codec"
+	"github.com/anon-org/finality-provider/eotsmanager/randgenerator"
+	"github.com/anon-org/finality-provider/eotsmanager/store"
+	eotstypes "github.com/anon-org/finality-provider/eotsmanager/types"
+	"github.com/anon-org/finality-provider/util"
 )
 
 const (
@@ -114,7 +114,7 @@ func NewMnemonic() (string, error) {
 	return mnemonic, nil
 }
 
-func (lm *LocalEOTSManager) CreateKeyWithMnemonic(name, mnemonic, passphrase string) (*bbntypes.BIP340PubKey, error) {
+func (lm *LocalEOTSManager) CreateKeyWithMnemonic(name, mnemonic, passphrase string) (*anctypes.BIP340PubKey, error) {
 	if lm.kr.Backend() == keyring.BackendFile && len(passphrase) < 8 {
 		return nil, fmt.Errorf("passphrase should be at least 8 characters")
 	}
@@ -164,7 +164,7 @@ func (lm *LocalEOTSManager) SaveEOTSKeyName(pk *btcec.PublicKey, keyName string)
 	return nil
 }
 
-func (lm *LocalEOTSManager) LoadBIP340PubKeyFromKeyName(keyName string) (*bbntypes.BIP340PubKey, error) {
+func (lm *LocalEOTSManager) LoadBIP340PubKeyFromKeyName(keyName string) (*anctypes.BIP340PubKey, error) {
 	pk, err := LoadBIP340PubKeyFromKeyName(lm.kr, keyName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load BIP340 public key from key name %s: %w", keyName, err)
@@ -173,7 +173,7 @@ func (lm *LocalEOTSManager) LoadBIP340PubKeyFromKeyName(keyName string) (*bbntyp
 	return pk, nil
 }
 
-func LoadBIP340PubKeyFromKeyName(kr keyring.Keyring, keyName string) (*bbntypes.BIP340PubKey, error) {
+func LoadBIP340PubKeyFromKeyName(kr keyring.Keyring, keyName string) (*anctypes.BIP340PubKey, error) {
 	info, err := kr.Key(keyName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load keyring record for key %s: %w", keyName, err)
@@ -183,14 +183,14 @@ func LoadBIP340PubKeyFromKeyName(kr keyring.Keyring, keyName string) (*bbntypes.
 		return nil, fmt.Errorf("failed to get public key from keyring info: %w", err)
 	}
 
-	var eotsPk *bbntypes.BIP340PubKey
+	var eotsPk *anctypes.BIP340PubKey
 	switch v := pubKey.(type) {
 	case *secp256k1.PubKey:
 		pk, err := btcec.ParsePubKey(v.Key)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse public key: %w", err)
 		}
-		eotsPk = bbntypes.NewBIP340PubKeyFromBTCPK(pk)
+		eotsPk = anctypes.NewBIP340PubKeyFromBTCPK(pk)
 
 		return eotsPk, nil
 	default:
@@ -477,7 +477,7 @@ func (lm *LocalEOTSManager) signSchnorrSigFromPrivKey(privKey *btcec.PrivateKey,
 	return sig, nil
 }
 
-func (lm *LocalEOTSManager) SignSchnorrSigFromKeyname(keyName string, msg []byte) (*schnorr.Signature, *bbntypes.BIP340PubKey, error) {
+func (lm *LocalEOTSManager) SignSchnorrSigFromKeyname(keyName string, msg []byte) (*schnorr.Signature, *anctypes.BIP340PubKey, error) {
 	lm.mu.Lock()
 	defer lm.mu.Unlock()
 

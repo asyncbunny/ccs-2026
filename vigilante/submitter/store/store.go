@@ -3,8 +3,8 @@ package store
 import (
 	"errors"
 
-	"github.com/babylonlabs-io/vigilante/proto"
-	"github.com/babylonlabs-io/vigilante/utils"
+	"github.com/anon-org/vigilante/proto"
+	"github.com/anon-org/vigilante/utils"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/btcsuite/btcwallet/walletdb"
 	"github.com/lightningnetwork/lnd/kvdb"

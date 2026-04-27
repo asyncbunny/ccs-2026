@@ -7,9 +7,9 @@ import (
 
 	"github.com/pkg/errors"
 
-	monitortypes "github.com/babylonlabs-io/babylon/v4/x/monitor/types"
+	monitortypes "github.com/anon-org/anon/v4/x/monitor/types"
 
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/types"
 )
 
 func (m *Monitor) runLivenessChecker() {
@@ -46,26 +46,26 @@ func (m *Monitor) runLivenessChecker() {
 	m.logger.Info("the liveness checker is stopped")
 }
 
-// CheckLiveness checks whether the Babylon node is under liveness attack with the following steps
-//  1. ask Babylon the BTC light client height when the epoch ends (H1)
+// CheckLiveness checks whether the Anon node is under liveness attack with the following steps
+//  1. ask Anon the BTC light client height when the epoch ends (H1)
 //  2. (denote c.firstBtcHeight as H2, which is the BTC height at which the unique checkpoint first appears)
-//  3. ask Babylon the tip height of BTC light client when the checkpoint is reported (H3)
-//  4. if the checkpoint is not reported, ask Babylon the current tip height of BTC light client (H4)
+//  3. ask Anon the tip height of BTC light client when the checkpoint is reported (H3)
+//  4. if the checkpoint is not reported, ask Anon the current tip height of BTC light client (H4)
 //  5. if H3 - min(H1, H2) > max_live_btc_heights (if the checkpoint is reported), or
 //     H4 - min(H1, H2) > max_live_btc_heights (if the checkpoint is not reported), return error
 func (m *Monitor) CheckLiveness(cr *types.CheckpointRecord) error {
 	var (
-		btcHeightEpochEnded   uint32 // the BTC light client height when the epoch ends (obtained from Babylon)
+		btcHeightEpochEnded   uint32 // the BTC light client height when the epoch ends (obtained from Anon)
 		btcHeightFirstSeen    uint32 // the BTC height at which the unique checkpoint first appears (obtained from BTC)
-		btcHeightCkptReported uint32 // the tip height of BTC light client when the checkpoint is reported (obtained from Babylon)
-		currentBtcTipHeight   uint32 // the current tip height of BTC light client (obtained from Babylon)
+		btcHeightCkptReported uint32 // the tip height of BTC light client when the checkpoint is reported (obtained from Anon)
+		currentBtcTipHeight   uint32 // the current tip height of BTC light client (obtained from Anon)
 		gap                   int    // the gap between two BTC heights
 		err                   error
 	)
 	epoch := cr.EpochNum()
 	endedEpochRes, err := m.queryEndedEpochBTCHeightWithRetry(cr.EpochNum())
 	if err != nil {
-		return fmt.Errorf("the checkpoint at epoch %d is submitted on BTC the epoch is not ended on Babylon: %w", epoch, err)
+		return fmt.Errorf("the checkpoint at epoch %d is submitted on BTC the epoch is not ended on Anon: %w", epoch, err)
 	}
 	btcHeightEpochEnded = endedEpochRes.BtcLightClientHeight
 	m.logger.Debugf("the epoch %d is ended at BTC height %d", cr.EpochNum(), btcHeightEpochEnded)

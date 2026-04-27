@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/babylonlabs-io/babylon/v4/app/params"
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
-	incentivetypes "github.com/babylonlabs-io/babylon/v4/x/incentive/types"
+	"github.com/anon-org/anon/v4/app/params"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
+	incentivetypes "github.com/anon-org/anon/v4/x/incentive/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/std"
@@ -15,7 +15,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	fpcfg "github.com/babylonlabs-io/finality-provider/finality-provider/config"
+	fpcfg "github.com/anon-org/finality-provider/finality-provider/config"
 )
 
 // PersistClientCtx persist some vars from the cmd or config to the client context.
@@ -59,7 +59,7 @@ func PersistClientCtx(ctx client.Context) func(cmd *cobra.Command, _ []string) e
 
 		// config was found, load the defaults if not set by flag
 		// flags have preference over config.
-		ctx, err = FillContextFromBabylonConfig(ctx, cmd.Flags(), cfg.BabylonConfig)
+		ctx, err = FillContextFromAnonConfig(ctx, cmd.Flags(), cfg.AnonConfig)
 		if err != nil {
 			return err
 		}
@@ -69,17 +69,17 @@ func PersistClientCtx(ctx client.Context) func(cmd *cobra.Command, _ []string) e
 	}
 }
 
-// FillContextFromBabylonConfig loads the bbn config to the context if values were not set by flag.
+// FillContextFromAnonConfig loads the anc config to the context if values were not set by flag.
 // Preference is FlagSet values over the config.
-func FillContextFromBabylonConfig(ctx client.Context, flagSet *pflag.FlagSet, bbnConf *fpcfg.BBNConfig) (client.Context, error) {
+func FillContextFromAnonConfig(ctx client.Context, flagSet *pflag.FlagSet, ancConf *fpcfg.ANCConfig) (client.Context, error) {
 	if !flagSet.Changed(flags.FlagFrom) {
-		ctx = ctx.WithFrom(bbnConf.Key)
+		ctx = ctx.WithFrom(ancConf.Key)
 	}
 	if !flagSet.Changed(flags.FlagChainID) {
-		ctx = ctx.WithChainID(bbnConf.ChainID)
+		ctx = ctx.WithChainID(ancConf.ChainID)
 	}
 	if !flagSet.Changed(flags.FlagKeyringBackend) {
-		kr, err := client.NewKeyringFromBackend(ctx, bbnConf.KeyringBackend)
+		kr, err := client.NewKeyringFromBackend(ctx, ancConf.KeyringBackend)
 		if err != nil {
 			return ctx, fmt.Errorf("failed to create keyring from backend: %w", err)
 		}
@@ -87,13 +87,13 @@ func FillContextFromBabylonConfig(ctx client.Context, flagSet *pflag.FlagSet, bb
 		ctx = ctx.WithKeyring(kr)
 	}
 	if !flagSet.Changed(flags.FlagKeyringDir) {
-		ctx = ctx.WithKeyringDir(bbnConf.KeyDirectory)
+		ctx = ctx.WithKeyringDir(ancConf.KeyDirectory)
 	}
 	if !flagSet.Changed(flags.FlagOutput) {
-		ctx = ctx.WithOutputFormat(bbnConf.OutputFormat)
+		ctx = ctx.WithOutputFormat(ancConf.OutputFormat)
 	}
 	if !flagSet.Changed(flags.FlagSignMode) {
-		ctx = ctx.WithSignModeStr(bbnConf.SignModeStr)
+		ctx = ctx.WithSignModeStr(ancConf.SignModeStr)
 	}
 
 	return ctx, nil

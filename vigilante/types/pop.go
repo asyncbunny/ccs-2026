@@ -3,8 +3,8 @@ package types // nolint:revive
 import (
 	"errors"
 
-	"github.com/babylonlabs-io/babylon/v4/crypto/bls12381"
-	"github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
+	"github.com/anon-org/anon/v4/crypto/bls12381"
+	"github.com/anon-org/anon/v4/x/checkpointing/types"
 	"github.com/cometbft/cometbft/crypto/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 )

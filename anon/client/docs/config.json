@@ -1,0 +1,75 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Anon - gRPC Gateway docs",
+    "description": "A REST interface for state queries",
+    "version": "1.0.0"
+  },
+  "apis": [
+    {
+      "url": "./tmp-swagger-gen/anon/btccheckpoint/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "BtcCheckpointParams"
+        }
+      }
+    },
+    {
+      "url":  "./tmp-swagger-gen/anon/btclightclient/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "BtcLightClientParams"
+        }
+      }
+    },
+    {
+      "url":  "./tmp-swagger-gen/anon/epoching/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "EpochingParams"
+        }
+      }
+    },
+    {
+      "url":  "./tmp-swagger-gen/anon/btcstaking/v1/query.swagger.json"
+    },
+    {
+      "url":  "./tmp-swagger-gen/anon/finality/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "FinalityParams"
+        }
+      }
+    },
+    {
+      "url":  "./tmp-swagger-gen/anon/mint/v1/query.swagger.json"
+    },
+    {
+      "url":  "./tmp-swagger-gen/anon/monitor/v1/query.swagger.json"
+    },
+    {
+      "url":  "./tmp-swagger-gen/anon/checkpointing/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "CheckpointingParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/anon/incentive/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "IncentiveParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/anon/costaking/v1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "CostakingParams"
+        }
+      }
+    }
+  ]
+}

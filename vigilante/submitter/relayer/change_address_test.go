@@ -3,7 +3,7 @@ package relayer_test
 import (
 	"testing"
 
-	"github.com/babylonlabs-io/vigilante/testutil"
+	"github.com/anon-org/vigilante/testutil"
 
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -12,15 +12,15 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/babylonlabs-io/babylon/v4/btctxformatter"
+	"github.com/anon-org/anon/v4/btctxformatter"
 
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/submitter/relayer"
-	"github.com/babylonlabs-io/vigilante/testutil/mocks"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/submitter/relayer"
+	"github.com/anon-org/vigilante/testutil/mocks"
 )
 
-var submitterAddrStr = "bbn1eppc73j56382wjn6nnq3quu5eye4pmm087xfdh"
+var submitterAddrStr = "anc1eppc73j56382wjn6nnq3quu5eye4pmm087xfdh"
 
 // obtained from https://secretscan.org/Bech32
 var SegWitBech32p2wpkhAddrsStr = []string{
@@ -50,7 +50,7 @@ func TestGetChangeAddress(t *testing.T) {
 	cfg := config.DefaultSubmitterConfig()
 	logger, err := config.NewRootLogger("auto", "debug")
 	require.NoError(t, err)
-	testRelayer := relayer.New(wallet, btcConfig.WalletName, []byte("bbnt"), btctxformatter.CurrentVersion, submitterAddr,
+	testRelayer := relayer.New(wallet, btcConfig.WalletName, []byte("anct"), btctxformatter.CurrentVersion, submitterAddr,
 		submitterMetrics.RelayerMetrics, nil, &cfg, logger, testutil.MakeTestBackend(t))
 
 	// 1. only SegWit Bech32 addresses

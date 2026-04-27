@@ -1,5 +1,5 @@
 version: v1
-name: buf.build/babylonlabs-io/eotsmanager
+name: buf.build/anon-org/eotsmanager
 deps:
 breaking:
   use:

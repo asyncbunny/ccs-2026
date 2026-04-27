@@ -9,10 +9,10 @@ import (
 	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/config"
-	eotsservice "github.com/babylonlabs-io/finality-provider/eotsmanager/service"
-	"github.com/babylonlabs-io/finality-provider/log"
+	"github.com/anon-org/finality-provider/eotsmanager"
+	"github.com/anon-org/finality-provider/eotsmanager/config"
+	eotsservice "github.com/anon-org/finality-provider/eotsmanager/service"
+	"github.com/anon-org/finality-provider/log"
 )
 
 func NewStartCmd() *cobra.Command {

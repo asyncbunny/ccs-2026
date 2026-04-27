@@ -8,8 +8,8 @@ import (
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 
 	"cosmossdk.io/math"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	btcstktypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
+	anc "github.com/anon-org/anon/v4/types"
+	btcstktypes "github.com/anon-org/anon/v4/x/btcstaking/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -24,10 +24,10 @@ func (sfp *FinalityProvider) MustGetBTCPK() *btcec.PublicKey {
 	return btcPubKey
 }
 
-func (sfp *FinalityProvider) MustGetBIP340BTCPK() *bbn.BIP340PubKey {
+func (sfp *FinalityProvider) MustGetBIP340BTCPK() *anc.BIP340PubKey {
 	btcPK := sfp.MustGetBTCPK()
 
-	return bbn.NewBIP340PubKeyFromBTCPK(btcPK)
+	return anc.NewBIP340PubKeyFromBTCPK(btcPK)
 }
 
 func NewFinalityProviderInfo(sfp *FinalityProvider) (*FinalityProviderInfo, error) {

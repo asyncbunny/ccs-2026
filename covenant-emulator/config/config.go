@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/babylonlabs-io/covenant-emulator/util"
+	"github.com/anon-org/covenant-emulator/util"
 
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -46,7 +46,7 @@ type Config struct {
 
 	Metrics *MetricsConfig `group:"metrics" namespace:"metrics"`
 
-	BabylonConfig *BBNConfig `group:"babylon" namespace:"babylon"`
+	AnonConfig *ANCConfig `group:"anon" namespace:"anon"`
 
 	RemoteSigner *RemoteSignerCfg `group:"remotesigner" namespace:"remotesigner"`
 }
@@ -127,9 +127,9 @@ func LogDir(homePath string) string {
 }
 
 func DefaultConfigWithHomePath(homePath string) Config {
-	bbnCfg := DefaultBBNConfig()
-	bbnCfg.Key = defaultCovenantKeyName
-	bbnCfg.KeyDirectory = homePath
+	ancCfg := DefaultANCConfig()
+	ancCfg.Key = defaultCovenantKeyName
+	ancCfg.KeyDirectory = homePath
 	metricsCfg := DefaultMetricsConfig()
 	remoteSignerCfg := DefaultRemoteSignerConfig()
 	cfg := Config{
@@ -140,7 +140,7 @@ func DefaultConfigWithHomePath(homePath string) Config {
 		BitcoinNetwork:  defaultBitcoinNetwork,
 		BTCNetParams:    defaultBTCNetParams,
 		Metrics:         &metricsCfg,
-		BabylonConfig:   &bbnCfg,
+		AnonConfig:   &ancCfg,
 		RemoteSigner:    &remoteSignerCfg,
 	}
 

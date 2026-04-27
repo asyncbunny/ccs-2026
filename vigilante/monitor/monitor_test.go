@@ -5,17 +5,17 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/babylonlabs-io/babylon/v4/crypto/bls12381"
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	ckpttypes "github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
+	"github.com/anon-org/anon/v4/crypto/bls12381"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	ckpttypes "github.com/anon-org/anon/v4/x/checkpointing/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/golang/mock/gomock"
 	"github.com/jinzhu/copier"
 	"github.com/stretchr/testify/require"
 
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/monitor"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/monitor"
+	"github.com/anon-org/vigilante/types"
 )
 
 func GetMsgBytes(epoch uint64, hash *ckpttypes.BlockHash) []byte {
@@ -36,21 +36,21 @@ func FuzzVerifyCheckpoint(f *testing.F) {
 		var testCases []*TestCase
 
 		ctl := gomock.NewController(t)
-		mockBabylonClient := monitor.NewMockBabylonQueryClient(ctl)
+		mockAnonClient := monitor.NewMockAnonQueryClient(ctl)
 		m := &monitor.Monitor{
 			// to disable the retry
 			ComCfg: &config.CommonConfig{
 				RetrySleepTime:    1,
 				MaxRetrySleepTime: 0,
 			},
-			BBNQuerier: mockBabylonClient,
+			ANCQuerier: mockAnonClient,
 		}
 
 		// at least 4 validators
 		n := r.Intn(10) + 4
 		valSet, privKeys := datagen.GenerateValidatorSetWithBLSPrivKeys(n)
 		btcCheckpoint := datagen.GenerateLegitimateRawCheckpoint(r, privKeys)
-		mockBabylonClient.EXPECT().RawCheckpoint(gomock.Eq(btcCheckpoint.EpochNum)).Return(
+		mockAnonClient.EXPECT().RawCheckpoint(gomock.Eq(btcCheckpoint.EpochNum)).Return(
 			&ckpttypes.QueryRawCheckpointResponse{
 				RawCheckpoint: &ckpttypes.RawCheckpointWithMetaResponse{
 					Ckpt: btcCheckpoint.ToResponse(),
@@ -117,7 +117,7 @@ func FuzzVerifyCheckpoint(f *testing.F) {
 		testCases = append(testCases, case4)
 
 		for _, tc := range testCases {
-			mockBabylonClient.EXPECT().BlsPublicKeyList(gomock.Eq(tc.btcCheckpoint.EpochNum), gomock.Nil()).Return(
+			mockAnonClient.EXPECT().BlsPublicKeyList(gomock.Eq(tc.btcCheckpoint.EpochNum), gomock.Nil()).Return(
 				&ckpttypes.QueryBlsPublicKeyListResponse{
 					ValidatorWithBlsKeys: convertToBlsPublicKeyListResponse(valSet.ValSet),
 				}, nil).AnyTimes()

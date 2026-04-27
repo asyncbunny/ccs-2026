@@ -2,7 +2,7 @@ package reporter
 
 import (
 	"fmt"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/types"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/lightningnetwork/lnd/chainntnfs"
 )
@@ -87,12 +87,12 @@ func (r *Reporter) processNewBlock(ib *types.IndexedBlock) error {
 	headersToProcess = append(headersToProcess, ib)
 
 	if len(headersToProcess) == 0 {
-		r.logger.Debug("No new headers to submit to Babylon")
+		r.logger.Debug("No new headers to submit to Anon")
 
 		return nil
 	}
 
-	signer := r.babylonClient.MustGetAddr()
+	signer := r.anonClient.MustGetAddr()
 	// Process headers
 	if _, err := r.ProcessHeaders(signer, headersToProcess); err != nil {
 		r.logger.Warnf("Failed to submit headers: %v", err)

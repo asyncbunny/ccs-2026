@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/babylonlabs-io/vigilante/config"
+	"github.com/anon-org/vigilante/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"

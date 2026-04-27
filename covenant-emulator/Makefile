@@ -1,7 +1,7 @@
 BUILDDIR ?= $(CURDIR)/build
 TOOLS_DIR := tools
 
-BABYLON_PKG := github.com/babylonlabs-io/babylon/v4/cmd/babylond
+ANON_PKG := github.com/anon-org/anon/v4/cmd/anond
 
 GO_BIN := ${GOPATH}/bin
 
@@ -48,7 +48,7 @@ $(BUILDDIR)/:
 	mkdir -p $(BUILDDIR)/
 
 build-docker:
-	$(DOCKER) build --tag babylonlabs-io/covenant-emulator -f Dockerfile \
+	$(DOCKER) build --tag anon-org/covenant-emulator -f Dockerfile \
 		$(shell git rev-parse --show-toplevel)
 
 .PHONY: build build-docker
@@ -58,13 +58,13 @@ test:
 	cd covenant-signer; go test ./...
 
 test-e2e:
-	cd $(TOOLS_DIR); go install -trimpath $(BABYLON_PKG)
+	cd $(TOOLS_DIR); go install -trimpath $(ANON_PKG)
 	go test -mod=readonly -timeout=25m -v $(PACKAGES_E2E) -count=1 --tags=e2e
 	cd covenant-signer; make test-e2e
 
 mock-gen:
 	mkdir -p $(MOCKS_DIR)
-	$(MOCKGEN_CMD) -source=clientcontroller/interface.go -package mocks -destination $(MOCKS_DIR)/babylon.go
+	$(MOCKGEN_CMD) -source=clientcontroller/interface.go -package mocks -destination $(MOCKS_DIR)/anon.go
 
 .PHONY: mock-gen
 
@@ -90,8 +90,8 @@ release-dry-run:
 		--rm \
 		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:/go/src/babylon \
-		-w /go/src/babylon \
+		-v `pwd`:/go/src/anon \
+		-w /go/src/anon \
 		$(GORELEASER_IMAGE) \
 		release \
 		--clean \
@@ -102,8 +102,8 @@ release-snapshot:
 		--rm \
 		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:/go/src/babylon \
-		-w /go/src/babylon \
+		-v `pwd`:/go/src/anon \
+		-w /go/src/anon \
 		$(GORELEASER_IMAGE) \
 		release \
 		--clean \
@@ -119,8 +119,8 @@ release:
 		-e GITHUB_TOKEN=$(GITHUB_TOKEN) \
 		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:/go/src/babylon \
-		-w /go/src/babylon \
+		-v `pwd`:/go/src/anon \
+		-w /go/src/anon \
 		$(GORELEASER_IMAGE) \
 		release \
 		--clean

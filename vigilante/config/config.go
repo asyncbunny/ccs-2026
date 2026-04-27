@@ -12,7 +12,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	bbncfg "github.com/babylonlabs-io/babylon/v4/client/config"
+	anccfg "github.com/anon-org/anon/v4/client/config"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -24,7 +24,7 @@ const (
 )
 
 var (
-	defaultAppDataDir = btcutil.AppDataDir("babylon-vigilante", false)
+	defaultAppDataDir = btcutil.AppDataDir("anon-vigilante", false)
 	defaultConfigFile = filepath.Join(defaultAppDataDir, defaultConfigFilename)
 )
 
@@ -36,7 +36,7 @@ func DataDir(homePath string) string {
 type Config struct {
 	Common            CommonConfig            `mapstructure:"common"`
 	BTC               BTCConfig               `mapstructure:"btc"`
-	Babylon           bbncfg.BabylonConfig    `mapstructure:"babylon"`
+	Anon           anccfg.AnonConfig    `mapstructure:"anon"`
 	Metrics           MetricsConfig           `mapstructure:"metrics"`
 	Submitter         SubmitterConfig         `mapstructure:"submitter"`
 	Reporter          ReporterConfig          `mapstructure:"reporter"`
@@ -53,8 +53,8 @@ func (cfg *Config) Validate() error {
 		return fmt.Errorf("invalid config in btc: %w", err)
 	}
 
-	if err := cfg.Babylon.Validate(); err != nil {
-		return fmt.Errorf("invalid config in babylon: %w", err)
+	if err := cfg.Anon.Validate(); err != nil {
+		return fmt.Errorf("invalid config in anon: %w", err)
 	}
 
 	if err := cfg.Metrics.Validate(); err != nil {
@@ -90,13 +90,13 @@ func DefaultConfigFile() string {
 
 // DefaultConfig returns server's default configuration.
 func DefaultConfig() *Config {
-	defaultBbnCfg := bbncfg.DefaultBabylonConfig()
-	defaultBbnCfg.BlockTimeout = 10 * time.Minute
+	defaultAncCfg := anccfg.DefaultAnonConfig()
+	defaultAncCfg.BlockTimeout = 10 * time.Minute
 
 	return &Config{
 		Common:            DefaultCommonConfig(),
 		BTC:               DefaultBTCConfig(),
-		Babylon:           defaultBbnCfg,
+		Anon:           defaultAncCfg,
 		Metrics:           DefaultMetricsConfig(),
 		Submitter:         DefaultSubmitterConfig(),
 		Reporter:          DefaultReporterConfig(),

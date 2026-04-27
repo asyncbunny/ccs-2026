@@ -4,7 +4,7 @@ package types
 import (
 	"context"
 
-	"github.com/babylonlabs-io/babylon/v4/types"
+	"github.com/anon-org/anon/v4/types"
 )
 
 // RandomnessCommitter defines the interface for randomness commitment operations.

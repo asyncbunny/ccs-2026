@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/babylonlabs-io/covenant-emulator/clientcontroller"
-	"github.com/babylonlabs-io/covenant-emulator/covenant"
-	"github.com/babylonlabs-io/covenant-emulator/types"
+	"github.com/anon-org/covenant-emulator/clientcontroller"
+	"github.com/anon-org/covenant-emulator/covenant"
+	"github.com/anon-org/covenant-emulator/types"
 	"github.com/stretchr/testify/require"
 	"go.uber.org/zap/zaptest"
 )
@@ -64,7 +64,7 @@ func TestQueryPendingDelegations(t *testing.T) {
 		_ = tm.InsertBTCDelegation(t, btcPks, stakingTime, stakingAmount, false)
 	}
 
-	dels, err := tm.CovBBNClient.QueryPendingDelegations(uint64(numDels), nil)
+	dels, err := tm.CovANCClient.QueryPendingDelegations(uint64(numDels), nil)
 	require.NoError(t, err)
 	require.Len(t, dels, numDels)
 }
@@ -135,8 +135,8 @@ func TestSubmitCovenantSigsBatchToSubmission(t *testing.T) {
 	require.NoError(t, err)
 
 	// we reinitialize the emulator but don't start it
-	bbnCfg := defaultBBNConfigWithKey("test-spending-key", tm.BabylonHandler.GetNodeDataDir())
-	covbc, err := clientcontroller.NewBabylonController(bbnCfg, &tm.CovenanConfig.BTCNetParams,
+	ancCfg := defaultANCConfigWithKey("test-spending-key", tm.AnonHandler.GetNodeDataDir())
+	covbc, err := clientcontroller.NewAnonController(ancCfg, &tm.CovenanConfig.BTCNetParams,
 		zaptest.NewLogger(t), tm.CovenanConfig.MaxRetiresBatchRemovingMsgs)
 	require.NoError(t, err)
 	ce, err := covenant.NewEmulator(tm.CovenanConfig, covbc, zaptest.NewLogger(t), tm.Signer)

@@ -4,6 +4,6 @@
 package finalityprovider
 
 import (
-	_ "github.com/babylonlabs-io/babylon-sdk/demo/cmd/bcd"
+	_ "github.com/anon-org/anon-sdk/demo/cmd/bcd"
 	_ "github.com/cosmos/relayer/v2/cmd"
 )

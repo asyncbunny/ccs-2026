@@ -4,20 +4,20 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/babylonlabs-io/babylon/v4/types"
+	"github.com/anon-org/anon/v4/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/jessevdk/go-flags"
 
 	"github.com/urfave/cli"
 
-	covcfg "github.com/babylonlabs-io/covenant-emulator/config"
-	"github.com/babylonlabs-io/covenant-emulator/keyring"
+	covcfg "github.com/anon-org/covenant-emulator/config"
+	"github.com/anon-org/covenant-emulator/keyring"
 )
 
 type covenantKey struct {
 	Name        string `json:"name"`
 	PublicKey   string `json:"public-key-hex"`
-	BabylonAddr string `json:"babylon-address"`
+	AnonAddr string `json:"anon-address"`
 }
 
 var createKeyCommand = cli.Command{
@@ -91,13 +91,13 @@ func createKey(ctx *cli.Context) error {
 		&covenantKey{
 			Name:        ctx.String(keyNameFlag),
 			PublicKey:   bip340Key.MarshalHex(),
-			BabylonAddr: keyPair.Address,
+			AnonAddr: keyPair.Address,
 		},
 	)
 
 	// write the updated config into the config file
-	cfg.BabylonConfig.Key = keyName
-	cfg.BabylonConfig.KeyringBackend = keyBackend
+	cfg.AnonConfig.Key = keyName
+	cfg.AnonConfig.KeyringBackend = keyBackend
 	fileParser := flags.NewParser(cfg, flags.Default)
 
 	return flags.NewIniParser(fileParser).WriteFile(covcfg.File(homePath), flags.IniIncludeComments|flags.IniIncludeDefaults)
@@ -164,7 +164,7 @@ func showKey(ctx *cli.Context) error {
 		return err
 	}
 
-	babylonAddr, err := r.GetAddress()
+	anonAddr, err := r.GetAddress()
 	if err != nil {
 		return err
 	}
@@ -175,7 +175,7 @@ func showKey(ctx *cli.Context) error {
 		&covenantKey{
 			Name:        ctx.String(keyNameFlag),
 			PublicKey:   bip340Key.MarshalHex(),
-			BabylonAddr: babylonAddr.String(),
+			AnonAddr: anonAddr.String(),
 		},
 	)
 

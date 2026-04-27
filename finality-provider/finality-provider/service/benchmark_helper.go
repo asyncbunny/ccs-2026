@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	ccapi "github.com/babylonlabs-io/finality-provider/clientcontroller/api"
-	"github.com/babylonlabs-io/finality-provider/types"
+	ccapi "github.com/anon-org/finality-provider/clientcontroller/api"
+	"github.com/anon-org/finality-provider/types"
 	"go.uber.org/zap"
 )
 

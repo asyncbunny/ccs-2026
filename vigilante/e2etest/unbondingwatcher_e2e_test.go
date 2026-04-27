@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/babylonlabs-io/vigilante/testutil"
+	"github.com/anon-org/vigilante/testutil"
 	"github.com/btcsuite/btcd/btcec/v2"
 
-	bbnclient "github.com/babylonlabs-io/babylon/v4/client/client"
-	btcstakingtypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
-	"github.com/babylonlabs-io/vigilante/types"
+	ancclient "github.com/anon-org/anon/v4/client/client"
+	btcstakingtypes "github.com/anon-org/anon/v4/x/btcstaking/types"
+	"github.com/anon-org/vigilante/types"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -23,11 +23,11 @@ import (
 	promtestutil "github.com/prometheus/client_golang/prometheus/testutil"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/babylon/v4/btcstaking"
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	bst "github.com/babylonlabs-io/vigilante/btcstaking-tracker"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
+	"github.com/anon-org/anon/v4/btcstaking"
+	"github.com/anon-org/vigilante/btcclient"
+	bst "github.com/anon-org/vigilante/btcstaking-tracker"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
@@ -41,7 +41,7 @@ func TestUnbondingWatcher(t *testing.T) {
 
 	tm := StartManager(t, WithNumMatureOutputs(numMatureOutputs), WithEpochInterval(defaultEpochInterval))
 	defer tm.Stop(t)
-	// Insert all existing BTC headers to babylon node
+	// Insert all existing BTC headers to anon node
 	tm.CatchUpBTCLightClient(t)
 
 	emptyHintCache := btcclient.EmptyHintCache{}
@@ -65,7 +65,7 @@ func TestUnbondingWatcher(t *testing.T) {
 	bsTracker := bst.NewBTCStakingTracker(
 		tm.BTCClient,
 		backend,
-		tm.BabylonClient,
+		tm.AnonClient,
 		&bstCfg,
 		&commonCfg,
 		zap.NewNop(),
@@ -80,7 +80,7 @@ func TestUnbondingWatcher(t *testing.T) {
 	// set up a BTC delegation
 	stakingSlashingInfo, unbondingSlashingInfo, delSK := tm.CreateBTCDelegation(t, fpSK)
 
-	// Staker unbonds by directly sending tx to btc network. Watcher should detect it and report to babylon.
+	// Staker unbonds by directly sending tx to btc network. Watcher should detect it and report to anon.
 	unbondingPathSpendInfo, err := stakingSlashingInfo.StakingInfo.UnbondingPathSpendInfo()
 	require.NoError(t, err)
 	stakingOutIdx, err := outIdx(unbondingSlashingInfo.UnbondingTx, unbondingSlashingInfo.UnbondingInfo.UnbondingOutput)
@@ -95,7 +95,7 @@ func TestUnbondingWatcher(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	resp, err := tm.BabylonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
+	resp, err := tm.AnonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
 	require.NoError(t, err)
 
 	covenantSigs := resp.BtcDelegation.UndelegationResponse.CovenantUnbondingSigList
@@ -124,7 +124,7 @@ func TestUnbondingWatcher(t *testing.T) {
 	tm.CatchUpBTCLightClient(t)
 
 	require.Eventually(t, func() bool {
-		resp, err := tm.BabylonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
+		resp, err := tm.AnonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
 		require.NoError(t, err)
 
 		tm.mineBlock(t)
@@ -146,7 +146,7 @@ func TestActivatingDelegation(t *testing.T) {
 
 	tm := StartManager(t, WithNumMatureOutputs(numMatureOutputs), WithEpochInterval(defaultEpochInterval))
 	defer tm.Stop(t)
-	// Insert all existing BTC headers to babylon node
+	// Insert all existing BTC headers to anon node
 	tm.CatchUpBTCLightClient(t)
 
 	btcNotifier, err := btcclient.NewNodeBackend(
@@ -168,7 +168,7 @@ func TestActivatingDelegation(t *testing.T) {
 	bsTracker := bst.NewBTCStakingTracker(
 		tm.BTCClient,
 		btcNotifier,
-		tm.BabylonClient,
+		tm.AnonClient,
 		&bstCfg,
 		&commonCfg,
 		zap.NewNop(),
@@ -211,7 +211,7 @@ func TestActivatingDelegation(t *testing.T) {
 		// staking tx is not yet K-deep
 		time.Sleep(10 * time.Second)
 		// Insert k empty blocks to Bitcoin
-		btccParamsResp, err := tm.BabylonClient.BTCCheckpointParams()
+		btccParamsResp, err := tm.AnonClient.BTCCheckpointParams()
 		if err != nil {
 			fmt.Println("Error fetching BTCCheckpointParams:", err)
 			return
@@ -238,7 +238,7 @@ func TestActivatingDelegation(t *testing.T) {
 	// and once the stakingEventWatcher submits MsgAddBTCDelegationInclusionProof it will
 	// be in active status
 	require.Eventually(t, func() bool {
-		resp, err := tm.BabylonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
+		resp, err := tm.AnonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
 		require.NoError(t, err)
 
 		return resp.BtcDelegation.Active
@@ -256,7 +256,7 @@ func TestActivatingAndUnbondingDelegation(t *testing.T) {
 
 	tm := StartManager(t, WithNumMatureOutputs(numMatureOutputs), WithEpochInterval(defaultEpochInterval))
 	defer tm.Stop(t)
-	// Insert all existing BTC headers to babylon node
+	// Insert all existing BTC headers to anon node
 	tm.CatchUpBTCLightClient(t)
 
 	btcNotifier, err := btcclient.NewNodeBackend(
@@ -278,7 +278,7 @@ func TestActivatingAndUnbondingDelegation(t *testing.T) {
 	bsTracker := bst.NewBTCStakingTracker(
 		tm.BTCClient,
 		btcNotifier,
-		tm.BabylonClient,
+		tm.AnonClient,
 		&bstCfg,
 		&commonCfg,
 		zap.NewNop(),
@@ -304,7 +304,7 @@ func TestActivatingAndUnbondingDelegation(t *testing.T) {
 		return len(txns) == 1
 	}, eventuallyWaitTimeOut, eventuallyPollTime)
 
-	// Staker unbonds by directly sending tx to btc network. Watcher should detect it and report to babylon.
+	// Staker unbonds by directly sending tx to btc network. Watcher should detect it and report to anon.
 	unbondingPathSpendInfo, err := stakingSlashingInfo.StakingInfo.UnbondingPathSpendInfo()
 	require.NoError(t, err)
 	stakingOutIdx, err := outIdx(unbondingSlashingInfo.UnbondingTx, unbondingSlashingInfo.UnbondingInfo.UnbondingOutput)
@@ -319,7 +319,7 @@ func TestActivatingAndUnbondingDelegation(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	resp, err := tm.BabylonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
+	resp, err := tm.AnonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
 	require.NoError(t, err)
 
 	covenantSigs := resp.BtcDelegation.UndelegationResponse.CovenantUnbondingSigList
@@ -348,7 +348,7 @@ func TestActivatingAndUnbondingDelegation(t *testing.T) {
 	require.Equal(t, 3, len(mBlock.Transactions))
 
 	// insert k empty blocks to Bitcoin
-	btccParamsResp, err := tm.BabylonClient.BTCCheckpointParams()
+	btccParamsResp, err := tm.AnonClient.BTCCheckpointParams()
 	require.NoError(t, err)
 	btccParams := btccParamsResp.Params
 	for i := 0; i < int(btccParams.BtcConfirmationDepth); i++ {
@@ -359,7 +359,7 @@ func TestActivatingAndUnbondingDelegation(t *testing.T) {
 
 	// wait until delegation has become unbonded
 	require.Eventually(t, func() bool {
-		resp, err := tm.BabylonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
+		resp, err := tm.AnonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
 		require.NoError(t, err)
 
 		tm.mineBlock(t)
@@ -396,7 +396,7 @@ func TestUnbondingLoaded(t *testing.T) {
 	bsTracker := bst.NewBTCStakingTracker(
 		tm.BTCClient,
 		backend,
-		tm.BabylonClient,
+		tm.AnonClient,
 		&bstCfg,
 		&commonCfg,
 		logger,
@@ -408,10 +408,10 @@ func TestUnbondingLoaded(t *testing.T) {
 
 	// set up a finality provider
 	_, fpSK := tm.CreateFinalityProvider(t)
-	signerAddr := tm.BabylonClient.MustGetAddr()
+	signerAddr := tm.AnonClient.MustGetAddr()
 	addr := sdk.MustAccAddressFromBech32(signerAddr)
 
-	bsParams, err := tm.BabylonClient.BTCStakingParams()
+	bsParams, err := tm.AnonClient.BTCStakingParams()
 	require.NoError(t, err)
 
 	numStakers := 150
@@ -521,7 +521,7 @@ func TestUnbondingLoaded(t *testing.T) {
 			if _, ok := activeMap[hash]; ok {
 				continue
 			}
-			resp, err := tm.BabylonClient.BTCDelegation(staker.stakingMsgTxHash.String())
+			resp, err := tm.AnonClient.BTCDelegation(staker.stakingMsgTxHash.String())
 			if err != nil {
 				continue
 			}
@@ -585,7 +585,7 @@ func TestActivatingDelegationWithTwoTrackers(t *testing.T) {
 
 	prvKey, _, address := testdata.KeyTestPubAddr()
 
-	err = tm.BabylonClient.Provider().Keybase.ImportPrivKeyHex(
+	err = tm.AnonClient.Provider().Keybase.ImportPrivKeyHex(
 		"test-2",
 		hex.EncodeToString(prvKey.Bytes()),
 		"secp256k1",
@@ -595,28 +595,28 @@ func TestActivatingDelegationWithTwoTrackers(t *testing.T) {
 	cfg := defaultVigilanteConfig()
 	cfg.BTC.Endpoint = tm.Config.BTC.Endpoint
 	cfg.BTCStakingTracker.IndexerAddr = tm.Config.BTCStakingTracker.IndexerAddr
-	cfg.Babylon.KeyDirectory = tm.Config.Babylon.KeyDirectory
-	cfg.Babylon.GasAdjustment = tm.Config.Babylon.GasAdjustment
-	cfg.Babylon.Key = "test-2"
-	cfg.Babylon.RPCAddr = tm.Config.Babylon.RPCAddr
-	cfg.Babylon.GRPCAddr = tm.Config.Babylon.GRPCAddr
+	cfg.Anon.KeyDirectory = tm.Config.Anon.KeyDirectory
+	cfg.Anon.GasAdjustment = tm.Config.Anon.GasAdjustment
+	cfg.Anon.Key = "test-2"
+	cfg.Anon.RPCAddr = tm.Config.Anon.RPCAddr
+	cfg.Anon.GRPCAddr = tm.Config.Anon.GRPCAddr
 
-	babylonClient, err := bbnclient.New(&cfg.Babylon, nil)
+	anonClient, err := ancclient.New(&cfg.Anon, nil)
 	require.NoError(t, err)
 
 	msg := banktypes.NewMsgSend(
-		sdk.MustAccAddressFromBech32(tm.BabylonClient.MustGetAddr()),
+		sdk.MustAccAddressFromBech32(tm.AnonClient.MustGetAddr()),
 		address,
-		sdk.NewCoins(sdk.NewInt64Coin("ubbn", 100_000_000)),
+		sdk.NewCoins(sdk.NewInt64Coin("uanc", 100_000_000)),
 	)
 
-	_, err = tm.BabylonClient.ReliablySendMsg(context.Background(), msg, nil, nil)
+	_, err = tm.AnonClient.ReliablySendMsg(context.Background(), msg, nil, nil)
 	require.NoError(t, err)
 
 	bsTracker := bst.NewBTCStakingTracker(
 		tm.BTCClient,
 		btcNotifier,
-		tm.BabylonClient,
+		tm.AnonClient,
 		&bstCfg,
 		&commonCfg,
 		zap.NewNop(),
@@ -631,7 +631,7 @@ func TestActivatingDelegationWithTwoTrackers(t *testing.T) {
 	bsTracker2 := bst.NewBTCStakingTracker(
 		btcClient,
 		btcNotifier,
-		babylonClient,
+		anonClient,
 		&bstCfg2,
 		&commonCfg2,
 		zap.NewNop(),
@@ -674,7 +674,7 @@ func TestActivatingDelegationWithTwoTrackers(t *testing.T) {
 		// staking tx is not yet K-deep
 		time.Sleep(10 * time.Second)
 		// Insert k empty blocks to Bitcoin
-		btccParamsResp, err := tm.BabylonClient.BTCCheckpointParams()
+		btccParamsResp, err := tm.AnonClient.BTCCheckpointParams()
 		if err != nil {
 			fmt.Println("Error fetching BTCCheckpointParams:", err)
 			return
@@ -697,7 +697,7 @@ func TestActivatingDelegationWithTwoTrackers(t *testing.T) {
 	}, eventuallyWaitTimeOut, eventuallyPollTime)
 
 	require.Eventually(t, func() bool {
-		resp, err := tm.BabylonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
+		resp, err := tm.AnonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
 		require.NoError(t, err)
 
 		return resp.BtcDelegation.Active
@@ -719,7 +719,7 @@ func TestStakeExpansionFlow(t *testing.T) {
 
 	tm := StartManager(t, WithNumMatureOutputs(numMatureOutputs), WithEpochInterval(defaultEpochInterval))
 	defer tm.Stop(t)
-	// Insert all existing BTC headers to babylon node
+	// Insert all existing BTC headers to anon node
 	tm.CatchUpBTCLightClient(t)
 
 	btcNotifier, err := btcclient.NewNodeBackend(
@@ -741,7 +741,7 @@ func TestStakeExpansionFlow(t *testing.T) {
 	bsTracker := bst.NewBTCStakingTracker(
 		tm.BTCClient,
 		btcNotifier,
-		tm.BabylonClient,
+		tm.AnonClient,
 		&bstCfg,
 		&commonCfg,
 		zap.NewNop(),
@@ -761,7 +761,7 @@ func TestStakeExpansionFlow(t *testing.T) {
 	// Verify original delegation is active
 	var originalDel *btcstakingtypes.BTCDelegationResponse
 	require.Eventually(t, func() bool {
-		resp, err := tm.BabylonClient.BTCDelegation(originalStakingTxHash.String())
+		resp, err := tm.AnonClient.BTCDelegation(originalStakingTxHash.String())
 		require.NoError(t, err)
 		originalDel = resp.BtcDelegation
 		return resp.BtcDelegation.Active
@@ -773,7 +773,7 @@ func TestStakeExpansionFlow(t *testing.T) {
 	expansionStakingTxHash := expansionStakingMsgTx.TxHash()
 
 	// Step 3: Add covenant signatures for the expansion delegation
-	signerAddr := tm.BabylonClient.MustGetAddr()
+	signerAddr := tm.AnonClient.MustGetAddr()
 	expansionStakingMsgTxHash := expansionStakingMsgTx.TxHash()
 
 	slashingSpendPath, err := expansionStakingSlashingInfo.StakingInfo.SlashingPathSpendInfo()
@@ -812,7 +812,7 @@ func TestStakeExpansionFlow(t *testing.T) {
 	require.NoError(t, err)
 
 	// Get covenant sigs from stake expansion delegation
-	resp, err := tm.BabylonClient.BTCDelegation(expansionStakingTxHash.String())
+	resp, err := tm.AnonClient.BTCDelegation(expansionStakingTxHash.String())
 	require.NoError(t, err)
 
 	covenantSigs := resp.BtcDelegation.StkExp.PreviousStkCovenantSigs
@@ -854,7 +854,7 @@ func TestStakeExpansionFlow(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		// Insert k empty blocks to Bitcoin to achieve required depth
-		btccParamsResp, err := tm.BabylonClient.BTCCheckpointParams()
+		btccParamsResp, err := tm.AnonClient.BTCCheckpointParams()
 		if err != nil {
 			fmt.Println("Error fetching BTCCheckpointParams:", err)
 			return
@@ -874,14 +874,14 @@ func TestStakeExpansionFlow(t *testing.T) {
 
 	// Step 9: Verify the expansion delegation becomes active
 	require.Eventually(t, func() bool {
-		resp, err := tm.BabylonClient.BTCDelegation(expansionStakingTxHash.String())
+		resp, err := tm.AnonClient.BTCDelegation(expansionStakingTxHash.String())
 		require.NoError(t, err)
 		return resp.BtcDelegation.Active
 	}, eventuallyWaitTimeOut, eventuallyPollTime)
 
 	// Verify the original delegation is unbonded
 	require.Eventually(t, func() bool {
-		resp, err := tm.BabylonClient.BTCDelegation(originalStakingTxHash.String())
+		resp, err := tm.AnonClient.BTCDelegation(originalStakingTxHash.String())
 		require.NoError(t, err)
 
 		tm.mineBlock(t)
@@ -922,20 +922,20 @@ func TestUnbondingWatcherCensorship(t *testing.T) {
 	cfg := defaultVigilanteConfig()
 	cfg.BTC.Endpoint = tm.Config.BTC.Endpoint
 	cfg.BTCStakingTracker.IndexerAddr = tm.Config.BTCStakingTracker.IndexerAddr
-	cfg.Babylon.KeyDirectory = tm.Config.Babylon.KeyDirectory
-	cfg.Babylon.GasAdjustment = tm.Config.Babylon.GasAdjustment
-	cfg.Babylon.Key = "test-spending-key"
-	cfg.Babylon.RPCAddr = tm.Config.Babylon.RPCAddr
-	cfg.Babylon.GRPCAddr = tm.Config.Babylon.GRPCAddr
-	cfg.Babylon.BlockTimeout = 10 * time.Millisecond // very short timeout to test censorship
+	cfg.Anon.KeyDirectory = tm.Config.Anon.KeyDirectory
+	cfg.Anon.GasAdjustment = tm.Config.Anon.GasAdjustment
+	cfg.Anon.Key = "test-spending-key"
+	cfg.Anon.RPCAddr = tm.Config.Anon.RPCAddr
+	cfg.Anon.GRPCAddr = tm.Config.Anon.GRPCAddr
+	cfg.Anon.BlockTimeout = 10 * time.Millisecond // very short timeout to test censorship
 
-	babylonClient, err := bbnclient.New(&cfg.Babylon, nil) // new client only for the tracker
+	anonClient, err := ancclient.New(&cfg.Anon, nil) // new client only for the tracker
 	require.NoError(t, err)
 
 	bsTracker := bst.NewBTCStakingTracker(
 		tm.BTCClient,
 		backend,
-		babylonClient,
+		anonClient,
 		&bstCfg,
 		&commonCfg,
 		zap.NewNop(),
@@ -962,7 +962,7 @@ func TestUnbondingWatcherCensorship(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	resp, err := tm.BabylonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
+	resp, err := tm.AnonClient.BTCDelegation(stakingSlashingInfo.StakingTx.TxHash().String())
 	require.NoError(t, err)
 
 	covenantSigs := resp.BtcDelegation.UndelegationResponse.CovenantUnbondingSigList

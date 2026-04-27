@@ -2,13 +2,13 @@
 package common
 
 import (
-	"github.com/babylonlabs-io/finality-provider/util"
+	"github.com/anon-org/finality-provider/util"
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/spf13/cobra"
 )
 
 // AddKeysCommands adds all the keys-related commands to the provided command.
-// The keys commands are generic to {Babylon, Cosmos BSN, rollup BSN} finality providers
+// The keys commands are generic to {Anon, Cosmos BSN, rollup BSN} finality providers
 func AddKeysCommands(cmd *cobra.Command) {
 	cmd.AddCommand(CommandKeys())
 }

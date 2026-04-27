@@ -7,14 +7,14 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/babylonlabs-io/finality-provider/metrics"
+	"github.com/anon-org/finality-provider/metrics"
 
 	"github.com/lightningnetwork/lnd/kvdb"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/config"
+	"github.com/anon-org/finality-provider/eotsmanager"
+	"github.com/anon-org/finality-provider/eotsmanager/config"
 )
 
 // Server is the main daemon construct for the EOTS manager server. It handles

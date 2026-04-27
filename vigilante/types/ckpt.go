@@ -3,8 +3,8 @@ package types // nolint:revive
 import (
 	"fmt"
 
-	"github.com/babylonlabs-io/babylon/v4/btctxformatter"
-	btcctypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
+	"github.com/anon-org/anon/v4/btctxformatter"
+	btcctypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
 )
 
 type Ckpt struct {

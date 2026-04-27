@@ -7,9 +7,9 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/babylonlabs-io/vigilante/version"
+	"github.com/anon-org/vigilante/version"
 
-	"github.com/babylonlabs-io/vigilante/monitor/store"
+	"github.com/anon-org/vigilante/monitor/store"
 	notifier "github.com/lightningnetwork/lnd/chainntnfs"
 	"github.com/lightningnetwork/lnd/kvdb"
 
@@ -19,14 +19,14 @@ import (
 	"go.uber.org/zap"
 
 	sdkerrors "cosmossdk.io/errors"
-	checkpointingtypes "github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
+	checkpointingtypes "github.com/anon-org/anon/v4/x/checkpointing/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/monitor/btcscanner"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/monitor/btcscanner"
+	"github.com/anon-org/vigilante/types"
 )
 
 type Monitor struct {
@@ -36,13 +36,13 @@ type Monitor struct {
 
 	// BTCScanner scans BTC blocks for checkpoints
 	BTCScanner btcscanner.Scanner
-	// BBNQuerier queries epoch info from Babylon
-	BBNQuerier BabylonQueryClient
+	// ANCQuerier queries epoch info from Anon
+	ANCQuerier AnonQueryClient
 
 	// curEpoch contains information of the current epoch for verification
 	curEpoch *types.EpochInfo
 
-	// tracks checkpoint records that have not been reported back to Babylon
+	// tracks checkpoint records that have not been reported back to Anon
 	checkpointChecklist *types.CheckpointsBookkeeper
 
 	store *store.MonitorStore
@@ -59,7 +59,7 @@ func New(
 	comCfg *config.CommonConfig,
 	parentLogger *zap.Logger,
 	genesisInfo *types.GenesisInfo,
-	bbnQueryClient BabylonQueryClient,
+	ancQueryClient AnonQueryClient,
 	btcClient btcclient.BTCClient,
 	btcNotifier notifier.ChainNotifier,
 	monitorMetrics *metrics.MonitorMetrics,
@@ -95,7 +95,7 @@ func New(
 	)
 
 	return &Monitor{
-		BBNQuerier:          bbnQueryClient,
+		ANCQuerier:          ancQueryClient,
 		BTCScanner:          btcScanner,
 		Cfg:                 cfg,
 		ComCfg:              comCfg,
@@ -126,12 +126,12 @@ func (m *Monitor) Start(baseHeight uint32) {
 	commit, _ := version.CommitInfo()
 	m.logger.Infof("version: %s, commit: %s", version.Version(), commit)
 
-	// start Babylon RPC client
-	if err := m.BBNQuerier.Start(); err != nil {
-		m.logger.Fatalf("failed to start Babylon querier: %v", err)
+	// start Anon RPC client
+	if err := m.ANCQuerier.Start(); err != nil {
+		m.logger.Fatalf("failed to start Anon querier: %v", err)
 	}
 
-	// update epoch from db if it exists, otherwise query Babylon for current epoch
+	// update epoch from db if it exists, otherwise query Anon for current epoch
 	epochNumber, exists, err := m.store.LatestEpoch()
 	if err != nil {
 		m.logger.Fatalf("getting epoch from db err %s", err)
@@ -143,12 +143,12 @@ func (m *Monitor) Start(baseHeight uint32) {
 			panic(fmt.Errorf("error updating epoch %w", err))
 		}
 	} else {
-		// Fresh start: query Babylon for current epoch to sync with network
-		currentEpochResp, err := m.BBNQuerier.CurrentEpoch()
+		// Fresh start: query Anon for current epoch to sync with network
+		currentEpochResp, err := m.ANCQuerier.CurrentEpoch()
 		if err != nil {
-			m.logger.Warnf("failed to query current epoch from Babylon, using genesis epoch 1: %v", err)
+			m.logger.Warnf("failed to query current epoch from Anon, using genesis epoch 1: %v", err)
 		} else if currentEpochResp != nil && currentEpochResp.CurrentEpoch > 0 {
-			m.logger.Infof("initializing monitor from Babylon's current epoch: %d", currentEpochResp.CurrentEpoch)
+			m.logger.Infof("initializing monitor from Anon's current epoch: %d", currentEpochResp.CurrentEpoch)
 			if err := m.UpdateEpochInfo(currentEpochResp.CurrentEpoch); err != nil {
 				panic(fmt.Errorf("error updating epoch %w", err))
 			}
@@ -263,7 +263,7 @@ func (m *Monitor) GetCurrentEpoch() uint64 {
 	return m.curEpoch.GetEpochNumber()
 }
 
-// VerifyCheckpoint verifies the BTC checkpoint against the Babylon counterpart
+// VerifyCheckpoint verifies the BTC checkpoint against the Anon counterpart
 func (m *Monitor) VerifyCheckpoint(btcCkpt *checkpointingtypes.RawCheckpoint) error {
 	// check whether the epoch number of the checkpoint equals to the current epoch number
 	if m.GetCurrentEpoch() != btcCkpt.EpochNum {
@@ -276,24 +276,24 @@ func (m *Monitor) VerifyCheckpoint(btcCkpt *checkpointingtypes.RawCheckpoint) er
 	if err != nil {
 		return fmt.Errorf("invalid BLS sig of BTC checkpoint at epoch %d: %w", m.GetCurrentEpoch(), err)
 	}
-	// query checkpoint from Babylon
+	// query checkpoint from Anon
 	res, err := m.queryRawCheckpointWithRetry(btcCkpt.EpochNum)
 	if err != nil {
-		return fmt.Errorf("failed to query raw checkpoint from Babylon, epoch %v: %w", btcCkpt.EpochNum, err)
+		return fmt.Errorf("failed to query raw checkpoint from Anon, epoch %v: %w", btcCkpt.EpochNum, err)
 	}
 	ckpt, err := res.RawCheckpoint.Ckpt.ToRawCheckpoint()
 	if err != nil {
 		return fmt.Errorf("failed to parse raw checkpoint %v: %w", res.RawCheckpoint.Ckpt, err)
 	}
-	// verify BLS sig of the raw checkpoint from Babylon
+	// verify BLS sig of the raw checkpoint from Anon
 	err = m.curEpoch.VerifyMultiSig(ckpt)
 	if err != nil {
-		return fmt.Errorf("invalid BLS sig of Babylon raw checkpoint at epoch %d: %w", m.GetCurrentEpoch(), err)
+		return fmt.Errorf("invalid BLS sig of Anon raw checkpoint at epoch %d: %w", m.GetCurrentEpoch(), err)
 	}
-	// check whether the checkpoint from Babylon has the same BlockHash of the BTC checkpoint
+	// check whether the checkpoint from Anon has the same BlockHash of the BTC checkpoint
 	if !ckpt.BlockHash.Equal(*btcCkpt.BlockHash) {
 		return errors.Wrapf(types.ErrInconsistentBlockHash,
-			"Babylon checkpoint's BlockHash %s, BTC checkpoint's BlockHash %s",
+			"Anon checkpoint's BlockHash %s, BTC checkpoint's BlockHash %s",
 			ckpt.BlockHash.String(), btcCkpt.BlockHash)
 	}
 
@@ -323,7 +323,7 @@ func (m *Monitor) checkHeaderConsistency(header *wire.BlockHeader) error {
 		return err
 	}
 	if !res.Contains {
-		return fmt.Errorf("BTC header %x does not exist on Babylon BTC light client", btcHeaderHash)
+		return fmt.Errorf("BTC header %x does not exist on Anon BTC light client", btcHeaderHash)
 	}
 
 	return nil
@@ -350,11 +350,11 @@ func GetSortedValSet(valSet checkpointingtypes.ValidatorWithBlsKeySet) checkpoin
 func (m *Monitor) Stop() {
 	close(m.quit)
 	m.BTCScanner.Stop()
-	// in e2e the test manager will share access to BBN querier and shut down
+	// in e2e the test manager will share access to ANC querier and shut down
 	// it earlier than monitor, so we need to check if it's running here
-	if m.BBNQuerier.IsRunning() {
-		if err := m.BBNQuerier.Stop(); err != nil {
-			m.logger.Fatalf("failed to stop Babylon querier: %v", err)
+	if m.ANCQuerier.IsRunning() {
+		if err := m.ANCQuerier.Stop(); err != nil {
+			m.logger.Fatalf("failed to stop Anon querier: %v", err)
 		}
 	}
 }

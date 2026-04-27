@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	btcstktypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
+	anc "github.com/anon-org/anon/v4/types"
+	btcstktypes "github.com/anon-org/anon/v4/x/btcstaking/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
 )
 
 type StoredFinalityProvider struct {
@@ -52,8 +52,8 @@ func protoFpToStoredFinalityProvider(fp *proto.FinalityProvider) (*StoredFinalit
 	}, nil
 }
 
-func (sfp *StoredFinalityProvider) GetBIP340BTCPK() *bbn.BIP340PubKey {
-	return bbn.NewBIP340PubKeyFromBTCPK(sfp.BtcPk)
+func (sfp *StoredFinalityProvider) GetBIP340BTCPK() *anc.BIP340PubKey {
+	return anc.NewBIP340PubKeyFromBTCPK(sfp.BtcPk)
 }
 
 func (sfp *StoredFinalityProvider) ToFinalityProviderInfo() *proto.FinalityProviderInfo {

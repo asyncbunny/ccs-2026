@@ -7,12 +7,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/babylonlabs-io/babylon/v4/types"
-	clientctx "github.com/babylonlabs-io/finality-provider/finality-provider/cmd/fpd/clientctx"
-	fpcfg "github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
-	dc "github.com/babylonlabs-io/finality-provider/finality-provider/service/client"
-	fptypes "github.com/babylonlabs-io/finality-provider/types"
+	"github.com/anon-org/anon/v4/types"
+	clientctx "github.com/anon-org/finality-provider/finality-provider/cmd/fpd/clientctx"
+	fpcfg "github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
+	dc "github.com/anon-org/finality-provider/finality-provider/service/client"
+	fptypes "github.com/anon-org/finality-provider/types"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
@@ -23,7 +23,7 @@ var (
 )
 
 // AddCommonCommands adds all the common subcommands to the given command.
-// These commands are generic to {Babylon, Cosmos BSN, rollup BSN} finality providers
+// These commands are generic to {Anon, Cosmos BSN, rollup BSN} finality providers
 func AddCommonCommands(cmd *cobra.Command, binaryName string) {
 	cmd.AddCommand(
 		CommandGetDaemonInfo(binaryName),
@@ -296,9 +296,9 @@ func CommandEditFinalityDescription(binaryName string) *cobra.Command {
 		Aliases: []string{"efp"},
 		Short:   "Edit finality provider data without resetting unchanged fields",
 		Long: "Edit the details of a finality provider using the specified EOTS public key. " +
-			"\nThe provided [eots_pk] must correspond to the Babylon address controlled by the key specified in fpd.conf. " +
+			"\nThe provided [eots_pk] must correspond to the Anon address controlled by the key specified in fpd.conf. " +
 			"\nIf one or more optional flags are passed (such as --moniker, --website, etc.), " +
-			"the corresponding values are updated, while unchanged fields retain their current values from the Babylon Node.",
+			"the corresponding values are updated, while unchanged fields retain their current values from the Anon Node.",
 		Example: fmt.Sprintf(`%s edit-finality-provider [eots_pk] --daemon-address %s --moniker "new-moniker"`, binaryName, defaultFpdDaemonAddress),
 		Args:    cobra.ExactArgs(1),
 		RunE:    runCommandEditFinalityDescription,

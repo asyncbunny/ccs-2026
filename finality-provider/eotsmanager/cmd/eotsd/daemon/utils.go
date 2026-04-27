@@ -5,13 +5,13 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/babylonlabs-io/babylon/v4/app/params"
+	"github.com/anon-org/anon/v4/app/params"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkflags "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/std"
 	"github.com/spf13/cobra"
 
-	"github.com/babylonlabs-io/finality-provider/util"
+	"github.com/anon-org/finality-provider/util"
 )
 
 func getHomePath(cmd *cobra.Command) (string, error) {

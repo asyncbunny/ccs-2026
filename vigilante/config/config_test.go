@@ -2,7 +2,7 @@ package config_test
 
 import (
 	"fmt"
-	"github.com/babylonlabs-io/vigilante/config"
+	"github.com/anon-org/vigilante/config"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

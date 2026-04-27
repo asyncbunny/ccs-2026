@@ -3,10 +3,10 @@ package remotesigner
 import (
 	"context"
 
-	"github.com/babylonlabs-io/covenant-emulator/config"
-	"github.com/babylonlabs-io/covenant-emulator/covenant"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerapp"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice"
+	"github.com/anon-org/covenant-emulator/config"
+	"github.com/anon-org/covenant-emulator/covenant"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerapp"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice"
 	"github.com/btcsuite/btcd/btcec/v2"
 )
 

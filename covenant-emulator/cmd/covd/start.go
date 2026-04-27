@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"path/filepath"
 
-	covcfg "github.com/babylonlabs-io/covenant-emulator/config"
-	"github.com/babylonlabs-io/covenant-emulator/log"
-	"github.com/babylonlabs-io/covenant-emulator/remotesigner"
-	"github.com/babylonlabs-io/covenant-emulator/util"
+	covcfg "github.com/anon-org/covenant-emulator/config"
+	"github.com/anon-org/covenant-emulator/log"
+	"github.com/anon-org/covenant-emulator/remotesigner"
+	"github.com/anon-org/covenant-emulator/util"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
 	"github.com/lightningnetwork/lnd/signal"
 	"github.com/urfave/cli"
 
-	"github.com/babylonlabs-io/covenant-emulator/clientcontroller"
-	"github.com/babylonlabs-io/covenant-emulator/covenant"
-	covsrv "github.com/babylonlabs-io/covenant-emulator/covenant/service"
+	"github.com/anon-org/covenant-emulator/clientcontroller"
+	"github.com/anon-org/covenant-emulator/covenant"
+	covsrv "github.com/anon-org/covenant-emulator/covenant/service"
 )
 
 var startCommand = cli.Command{
@@ -44,8 +44,8 @@ func start(ctx *cli.Context) error {
 		return fmt.Errorf("failed to load config at %s: %w", homePath, err)
 	}
 
-	if cfg.BabylonConfig.KeyringBackend != keyring.BackendTest {
-		return fmt.Errorf("the keyring backend in config must be `test` for automatic signing, got %s. Other keyring backends are not supported as they require manual passphrase entry", cfg.BabylonConfig.KeyringBackend)
+	if cfg.AnonConfig.KeyringBackend != keyring.BackendTest {
+		return fmt.Errorf("the keyring backend in config must be `test` for automatic signing, got %s. Other keyring backends are not supported as they require manual passphrase entry", cfg.AnonConfig.KeyringBackend)
 	}
 
 	logger, err := log.NewRootLoggerWithFile(covcfg.LogFile(homePath), cfg.LogLevel)
@@ -53,7 +53,7 @@ func start(ctx *cli.Context) error {
 		return fmt.Errorf("failed to load the logger: %w", err)
 	}
 
-	bbnClient, err := clientcontroller.NewBabylonController(cfg.BabylonConfig, &cfg.BTCNetParams, logger, cfg.MaxRetiresBatchRemovingMsgs)
+	ancClient, err := clientcontroller.NewAnonController(cfg.AnonConfig, &cfg.BTCNetParams, logger, cfg.MaxRetiresBatchRemovingMsgs)
 	if err != nil {
 		return fmt.Errorf("failed to create rpc client for the consumer chain: %w", err)
 	}
@@ -67,7 +67,7 @@ func start(ctx *cli.Context) error {
 	}
 	logger.Info("Remote signer health check passed")
 
-	ce, err := covenant.NewEmulator(cfg, bbnClient, logger, signer)
+	ce, err := covenant.NewEmulator(cfg, ancClient, logger, signer)
 	if err != nil {
 		return fmt.Errorf("failed to start the covenant emulator: %w", err)
 	}

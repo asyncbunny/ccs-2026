@@ -15,8 +15,8 @@ import (
 	"github.com/btcsuite/btcd/wire"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/netparams"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/netparams"
 )
 
 type TxStatus int

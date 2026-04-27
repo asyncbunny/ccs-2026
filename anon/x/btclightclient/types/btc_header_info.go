@@ -1,0 +1,65 @@
+package types
+
+import (
+	"errors"
+	"fmt"
+
+	sdkmath "cosmossdk.io/math"
+	anc "github.com/anon-org/anon/v4/types"
+)
+
+func NewBTCHeaderInfo(header *anc.BTCHeaderBytes, headerHash *anc.BTCHeaderHashBytes, height uint32, work *sdkmath.Uint) *BTCHeaderInfo {
+	return &BTCHeaderInfo{
+		Header: header,
+		Hash:   headerHash,
+		Height: height,
+		Work:   work,
+	}
+}
+
+func (m *BTCHeaderInfo) HasParent(parent *BTCHeaderInfo) bool {
+	return m.Header.HasParent(parent.Header)
+}
+
+func (m *BTCHeaderInfo) Eq(other *BTCHeaderInfo) bool {
+	return m.Hash.Eq(other.Hash)
+}
+
+// Validate verifies that the information inside the BTCHeaderInfo is valid.
+func (m *BTCHeaderInfo) Validate() error {
+	if m.Header == nil {
+		return errors.New("header is nil")
+	}
+	if m.Hash == nil {
+		return errors.New("hash is nil")
+	}
+	if m.Work == nil {
+		return errors.New("work is nil")
+	}
+
+	if m.Work.IsZero() {
+		return errors.New("work is zero")
+	}
+
+	btcHeader, err := anc.NewBlockHeader(*m.Header)
+	if err != nil {
+		return err
+	}
+
+	blkHash := btcHeader.BlockHash()
+	headerHash := anc.NewBTCHeaderHashBytesFromChainhash(&blkHash)
+	if !m.Hash.Eq(&headerHash) {
+		return fmt.Errorf("BTC header hash is not equal to generated hash from header %s != %s", m.Hash, &headerHash)
+	}
+
+	return nil
+}
+
+func NewBTCHeaderInfoResponse(header *anc.BTCHeaderBytes, headerHash *anc.BTCHeaderHashBytes, height uint32, work *sdkmath.Uint) *BTCHeaderInfoResponse {
+	return &BTCHeaderInfoResponse{
+		HeaderHex: header.MarshalHex(),
+		HashHex:   headerHash.MarshalHex(),
+		Height:    height,
+		Work:      *work,
+	}
+}

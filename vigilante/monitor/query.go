@@ -5,19 +5,19 @@ import (
 	"fmt"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/babylonlabs-io/vigilante/retrywrap"
+	"github.com/anon-org/vigilante/retrywrap"
 
-	btclctypes "github.com/babylonlabs-io/babylon/v4/x/btclightclient/types"
-	ckpttypes "github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
-	epochingtypes "github.com/babylonlabs-io/babylon/v4/x/epoching/types"
-	monitortypes "github.com/babylonlabs-io/babylon/v4/x/monitor/types"
+	btclctypes "github.com/anon-org/anon/v4/x/btclightclient/types"
+	ckpttypes "github.com/anon-org/anon/v4/x/checkpointing/types"
+	epochingtypes "github.com/anon-org/anon/v4/x/epoching/types"
+	monitortypes "github.com/anon-org/anon/v4/x/monitor/types"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/types"
 )
 
-// QueryInfoForNextEpoch fetches necessary information for verifying the next epoch from Babylon
+// QueryInfoForNextEpoch fetches necessary information for verifying the next epoch from Anon
 func (m *Monitor) QueryInfoForNextEpoch(epoch uint64) (*types.EpochInfo, error) {
 	// query validator set with BLS
 	res, err := m.queryBlsPublicKeyListWithRetry(epoch)
@@ -51,11 +51,11 @@ func convertFromBlsPublicKeyListResponse(valBLSKeys []*ckpttypes.BlsPublicKeyLis
 	return blsPublicKeyListResponse, nil
 }
 
-// FindTipConfirmedEpoch tries to find the last confirmed epoch number from Babylon
+// FindTipConfirmedEpoch tries to find the last confirmed epoch number from Anon
 func (m *Monitor) FindTipConfirmedEpoch() (uint64, error) {
 	epochRes, err := m.queryCurrentEpochWithRetry()
 	if err != nil {
-		return 0, fmt.Errorf("failed to query the current epoch of Babylon: %w", err)
+		return 0, fmt.Errorf("failed to query the current epoch of Anon: %w", err)
 	}
 	curEpoch := epochRes.CurrentEpoch
 	m.logger.Debugf("current epoch number is %v", curEpoch)
@@ -70,14 +70,14 @@ func (m *Monitor) FindTipConfirmedEpoch() (uint64, error) {
 		curEpoch--
 	}
 
-	return 0, fmt.Errorf("cannot find a confirmed or finalized epoch from Babylon")
+	return 0, fmt.Errorf("cannot find a confirmed or finalized epoch from Anon")
 }
 
 func (m *Monitor) queryCurrentEpochWithRetry() (*epochingtypes.QueryCurrentEpochResponse, error) {
 	var currentEpochRes epochingtypes.QueryCurrentEpochResponse
 
 	if err := retrywrap.Do(func() error {
-		res, err := m.BBNQuerier.CurrentEpoch()
+		res, err := m.ANCQuerier.CurrentEpoch()
 		if err != nil {
 			return err
 		}
@@ -103,7 +103,7 @@ func (m *Monitor) queryRawCheckpointWithRetry(epoch uint64) (*ckpttypes.QueryRaw
 	var rawCheckpointRes ckpttypes.QueryRawCheckpointResponse
 
 	if err := retrywrap.Do(func() error {
-		res, err := m.BBNQuerier.RawCheckpoint(epoch)
+		res, err := m.ANCQuerier.RawCheckpoint(epoch)
 		if err != nil {
 			return err
 		}
@@ -129,7 +129,7 @@ func (m *Monitor) queryBlsPublicKeyListWithRetry(epoch uint64) (*ckpttypes.Query
 	var blsPublicKeyListRes ckpttypes.QueryBlsPublicKeyListResponse
 
 	if err := retrywrap.Do(func() error {
-		res, err := m.BBNQuerier.BlsPublicKeyList(epoch, nil)
+		res, err := m.ANCQuerier.BlsPublicKeyList(epoch, nil)
 		if err != nil {
 			return err
 		}
@@ -155,7 +155,7 @@ func (m *Monitor) queryEndedEpochBTCHeightWithRetry(epoch uint64) (*monitortypes
 	var endedEpochBTCHeightRes monitortypes.QueryEndedEpochBtcHeightResponse
 
 	if err := retrywrap.Do(func() error {
-		res, err := m.BBNQuerier.EndedEpochBTCHeight(epoch)
+		res, err := m.ANCQuerier.EndedEpochBTCHeight(epoch)
 		if err != nil {
 			return err
 		}
@@ -181,7 +181,7 @@ func (m *Monitor) queryReportedCheckpointBTCHeightWithRetry(hashStr string) (*mo
 	var reportedCheckpointBtcHeightRes monitortypes.QueryReportedCheckpointBtcHeightResponse
 
 	if err := retrywrap.Do(func() error {
-		res, err := m.BBNQuerier.ReportedCheckpointBTCHeight(hashStr)
+		res, err := m.ANCQuerier.ReportedCheckpointBTCHeight(hashStr)
 		if err != nil {
 			return err
 		}
@@ -207,7 +207,7 @@ func (m *Monitor) queryBTCHeaderChainTipWithRetry() (*btclctypes.QueryTipRespons
 	var btcHeaderChainTipRes btclctypes.QueryTipResponse
 
 	if err := retrywrap.Do(func() error {
-		res, err := m.BBNQuerier.BTCHeaderChainTip()
+		res, err := m.ANCQuerier.BTCHeaderChainTip()
 		if err != nil {
 			return err
 		}
@@ -233,7 +233,7 @@ func (m *Monitor) queryContainsBTCBlockWithRetry(blockHash *chainhash.Hash) (*bt
 	var containsBTCBlockRes btclctypes.QueryContainsBytesResponse
 
 	if err := retrywrap.Do(func() error {
-		res, err := m.BBNQuerier.ContainsBTCBlock(blockHash)
+		res, err := m.ANCQuerier.ContainsBTCBlock(blockHash)
 		if err != nil {
 			return err
 		}

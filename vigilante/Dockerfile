@@ -15,12 +15,12 @@ RUN apk add --no-cache --update openssh git make build-base linux-headers libc-d
                                 libzmq-static libsodium-static gcc && rm -rf /var/cache/apk/*
 
 # Build
-WORKDIR /go/src/github.com/babylonlabs-io/vigilante
+WORKDIR /go/src/github.com/anon-org/vigilante
 # Cache dependencies
-COPY go.mod go.sum /go/src/github.com/babylonlabs-io/vigilante/
+COPY go.mod go.sum /go/src/github.com/anon-org/vigilante/
 RUN go mod download
 # Copy the rest of the files
-COPY ./ /go/src/github.com/babylonlabs-io/vigilante/
+COPY ./ /go/src/github.com/anon-org/vigilante/
 # If version is set, then checkout this version
 RUN if [ -n "${VERSION}" ]; then \
         git checkout -f ${VERSION}; \
@@ -48,9 +48,9 @@ RUN addgroup --gid 1138 -S vigilante && adduser --uid 1138 -S vigilante -G vigil
 RUN apk --no-cache add bash curl jq && rm -rf /var/cache/apk/*
 
 # Label should match your github repo
-LABEL org.opencontainers.image.source="https://github.com/babylonlabs-io/vigilante:${VERSION}"
+LABEL org.opencontainers.image.source="https://github.com/anon-org/vigilante:${VERSION}"
 
-COPY --from=build-env /go/src/github.com/babylonlabs-io/vigilante/build/vigilante /bin/vigilante
+COPY --from=build-env /go/src/github.com/anon-org/vigilante/build/vigilante /bin/vigilante
 
 # Set home directory and user
 WORKDIR /home/vigilante

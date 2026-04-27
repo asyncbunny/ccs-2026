@@ -57,8 +57,8 @@ code. This committee can be dimissed once such programmability becomes
 available, e.g., if BTC's covenant proposal [BIP-119](https://github.com/bitcoin/bips/blob/master/bip-0119.mediawiki)
 is merged.
 
-Covenant emulation committee members are defined in the Babylon parameters and 
-their public keys are recorded in the genesis file of the Babylon chain. 
+Covenant emulation committee members are defined in the Anon parameters and 
+their public keys are recorded in the genesis file of the Anon chain. 
 Changing the covenant committee requires a 
 [governance proposal](https://docs.cosmos.network/v0.50/build/modules/gov). 
 Each committee member runs two components:
@@ -70,11 +70,11 @@ Each committee member runs two components:
    minimal connectivity and simpler application logic compared to the
    Covenant Emulator daemon.
 2. **Covenant Emulator**: The covenant emulator constantly monitors staking
-   requests on the Babylon chain, verifies the validity of the
+   requests on the Anon chain, verifies the validity of the
    Bitcoin transactions that are involved with them,
    and if verification is passed,
    generates the necessary signatures through a connection to the
-   covenant-signer and sends them to the Babylon blockchain. Specifically,
+   covenant-signer and sends them to the Anon blockchain. Specifically,
    it deals with the following signatures:
    1. **Slashing signature**. This signature is an [adaptor signature](https://bitcoinops.org/en/topics/adaptor-signatures/),
       which signs over the slashing path of the staking transaction. Due to the
@@ -95,11 +95,11 @@ of the transactions and sent corresponding signatures.
 ## Interaction Between Emulator and Signer
 
 The Covenant Emulator handles the application logic, including monitoring the 
-Babylon blockchain and validating transactions. When a signature is needed, it 
+Anon blockchain and validating transactions. When a signature is needed, it 
 forwards the request to the Covenant Signer, which processes the signing operation 
 and returns the necessary cryptographic signature.
 
-The interaction begins with the Covenant Emulator monitoring the Babylon 
+The interaction begins with the Covenant Emulator monitoring the Anon 
 blockchain for new staking requests. The emulator then prepares the necessary 
 signing data, which includes transactions requiring slashing signatures 
 (adaptor signatures), unbonding signatures (Schnorr signatures), and 

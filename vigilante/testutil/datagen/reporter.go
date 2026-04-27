@@ -5,10 +5,10 @@ import (
 	"math/big"
 	"math/rand"
 
-	"github.com/babylonlabs-io/babylon/v4/btctxformatter"
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	babylontypes "github.com/babylonlabs-io/babylon/v4/types"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/anon/v4/btctxformatter"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	anontypes "github.com/anon-org/anon/v4/types"
+	"github.com/anon-org/vigilante/types"
 	"github.com/btcsuite/btcd/blockchain"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -70,7 +70,7 @@ func GenRandomTx(r *rand.Rand) *wire.MsgTx {
 	return tx
 }
 
-func GenRandomBabylonTxPair(r *rand.Rand) ([]*wire.MsgTx, *btctxformatter.RawBtcCheckpoint) {
+func GenRandomAnonTxPair(r *rand.Rand) ([]*wire.MsgTx, *btctxformatter.RawBtcCheckpoint) {
 	txs := []*wire.MsgTx{GenRandomTx(r), GenRandomTx(r)}
 	builder := txscript.NewScriptBuilder()
 
@@ -104,7 +104,7 @@ func GenRandomBabylonTxPair(r *rand.Rand) ([]*wire.MsgTx, *btctxformatter.RawBtc
 	return txs, rawBTCCkpt
 }
 
-func GenRandomBabylonTx(r *rand.Rand) *wire.MsgTx {
+func GenRandomAnonTx(r *rand.Rand) *wire.MsgTx {
 	tx := GenRandomTx(r)
 	builder := txscript.NewScriptBuilder()
 
@@ -137,20 +137,20 @@ func GenRandomBabylonTx(r *rand.Rand) *wire.MsgTx {
 	return tx
 }
 
-func GenRandomBlock(r *rand.Rand, numBabylonTxs int, prevHash *chainhash.Hash) (*wire.MsgBlock, *btctxformatter.RawBtcCheckpoint) {
-	// create a tx, which will be a Babylon tx with probability `percentage`
+func GenRandomBlock(r *rand.Rand, numAnonTxs int, prevHash *chainhash.Hash) (*wire.MsgBlock, *btctxformatter.RawBtcCheckpoint) {
+	// create a tx, which will be a Anon tx with probability `percentage`
 	var (
 		randomTxs []*wire.MsgTx
 		rawCkpt   *btctxformatter.RawBtcCheckpoint
 	)
 
-	switch numBabylonTxs {
+	switch numAnonTxs {
 	case 1:
-		randomTxs, _ = GenRandomBabylonTxPair(r)
+		randomTxs, _ = GenRandomAnonTxPair(r)
 		randomTxs[1] = GenRandomTx(r)
 		rawCkpt = nil
 	case 2:
-		randomTxs, rawCkpt = GenRandomBabylonTxPair(r)
+		randomTxs, rawCkpt = GenRandomAnonTxPair(r)
 	default:
 		randomTxs = []*wire.MsgTx{GenRandomTx(r), GenRandomTx(r)}
 		rawCkpt = nil
@@ -179,7 +179,7 @@ func GenRandomBlock(r *rand.Rand, numBabylonTxs int, prevHash *chainhash.Hash) (
 			header.PrevBlock = *prevHash
 		}
 
-		if err := babylontypes.ValidateBTCHeader(header, chaincfg.SimNetParams.PowLimit); err == nil {
+		if err := anontypes.ValidateBTCHeader(header, chaincfg.SimNetParams.PowLimit); err == nil {
 			break
 		}
 	}
@@ -231,7 +231,7 @@ func GetRandomIndexedBlocksFromHeight(r *rand.Rand, numBlocks uint64, rootHeight
 	return ibs
 }
 
-func GenRandomBlockchainWithBabylonTx(r *rand.Rand, n uint64, partialPercentage float32, fullPercentage float32) ([]*wire.MsgBlock, int, []*btctxformatter.RawBtcCheckpoint) {
+func GenRandomBlockchainWithAnonTx(r *rand.Rand, n uint64, partialPercentage float32, fullPercentage float32) ([]*wire.MsgBlock, int, []*btctxformatter.RawBtcCheckpoint) {
 	blocks := []*wire.MsgBlock{}
 	numCkptSegs := 0
 	rawCkpts := []*btctxformatter.RawBtcCheckpoint{}

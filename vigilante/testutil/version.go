@@ -8,8 +8,8 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
-// GetBabylonVersion returns babylond version from go.mod
-func GetBabylonVersion() (string, error) {
+// GetAnonVersion returns anond version from go.mod
+func GetAnonVersion() (string, error) {
 	goModPath := filepath.Join("..", "go.mod")
 	data, err := os.ReadFile(goModPath)
 	if err != nil {
@@ -22,7 +22,7 @@ func GetBabylonVersion() (string, error) {
 		return "", err
 	}
 
-	const modName = "github.com/babylonlabs-io/babylon/v4"
+	const modName = "github.com/anon-org/anon/v4"
 	for _, require := range modFile.Require {
 		if require.Mod.Path == modName {
 			return require.Mod.Version, nil

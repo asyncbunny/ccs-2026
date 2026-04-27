@@ -6,13 +6,13 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
+	"github.com/anon-org/anon/v4/testutil/datagen"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"go.uber.org/zap"
 
 	"cosmossdk.io/log"
-	"github.com/babylonlabs-io/babylon/v4/app"
-	bbncmd "github.com/babylonlabs-io/babylon/v4/cmd/babylond/cmd"
+	"github.com/anon-org/anon/v4/app"
+	anccmd "github.com/anon-org/anon/v4/cmd/anond/cmd"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -27,23 +27,23 @@ func FuzzGetGenesisInfoFromFile(f *testing.F) {
 		r := rand.New(rand.NewSource(seed))
 		home := t.TempDir()
 		logger := log.NewNopLogger()
-		tmpBabylon := app.NewTmpBabylonApp()
+		tmpAnon := app.NewTmpAnonApp()
 		cfg, err := genutiltest.CreateDefaultCometConfig(home)
 		require.NoError(t, err)
 
-		err = genutiltest.ExecInitCmd(tmpBabylon.BasicModuleManager, home, tmpBabylon.AppCodec())
+		err = genutiltest.ExecInitCmd(tmpAnon.BasicModuleManager, home, tmpAnon.AppCodec())
 		require.NoError(t, err)
 
 		serverCtx := server.NewContext(viper.New(), cfg, logger)
 		clientCtx := client.Context{}.
-			WithCodec(tmpBabylon.AppCodec()).
+			WithCodec(tmpAnon.AppCodec()).
 			WithHomeDir(home).
-			WithTxConfig(tmpBabylon.TxConfig())
+			WithTxConfig(tmpAnon.TxConfig())
 
 		ctx := t.Context()
 		ctx = context.WithValue(ctx, server.ServerContextKey, serverCtx)
 		ctx = context.WithValue(ctx, client.ClientContextKey, &clientCtx)
-		cmd := bbncmd.TestnetCmd(tmpBabylon.BasicModuleManager, banktypes.GenesisBalancesIterator{})
+		cmd := anccmd.TestnetCmd(tmpAnon.BasicModuleManager, banktypes.GenesisBalancesIterator{})
 
 		validatorNum := r.Intn(10) + 1
 		epochInterval := r.Intn(500) + 2

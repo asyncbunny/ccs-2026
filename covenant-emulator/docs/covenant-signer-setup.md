@@ -13,7 +13,7 @@ is confined to an instance with minimal connectivity and simpler application
 logic.
 
 > **⚡ Note:** This program is a separate implementation from the
-> [covenant signer](https://github.com/babylonlabs-io/covenant-signer/)
+> [covenant signer](https://github.com/anon-org/covenant-signer/)
 > program used for phase-1. All covenant committee members
 > are required to transition their keys to this program to participate
 > in phase-2.
@@ -44,11 +44,11 @@ This guide requires that:
 1. You have a Bitcoin node setup to load your wallet and retrieve
   your master private key.
 2. You have access to the private Bitcoin key you set up your covenant with.
-3. A connection to a Babylon node. To run your own node, please refer to the
-  [Babylon Node Setup Guide](https://github.com/babylonlabs-io/networks/blob/main/bbn-test-6/babylon-node/README.md).
+3. A connection to a Anon node. To run your own node, please refer to the
+  [Anon Node Setup Guide](https://github.com/anon-org/networks/blob/main/anc-test-6/anon-node/README.md).
 
 For a refresher on setting up the Bitcoin node, refer to the
-[deployment guide of your phase-1 covenant signer setup](https://github.com/babylonlabs-io/covenant-signer/blob/main/docs/deployment.md#2-bitcoind-setup).
+[deployment guide of your phase-1 covenant signer setup](https://github.com/anon-org/covenant-signer/blob/main/docs/deployment.md#2-bitcoind-setup).
 
 <!-- TODO: Add a link to the deployment guide instructions when above link is archived -->
 
@@ -82,7 +82,7 @@ go version
 If you have not yet cloned the repository, run:
 
 ```shell
-git clone git@github.com:babylonlabs-io/covenant-emulator.git
+git clone git@github.com:anon-org/covenant-emulator.git
 cd covenant-emulator
 git checkout <tag>
 ```
@@ -126,7 +126,7 @@ know the Bitcoin address associated with your covenant's public key.
 If you need a refresher on the functionalities supported by your
 `bitcoind` wallet or how you previously set it up, you can refer
 to the relevant
-[phase-1 guide](https://github.com/babylonlabs-io/covenant-signer/blob/main/docs/deployment.md#2-bitcoind-setup).
+[phase-1 guide](https://github.com/anon-org/covenant-signer/blob/main/docs/deployment.md#2-bitcoind-setup).
 
 In the following, we'll go through all the necessary steps
 to transition your wallet.
@@ -282,7 +282,7 @@ To confirm that the import was successful, run:
 The output will display the details of the imported key:
 
 ```shell
-  - address: bbn1azasawj3ard0ffwj04zpxlw2pt9cp7kwjcdqmc
+  - address: anc1azasawj3ard0ffwj04zpxlw2pt9cp7kwjcdqmc
     name: cov
     pubkey: '{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"Ajp5tUbHnX98X/IGINkUtc9yUGMdEvbiZCftnT+Yxcyx"}'
     type: local
@@ -349,7 +349,7 @@ Below are brief explanations of the configuration entries:
   `/path/to/keys/keyring-file`).
 - `keyring-backend`: Backend system for key management, e.g., "file", "os".
 - `key-name`: Name of the key used for signing transactions.
-- `chain-id`: The Chain ID of the Babylon network you connect to.
+- `chain-id`: The Chain ID of the Anon network you connect to.
 - `host` (server-config): IP address where the server listens, typically "127.0.0.1" for local access.
 - `port` (server-config): TCP port number for the server.
 - `host` (metrics): IP address for the Prometheus metrics server, typically "127.0.0.1".

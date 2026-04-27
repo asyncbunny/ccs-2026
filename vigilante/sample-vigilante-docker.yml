@@ -23,21 +23,21 @@ btc:
   reconnect-attempts: 3
   btc-backend: bitcoind # {btcd, bitcoind}
   zmq-endpoint: tcp://bitcoindsim:29000 # use tcp://127.0.0.1:29000 if subscription-mode is zmq
-babylon:
+anon:
   key: node0
   chain-id: chain-test
-  rpc-addr: http://babylondnode0:26657
-  grpc-addr: https://babylondnode0:9090
-  account-prefix: bbn
+  rpc-addr: http://anondnode0:26657
+  grpc-addr: https://anondnode0:9090
+  account-prefix: anc
   keyring-backend: test
   gas-adjustment: 1.2
-  gas-prices: 2ubbn
-  key-directory: /babylon
+  gas-prices: 2uanc
+  key-directory: /anon
   debug: true
   timeout: 20s
   block-timeout: ~
   output-format: json
-  submitter-address: bbn1v6k7k9s8md3k29cu9runasstq5zaa0lpznk27w
+  submitter-address: anc1v6k7k9s8md3k29cu9runasstq5zaa0lpznk27w
   sign-mode: direct
 metrics:
   host: 0.0.0.0

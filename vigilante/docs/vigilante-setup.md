@@ -5,7 +5,7 @@ running a Vigilante, including:
 
 * Installing and configuring the Vigilante
 * Setting up the directory and configuration
-* Managing the Babylon keyring
+* Managing the Anon keyring
 * Running Vigilante daemon
 
 ## Table of Contents
@@ -15,7 +15,7 @@ running a Vigilante, including:
 3. [Set Up Vigilante](#3-set-up-vigilante)
     1. [Initialize Directory](#31-initialize-directory)
     2. [Configure Vigilante](#32-configure-vigilante)
-4. [Set Up Babylon Keyring Directory](#4-set-up-babylon-keyring-directory)
+4. [Set Up Anon Keyring Directory](#4-set-up-anon-keyring-directory)
 5. [Start the Vigilante Daemon](#5-start-the-vigilante-daemon)
 6. [Vigilante Operations](#6-vigilante-operations)
 
@@ -34,8 +34,8 @@ Ensure your system meets the following minimum requirements:
 
 ### 1.2 Software Requirements
 
-* A connection to a Babylon node. To run your own node, refer to the
-[Babylon Node Setup Guide](https://github.com/babylonlabs-io/networks/blob/main/bbn-test-5/babylon-node/README.md).
+* A connection to a Anon node. To run your own node, refer to the
+[Anon Node Setup Guide](https://github.com/anon-org/networks/blob/main/anc-test-5/anon-node/README.md).
 * A connection to a Bitcoin node. To run your own node, refer to the
 [Bitcoin Node Setup Guide](./bitcoind-setup.md).
 
@@ -52,7 +52,7 @@ go version
 If you have not yet cloned the repository, run:
 
 ```shell
-git clone git@github.com:babylonlabs-io/vigilante.git
+git clone git@github.com:anon-org/vigilante.git
 cd vigilante
 git checkout <tag>
 ```
@@ -82,7 +82,7 @@ echo 'export PATH=$HOME/go/bin:$PATH' >> ~/.profile
 Alternatively, if you’re working with Docker, you can pull the Docker image:
 
 ```shell
-docker pull babylonlabs/vigilante:<tag>
+docker pull anon/vigilante:<tag>
 ```
 
 ## 3. Set Up Vigilante
@@ -116,16 +116,16 @@ btc:
   username: rpuser
   password: rpcpassword
 
-babylon:
+anon:
   key: key
-  chain-id: bbn-test-5
+  chain-id: anc-test-5
   rpc-addr: http://localhost:26657
   grpc-addr: https://localhost:9090
-  account-prefix: bbn
+  account-prefix: anc
   keyring-backend: test
   gas-adjustment: 2
-  gas-prices: 0.002ubbn
-  key-directory: /home/vigilante/.babylond
+  gas-prices: 0.002uanc
+  key-directory: /home/vigilante/.anond
 
 submitter:
   netparams: signet
@@ -180,17 +180,17 @@ Configuration parameters explained:
 * `username`: Username for RPC authentication
 * `password`: Password for RPC authentication
 
-#### 3.2.2 Babylon Configuration
+#### 3.2.2 Anon Configuration
 
-* `rpc-addr`: Your Babylon node's RPC endpoint
-* `grpc-addr`: Your Babylon node's GRPC endpoint
-* `key`: Your Babylon key
-* `chain-id`: Chain ID of the Babylon network
+* `rpc-addr`: Your Anon node's RPC endpoint
+* `grpc-addr`: Your Anon node's GRPC endpoint
+* `key`: Your Anon key
+* `chain-id`: Chain ID of the Anon network
 * `gas-adjustment`: Gas adjustment factor
 * `gas-prices`: Gas price for transactions
 * `key-directory`: Directory where the keyring is stored. **Before proceeding,
-ensure the Babylon keyring is set up. Follow
-[Step 4](#4-set-up-babylon-keyring-directory) for detailed instructions.**
+ensure the Anon keyring is set up. Follow
+[Step 4](#4-set-up-anon-keyring-directory) for detailed instructions.**
 
 #### 3.2.3 Submitter Configuration
 
@@ -229,35 +229,35 @@ ensure the Babylon keyring is set up. Follow
 * `max-slashing-concurrency`: Maximum concurrency for slashing
 * `indexer-addr:`: Connection to [electrs indexer HTTP port](./bitcoind-setup.md#5-install-and-configure-electrum-server)
 
-## 4. Set Up Babylon Keyring Directory
+## 4. Set Up Anon Keyring Directory
 
-This section explains the process of setting up the Babylon keyring.
-Operators must create an Babylon keyring before starting
+This section explains the process of setting up the Anon keyring.
+Operators must create an Anon keyring before starting
 the `Vigilante Reporter` and `Vigilante BTC Staking Tracker` daemon.
 
-We will be using the Babylon Binary for the key generation. To install the binary,
-please refer to the [Babylon Binary Installation](https://github.com/babylonlabs-io/networks/blob/main/bbn-test-5/babylon-node/README.md#1-install-babylon-binary).
+We will be using the Anon Binary for the key generation. To install the binary,
+please refer to the [Anon Binary Installation](https://github.com/anon-org/networks/blob/main/anc-test-5/anon-node/README.md#1-install-anon-binary).
 
-### 4.1 Initialize Babylon home dir
+### 4.1 Initialize Anon home dir
 
 ```shell
-babylond init <moniker> --chain-id bbn-test-5 --home <path>
+anond init <moniker> --chain-id anc-test-5 --home <path>
 ```
 
 Parameters:
 
 * `<moniker>`: A unique identifier for your node for example `node0`
-* `--chain-id`: The chain ID of the Babylon chain you connect to
+* `--chain-id`: The chain ID of the Anon chain you connect to
 * `--home`: *optional* flag that specifies the directory where your
    node files will be stored, for example `--home ./nodeDir`
-   The default home directory for your Babylon node is:
-  * Linux/Mac: `~/.babylond/`
-  * Windows: `%USERPROFILE%\.babylond\`
+   The default home directory for your Anon node is:
+  * Linux/Mac: `~/.anond/`
+  * Windows: `%USERPROFILE%\.anond\`
 
-### 4.2 Generate Babylon account keyring
+### 4.2 Generate Anon account keyring
 
 ```shell
-babylond keys add <name> --home <path> --keyring-backend test
+anond keys add <name> --home <path> --keyring-backend test
 ```
 
 Parameters:
@@ -273,7 +273,7 @@ The execution result displays the address of the newly generated key and its
 public key. Following is a sample output for the command:
 
 ```shell
-*address: bbn1kvajzzn6gtfn2x6ujfvd6q54etzxnqg7pkylk9
+*address: anc1kvajzzn6gtfn2x6ujfvd6q54etzxnqg7pkylk9
   name: <name>
   pubkey: '{"@type":"/cosmos.crypto.secp256k1.PubKey",
            key: "Ayau+8f945c1iQp9tfTVaCT5lzhD8n4MRkZNqpoL6Tpo"}'
@@ -314,11 +314,11 @@ The service exposes Prometheus metrics through a Prometheus server.
 By default, the server is reachable under 127.0.0.1:2112.
 
 For a complete list of available metrics,
-visit: [Vigilante Metrics](https://github.com/babylonlabs-io/vigilante/tree/main/metrics).
+visit: [Vigilante Metrics](https://github.com/anon-org/vigilante/tree/main/metrics).
 
 ### 6.2 Key Management
 
-While the vigilante daemons are stateless, loss of the Babylon private keys of
+While the vigilante daemons are stateless, loss of the Anon private keys of
 the 1) Vigilante BTC Staking Tracker or 2) the Vigilante reporter instances is
 irrecoverable and will result in permanent loss of the associated funds.
 
@@ -342,7 +342,7 @@ message index: 0: first header of extension chain is known header: 0000000000000
 Explanation:
 
 This message indicates that the Bitcoin header
-being submitted is already known to Babylon.
+being submitted is already known to Anon.
 It typically occurs when the same header
 has already been submitted by another Vigilante operator.
 
@@ -354,13 +354,13 @@ Failed to submit MsgInsertBTCSpvProof with error rpc error: code = Unknown desc 
 Explanation:
 
 This message indicates that the checkpoint
-being submitted is already known to Babylon.
+being submitted is already known to Anon.
 It typically occurs when the same checkpoint
 has already been submitted by another Vigilante operator.
 
 ### 6.3.2 Vigilante BTC Staking Tracker Common Errors
 
-This section covers **transaction errors** returned by the Babylon
+This section covers **transaction errors** returned by the Anon
 in response to on-chain submission attempts by the **Vigilante BTC Staking Tracker**.
 
 Error:
@@ -371,7 +371,7 @@ failed to execute message; message index: 0: the delegation already has inclusio
 Explanation:
 
 This error indicates that an inclusion proof for the BTC delegation
-has already been submitted to Babylon.
+has already been submitted to Anon.
 It typically occurs when the same inclusion proof has
 already been submitted by another Vigilante operator.
 

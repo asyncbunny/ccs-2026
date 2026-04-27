@@ -4,14 +4,14 @@ import (
 	"math/rand"
 	"testing"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	ckpttypes "github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	ckpttypes "github.com/anon-org/anon/v4/x/checkpointing/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/monitor"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/monitor"
+	"github.com/anon-org/vigilante/types"
 )
 
 // FuzzQueryInfoForNextEpoch generates validator set with BLS keys and raw checkpoints
@@ -28,14 +28,14 @@ func FuzzQueryInfoForNextEpoch(f *testing.F) {
 		ckptWithMeta := &ckpttypes.RawCheckpointWithMeta{Ckpt: ckpt}
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
-		bbnCli := monitor.NewMockBabylonQueryClient(ctrl)
-		bbnCli.EXPECT().BlsPublicKeyList(gomock.Eq(e), gomock.Nil()).Return(
+		ancCli := monitor.NewMockAnonQueryClient(ctrl)
+		ancCli.EXPECT().BlsPublicKeyList(gomock.Eq(e), gomock.Nil()).Return(
 			&ckpttypes.QueryBlsPublicKeyListResponse{
 				ValidatorWithBlsKeys: convertToBlsPublicKeyListResponse(valSet.ValSet),
 			},
 			nil,
 		).AnyTimes()
-		bbnCli.EXPECT().RawCheckpoint(gomock.Eq(e)).Return(
+		ancCli.EXPECT().RawCheckpoint(gomock.Eq(e)).Return(
 			&ckpttypes.QueryRawCheckpointResponse{
 				RawCheckpoint: ckptWithMeta.ToResponse(),
 			},
@@ -48,7 +48,7 @@ func FuzzQueryInfoForNextEpoch(f *testing.F) {
 				RetrySleepTime:    1,
 				MaxRetrySleepTime: 0,
 			},
-			BBNQuerier: bbnCli,
+			ANCQuerier: ancCli,
 		}
 		ei, err := m.QueryInfoForNextEpoch(e)
 		require.NoError(t, err)

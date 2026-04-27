@@ -3,18 +3,18 @@ package cmd
 import (
 	"fmt"
 
-	bbnclient "github.com/babylonlabs-io/babylon/v4/client/client"
+	ancclient "github.com/anon-org/anon/v4/client/client"
 	"github.com/spf13/cobra"
 
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/reporter"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/reporter"
 )
 
 // GetReporterCmd returns the CLI commands for the reporter
 func GetReporterCmd() *cobra.Command {
-	var babylonKeyDir string
+	var anonKeyDir string
 	var cfgFile = ""
 
 	cmd := &cobra.Command{
@@ -25,7 +25,7 @@ func GetReporterCmd() *cobra.Command {
 				err              error
 				cfg              config.Config
 				btcClient        *btcclient.Client
-				babylonClient    *bbnclient.Client
+				anonClient    *ancclient.Client
 				vigilantReporter *reporter.Reporter
 			)
 
@@ -40,8 +40,8 @@ func GetReporterCmd() *cobra.Command {
 			}
 
 			// apply the flags from CLI
-			if len(babylonKeyDir) != 0 {
-				cfg.Babylon.KeyDirectory = babylonKeyDir
+			if len(anonKeyDir) != 0 {
+				cfg.Anon.KeyDirectory = anonKeyDir
 			}
 
 			// create BTC client and connect to BTC server
@@ -51,10 +51,10 @@ func GetReporterCmd() *cobra.Command {
 				panic(fmt.Errorf("failed to open BTC client: %w", err))
 			}
 
-			// create Babylon client. Note that requests from Babylon client are ad hoc
-			babylonClient, err = bbnclient.New(&cfg.Babylon, nil)
+			// create Anon client. Note that requests from Anon client are ad hoc
+			anonClient, err = ancclient.New(&cfg.Anon, nil)
 			if err != nil {
-				panic(fmt.Errorf("failed to open Babylon client: %w", err))
+				panic(fmt.Errorf("failed to open Anon client: %w", err))
 			}
 
 			// register reporter metrics
@@ -71,7 +71,7 @@ func GetReporterCmd() *cobra.Command {
 				&cfg.Reporter,
 				rootLogger,
 				btcClient,
-				babylonClient,
+				anonClient,
 				btcNotifier,
 				cfg.Common.RetrySleepTime,
 				cfg.Common.MaxRetrySleepTime,
@@ -105,7 +105,7 @@ func GetReporterCmd() *cobra.Command {
 			rootLogger.Info("Shutdown complete")
 		},
 	}
-	cmd.Flags().StringVar(&babylonKeyDir, "babylon-key-dir", "", "Directory of the Babylon key")
+	cmd.Flags().StringVar(&anonKeyDir, "anon-key-dir", "", "Directory of the Anon key")
 	cmd.Flags().StringVar(&cfgFile, "config", config.DefaultConfigFile(), "config file")
 
 	return cmd

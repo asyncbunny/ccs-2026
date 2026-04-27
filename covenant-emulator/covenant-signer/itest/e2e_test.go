@@ -13,22 +13,22 @@ import (
 	"testing"
 	"time"
 
-	asig "github.com/babylonlabs-io/babylon/v4/crypto/schnorr-adaptor-signature"
+	asig "github.com/anon-org/anon/v4/crypto/schnorr-adaptor-signature"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/babylonlabs-io/babylon/v4/btcstaking"
-	staking "github.com/babylonlabs-io/babylon/v4/btcstaking"
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
+	"github.com/anon-org/anon/v4/btcstaking"
+	staking "github.com/anon-org/anon/v4/btcstaking"
+	"github.com/anon-org/anon/v4/testutil/datagen"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/wire"
 	"github.com/stretchr/testify/require"
 
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerapp"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice/middlewares"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice/types"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerapp"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice/middlewares"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice/types"
 )
 
 func buildDataToSign(t *testing.T, covnenantPublicKey *btcec.PublicKey) signerapp.ParsedSigningRequest {

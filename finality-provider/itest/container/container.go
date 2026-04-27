@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	"github.com/babylonlabs-io/finality-provider/testutil"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	anc "github.com/anon-org/anon/v4/types"
+	"github.com/anon-org/finality-provider/testutil"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcd/txscript"
 	"github.com/ory/dockertest/v3"
@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	babylondContainerName = "babylond"
+	anondContainerName = "anond"
 	anvilContainerName    = "anvil"
 )
 
@@ -52,12 +52,12 @@ func NewManager(t *testing.T) (docker *Manager, err error) {
 	return docker, nil
 }
 
-// RunBabylondResource starts a babylond container
-func (m *Manager) RunBabylondResource(
+// RunAnondResource starts a anond container
+func (m *Manager) RunAnondResource(
 	t *testing.T,
 	mounthPath string,
 	covenantQuorum int,
-	covenantPks []*bbn.BIP340PubKey,
+	covenantPks []*anc.BIP340PubKey,
 ) (*dockertest.Resource, error) {
 	r := mrand.New(mrand.NewSource(time.Now().Unix()))
 
@@ -75,7 +75,7 @@ func (m *Manager) RunBabylondResource(
 
 	cmd := []string{
 		"sh", "-c", fmt.Sprintf(
-			"babylond testnet --v=1 --output-dir=/home "+
+			"anond testnet --v=1 --output-dir=/home "+
 				"--starting-ip-address=192.168.10.2 "+
 				"--keyring-backend=test --chain-id=chain-test "+
 				"--additional-sender-account "+
@@ -83,7 +83,7 @@ func (m *Manager) RunBabylondResource(
 				"--btc-finalization-timeout 2 --btc-confirmation-depth 1 "+
 				"--covenant-quorum=%d --covenant-pks=%s && "+
 				"chmod -R 777 /home && "+
-				"babylond start --home=/home/node0/babylond",
+				"anond start --home=/home/node0/anond",
 			epochInterval,
 			hex.EncodeToString(slashingPkScript),
 			covenantQuorum,
@@ -92,15 +92,15 @@ func (m *Manager) RunBabylondResource(
 
 	resource, err := m.pool.RunWithOptions(
 		&dockertest.RunOptions{
-			Name:       fmt.Sprintf("%s-%s", babylondContainerName, t.Name()),
-			Repository: m.cfg.BabylonRepository,
-			Tag:        m.cfg.BabylonVersion,
+			Name:       fmt.Sprintf("%s-%s", anondContainerName, t.Name()),
+			Repository: m.cfg.AnonRepository,
+			Tag:        m.cfg.AnonVersion,
 			Labels: map[string]string{
-				"e2e": "babylond",
+				"e2e": "anond",
 			},
 			User: "root:root",
 			Env: []string{
-				"BABYLON_BLS_PASSWORD=password",
+				"ANON_BLS_PASSWORD=password",
 			},
 			Mounts: []string{
 				fmt.Sprintf("%s/:/home/", mounthPath),
@@ -123,7 +123,7 @@ func (m *Manager) RunBabylondResource(
 		return nil, err
 	}
 
-	m.resources[babylondContainerName] = resource
+	m.resources[anondContainerName] = resource
 
 	return resource, nil
 }
@@ -171,16 +171,16 @@ func (m *Manager) ClearResources() error {
 	return nil
 }
 
-func (m *Manager) ExecBabylondCmd(t *testing.T, command []string) (bytes.Buffer, bytes.Buffer, error) {
-	cmd := []string{"babylond"}
+func (m *Manager) ExecAnondCmd(t *testing.T, command []string) (bytes.Buffer, bytes.Buffer, error) {
+	cmd := []string{"anond"}
 	cmd = append(cmd, command...)
-	return m.ExecCmd(t, babylondContainerName, cmd)
+	return m.ExecCmd(t, anondContainerName, cmd)
 }
 
-// BabylondTxBankSend send transaction to an address from the node address.
-func (m *Manager) BabylondTxBankSend(t *testing.T, addr, coins, walletName string) (bytes.Buffer, bytes.Buffer, error) {
+// AnondTxBankSend send transaction to an address from the node address.
+func (m *Manager) AnondTxBankSend(t *testing.T, addr, coins, walletName string) (bytes.Buffer, bytes.Buffer, error) {
 	flags := []string{
-		"babylond",
+		"anond",
 		"tx",
 		"bank",
 		"send",
@@ -188,13 +188,13 @@ func (m *Manager) BabylondTxBankSend(t *testing.T, addr, coins, walletName strin
 		addr,
 		coins,
 		"--keyring-backend=test",
-		"--home=/home/node0/babylond",
+		"--home=/home/node0/anond",
 		"--log_level=debug",
 		"--chain-id=chain-test",
-		"-b=sync", "--yes", "--gas-prices=10ubbn",
+		"-b=sync", "--yes", "--gas-prices=10uanc",
 	}
 
-	return m.ExecCmd(t, babylondContainerName, flags)
+	return m.ExecCmd(t, anondContainerName, flags)
 }
 
 // ExecCmd executes command by running it on the given container.

@@ -10,19 +10,19 @@ import (
 	"testing"
 	"time"
 
-	bbnclient "github.com/babylonlabs-io/babylon/v4/client/client"
-	"github.com/babylonlabs-io/vigilante/config"
+	ancclient "github.com/anon-org/anon/v4/client/client"
+	"github.com/anon-org/vigilante/config"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	promtestutil "github.com/prometheus/client_golang/prometheus/testutil"
 	"go.uber.org/zap/zaptest"
 
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/netparams"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/netparams"
 
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/reporter"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/reporter"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,18 +30,18 @@ var (
 	longEventuallyWaitTimeOut = 2 * eventuallyWaitTimeOut
 )
 
-func (tm *TestManager) BabylonBTCChainMatchesBtc(t *testing.T) bool {
+func (tm *TestManager) AnonBTCChainMatchesBtc(t *testing.T) bool {
 	tipHeight, err := tm.TestRpcClient.GetBlockCount()
 	require.NoError(t, err)
 	tipHash, err := tm.TestRpcClient.GetBlockHash(tipHeight)
 	require.NoError(t, err)
-	bbnBtcLcTip, err := tm.BabylonClient.BTCHeaderChainTip()
+	ancBtcLcTip, err := tm.AnonClient.BTCHeaderChainTip()
 	require.NoError(t, err)
 
-	t.Logf("bbn tip height: %d, bbn tip hash: %s, btc tip height: %d, btc tip hash: %s",
-		bbnBtcLcTip.Header.Height, bbnBtcLcTip.Header.HashHex, tipHeight, tipHash.String())
+	t.Logf("anc tip height: %d, anc tip hash: %s, btc tip height: %d, btc tip hash: %s",
+		ancBtcLcTip.Header.Height, ancBtcLcTip.Header.HashHex, tipHeight, tipHash.String())
 
-	return uint32(tipHeight) == bbnBtcLcTip.Header.Height && tipHash.String() == bbnBtcLcTip.Header.HashHex
+	return uint32(tipHeight) == ancBtcLcTip.Header.Height && tipHash.String() == ancBtcLcTip.Header.HashHex
 }
 
 func (tm *TestManager) GenerateAndSubmitBlockNBlockStartingFromDepth(t *testing.T, N int, depth uint32) {
@@ -88,7 +88,7 @@ func TestReporter_BoostrapUnderFrequentBTCHeaders(t *testing.T) {
 		&tm.Config.Reporter,
 		logger,
 		tm.BTCClient,
-		tm.BabylonClient,
+		tm.AnonClient,
 		btcNotifier,
 		tm.Config.Common.RetrySleepTime,
 		tm.Config.Common.MaxRetrySleepTime,
@@ -125,7 +125,7 @@ func TestReporter_BoostrapUnderFrequentBTCHeaders(t *testing.T) {
 
 	// tips should eventually match
 	require.Eventually(t, func() bool {
-		return tm.BabylonBTCChainMatchesBtc(t)
+		return tm.AnonBTCChainMatchesBtc(t)
 	}, longEventuallyWaitTimeOut, eventuallyPollTime)
 
 	close(stopChan)
@@ -153,7 +153,7 @@ func TestRelayHeadersAndHandleRollbacks(t *testing.T) {
 		&tm.Config.Reporter,
 		logger,
 		tm.BTCClient,
-		tm.BabylonClient,
+		tm.AnonClient,
 		btcNotifier,
 		tm.Config.Common.RetrySleepTime,
 		tm.Config.Common.MaxRetrySleepTime,
@@ -166,14 +166,14 @@ func TestRelayHeadersAndHandleRollbacks(t *testing.T) {
 	defer vigilantReporter.Stop()
 
 	require.Eventually(t, func() bool {
-		return tm.BabylonBTCChainMatchesBtc(t)
+		return tm.AnonBTCChainMatchesBtc(t)
 	}, longEventuallyWaitTimeOut, eventuallyPollTime)
 
 	// generate 3, we are submitting headers 1 by 1 so we use small amount as this is slow process
 	tm.BitcoindHandler.GenerateBlocks(3)
 
 	require.Eventually(t, func() bool {
-		return tm.BabylonBTCChainMatchesBtc(t)
+		return tm.AnonBTCChainMatchesBtc(t)
 	}, longEventuallyWaitTimeOut, eventuallyPollTime)
 
 	// we will start from block before tip and submit 2 new block this should trigger rollback
@@ -181,7 +181,7 @@ func TestRelayHeadersAndHandleRollbacks(t *testing.T) {
 
 	// tips should eventually match
 	require.Eventually(t, func() bool {
-		return tm.BabylonBTCChainMatchesBtc(t)
+		return tm.AnonBTCChainMatchesBtc(t)
 	}, 2*longEventuallyWaitTimeOut, eventuallyPollTime)
 }
 
@@ -206,7 +206,7 @@ func TestHandleReorgAfterRestart(t *testing.T) {
 		&tm.Config.Reporter,
 		logger,
 		tm.BTCClient,
-		tm.BabylonClient,
+		tm.AnonClient,
 		btcNotifier,
 		tm.Config.Common.RetrySleepTime,
 		tm.Config.Common.MaxRetrySleepTime,
@@ -218,10 +218,10 @@ func TestHandleReorgAfterRestart(t *testing.T) {
 	vigilantReporter.Start()
 
 	require.Eventually(t, func() bool {
-		return tm.BabylonBTCChainMatchesBtc(t)
+		return tm.AnonBTCChainMatchesBtc(t)
 	}, longEventuallyWaitTimeOut, eventuallyPollTime)
 
-	// At this point babylon is inline with btc. Now:
+	// At this point anon is inline with btc. Now:
 	// Kill reporter
 	// and generate reorg on btc
 	// start reporter again
@@ -242,7 +242,7 @@ func TestHandleReorgAfterRestart(t *testing.T) {
 		&tm.Config.Reporter,
 		logger,
 		btcClient,
-		tm.BabylonClient,
+		tm.AnonClient,
 		btcNotifier,
 		tm.Config.Common.RetrySleepTime,
 		tm.Config.Common.MaxRetrySleepTime,
@@ -255,7 +255,7 @@ func TestHandleReorgAfterRestart(t *testing.T) {
 
 	// Headers should match even though reorg happened
 	require.Eventually(t, func() bool {
-		return tm.BabylonBTCChainMatchesBtc(t)
+		return tm.AnonBTCChainMatchesBtc(t)
 	}, longEventuallyWaitTimeOut, eventuallyPollTime)
 }
 
@@ -278,14 +278,14 @@ func TestReporter_Censorship(t *testing.T) {
 	cfg := defaultVigilanteConfig()
 	cfg.BTC.Endpoint = tm.Config.BTC.Endpoint
 	cfg.BTCStakingTracker.IndexerAddr = tm.Config.BTCStakingTracker.IndexerAddr
-	cfg.Babylon.KeyDirectory = tm.Config.Babylon.KeyDirectory
-	cfg.Babylon.GasAdjustment = tm.Config.Babylon.GasAdjustment
-	cfg.Babylon.Key = "test-spending-key"
-	cfg.Babylon.RPCAddr = tm.Config.Babylon.RPCAddr
-	cfg.Babylon.GRPCAddr = tm.Config.Babylon.GRPCAddr
-	cfg.Babylon.BlockTimeout = 10 * time.Millisecond // very short timeout to test censorship
+	cfg.Anon.KeyDirectory = tm.Config.Anon.KeyDirectory
+	cfg.Anon.GasAdjustment = tm.Config.Anon.GasAdjustment
+	cfg.Anon.Key = "test-spending-key"
+	cfg.Anon.RPCAddr = tm.Config.Anon.RPCAddr
+	cfg.Anon.GRPCAddr = tm.Config.Anon.GRPCAddr
+	cfg.Anon.BlockTimeout = 10 * time.Millisecond // very short timeout to test censorship
 
-	babylonClient, err := bbnclient.New(&cfg.Babylon, nil) // new client only for the tracker
+	anonClient, err := ancclient.New(&cfg.Anon, nil) // new client only for the tracker
 	require.NoError(t, err)
 
 	tm.Config.Common.MaxRetryTimes = 1
@@ -294,7 +294,7 @@ func TestReporter_Censorship(t *testing.T) {
 		&tm.Config.Reporter,
 		logger,
 		tm.BTCClient,
-		babylonClient,
+		anonClient,
 		btcNotifier,
 		tm.Config.Common.RetrySleepTime,
 		tm.Config.Common.MaxRetrySleepTime,
@@ -340,7 +340,7 @@ func TestReporter_DuplicateSubmissions(t *testing.T) {
 		&tm.Config.Reporter,
 		zaptest.NewLogger(t).Named("reporter1"),
 		tm.BTCClient,
-		tm.BabylonClient,
+		tm.AnonClient,
 		btcNotifier,
 		tm.Config.Common.RetrySleepTime,
 		tm.Config.Common.MaxRetrySleepTime,
@@ -354,7 +354,7 @@ func TestReporter_DuplicateSubmissions(t *testing.T) {
 	bstCfg2.IndexerAddr = tm.Config.BTCStakingTracker.IndexerAddr
 
 	prvKey, _, address := testdata.KeyTestPubAddr()
-	err = tm.BabylonClient.Provider().Keybase.ImportPrivKeyHex(
+	err = tm.AnonClient.Provider().Keybase.ImportPrivKeyHex(
 		"test-2",
 		hex.EncodeToString(prvKey.Bytes()),
 		"secp256k1",
@@ -364,23 +364,23 @@ func TestReporter_DuplicateSubmissions(t *testing.T) {
 	cfg := defaultVigilanteConfig()
 	cfg.BTC.Endpoint = tm.Config.BTC.Endpoint
 	cfg.BTCStakingTracker.IndexerAddr = tm.Config.BTCStakingTracker.IndexerAddr
-	cfg.Babylon.KeyDirectory = tm.Config.Babylon.KeyDirectory
-	cfg.Babylon.GasAdjustment = tm.Config.Babylon.GasAdjustment
-	cfg.Babylon.Key = "test-2"
-	cfg.Babylon.RPCAddr = tm.Config.Babylon.RPCAddr
-	cfg.Babylon.GRPCAddr = tm.Config.Babylon.GRPCAddr
+	cfg.Anon.KeyDirectory = tm.Config.Anon.KeyDirectory
+	cfg.Anon.GasAdjustment = tm.Config.Anon.GasAdjustment
+	cfg.Anon.Key = "test-2"
+	cfg.Anon.RPCAddr = tm.Config.Anon.RPCAddr
+	cfg.Anon.GRPCAddr = tm.Config.Anon.GRPCAddr
 	cfg.Reporter.BTCCacheSize = 1000
 
-	babylonClient, err := bbnclient.New(&cfg.Babylon, nil)
+	anonClient, err := ancclient.New(&cfg.Anon, nil)
 	require.NoError(t, err)
 
 	msg := banktypes.NewMsgSend(
-		sdk.MustAccAddressFromBech32(tm.BabylonClient.MustGetAddr()),
+		sdk.MustAccAddressFromBech32(tm.AnonClient.MustGetAddr()),
 		address,
-		sdk.NewCoins(sdk.NewInt64Coin("ubbn", 100_000_000)),
+		sdk.NewCoins(sdk.NewInt64Coin("uanc", 100_000_000)),
 	)
 
-	_, err = tm.BabylonClient.ReliablySendMsg(context.Background(), msg, nil, nil)
+	_, err = tm.AnonClient.ReliablySendMsg(context.Background(), msg, nil, nil)
 	require.NoError(t, err)
 
 	cfg.Common.MaxRetryTimes = 1
@@ -389,7 +389,7 @@ func TestReporter_DuplicateSubmissions(t *testing.T) {
 		&cfg.Reporter,
 		zaptest.NewLogger(t).Named("reporter2"),
 		tm.BTCClient,
-		babylonClient,
+		anonClient,
 		btcNotifier,
 		tm.Config.Common.RetrySleepTime,
 		tm.Config.Common.MaxRetrySleepTime,
@@ -409,7 +409,7 @@ func TestReporter_DuplicateSubmissions(t *testing.T) {
 
 	// tips should eventually match
 	require.Eventually(t, func() bool {
-		return tm.BabylonBTCChainMatchesBtc(t)
+		return tm.AnonBTCChainMatchesBtc(t)
 	}, longEventuallyWaitTimeOut, eventuallyPollTime)
 
 	// we expect that we have failed headers

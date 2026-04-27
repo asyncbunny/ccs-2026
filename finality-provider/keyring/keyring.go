@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 
-	"github.com/babylonlabs-io/finality-provider/codec"
+	"github.com/anon-org/finality-provider/codec"
 )
 
 func CreateKeyring(keyringDir string, chainID string, backend string) (keyring.Keyring, error) {

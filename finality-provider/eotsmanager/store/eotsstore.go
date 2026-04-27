@@ -13,7 +13,7 @@ import (
 
 	pm "google.golang.org/protobuf/proto"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/proto"
+	"github.com/anon-org/finality-provider/eotsmanager/proto"
 
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"

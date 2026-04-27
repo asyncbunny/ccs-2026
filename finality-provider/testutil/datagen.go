@@ -10,20 +10,20 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/babylonlabs-io/babylon/v4/crypto/eots"
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
+	"github.com/anon-org/anon/v4/crypto/eots"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	anc "github.com/anon-org/anon/v4/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/store"
-	fpkr "github.com/babylonlabs-io/finality-provider/keyring"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
+	"github.com/anon-org/finality-provider/finality-provider/store"
+	fpkr "github.com/anon-org/finality-provider/keyring"
 
-	"github.com/babylonlabs-io/finality-provider/codec"
-	"github.com/babylonlabs-io/finality-provider/types"
+	"github.com/anon-org/finality-provider/codec"
+	"github.com/anon-org/finality-provider/types"
 )
 
 func GenRandomByteArray(r *rand.Rand, length uint64) []byte {
@@ -54,18 +54,18 @@ func AddRandomSeedsToFuzzer(f *testing.F, num uint) {
 	}
 }
 
-func GenPublicRand(r *rand.Rand, t *testing.T) *bbn.SchnorrPubRand {
+func GenPublicRand(r *rand.Rand, t *testing.T) *anc.SchnorrPubRand {
 	_, eotsPR, err := eots.RandGen(r)
 	require.NoError(t, err)
 
-	return bbn.NewSchnorrPubRandFromFieldVal(eotsPR)
+	return anc.NewSchnorrPubRandFromFieldVal(eotsPR)
 }
 
 func GenRandomFinalityProvider(r *rand.Rand, t *testing.T) *store.StoredFinalityProvider {
 	// generate BTC key pair
 	_, btcPK, err := datagen.GenRandomBTCKeyPair(r)
 	require.NoError(t, err)
-	bip340PK := bbn.NewBIP340PubKeyFromBTCPK(btcPK)
+	bip340PK := anc.NewBIP340PubKeyFromBTCPK(btcPK)
 
 	fpAddr, err := sdk.AccAddressFromBech32(datagen.GenRandomAccount().Address)
 	require.NoError(t, err)

@@ -7,17 +7,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/testutil"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/testutil"
 	"github.com/lightningnetwork/lnd/chainntnfs"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/babylonlabs-io/babylon/v4/btcstaking"
-	asig "github.com/babylonlabs-io/babylon/v4/crypto/schnorr-adaptor-signature"
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	btcctypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
+	"github.com/anon-org/anon/v4/btcstaking"
+	asig "github.com/anon-org/anon/v4/crypto/schnorr-adaptor-signature"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	anc "github.com/anon-org/anon/v4/types"
+	btcctypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/btcutil"
@@ -28,10 +28,10 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/babylonlabs-io/vigilante/btcstaking-tracker/btcslasher"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/testutil/mocks"
+	"github.com/anon-org/vigilante/btcstaking-tracker/btcslasher"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/testutil/mocks"
 )
 
 //nolint:maintidx // Ignoring high maintainability index for this fuzz test
@@ -46,11 +46,11 @@ func FuzzSlasher(f *testing.F) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		mockBabylonQuerier := btcslasher.NewMockBabylonQueryClient(ctrl)
+		mockAnonQuerier := btcslasher.NewMockAnonQueryClient(ctrl)
 		mockBTCClient := mocks.NewMockBTCClient(ctrl)
 		// mock k, w
 		btccParams := &btcctypes.QueryParamsResponse{Params: btcctypes.Params{BtcConfirmationDepth: 10, CheckpointFinalizationTimeout: 100}}
-		mockBabylonQuerier.EXPECT().BTCCheckpointParams().Return(btccParams, nil).AnyTimes()
+		mockAnonQuerier.EXPECT().BTCCheckpointParams().Return(btccParams, nil).AnyTimes()
 		unbondingTime := uint16(btccParams.Params.CheckpointFinalizationTimeout + 1)
 
 		block, _ := datagen.GenRandomBtcdBlock(r, 10, nil)
@@ -69,14 +69,14 @@ func FuzzSlasher(f *testing.F) {
 		covQuorum := datagen.RandomInt(r, 5) + 1
 		covenantSks := make([]*btcec.PrivateKey, 0, covQuorum)
 		covenantBtcPks := make([]*btcec.PublicKey, 0, covQuorum)
-		covenantPks := make([]bbn.BIP340PubKey, 0, covQuorum)
+		covenantPks := make([]anc.BIP340PubKey, 0, covQuorum)
 		for idx := uint64(0); idx < covQuorum; idx++ {
 			covenantSk, _, err := datagen.GenRandomBTCKeyPair(r)
 			require.NoError(t, err)
 			btcPubKey := covenantSk.PubKey()
 			covenantSks = append(covenantSks, covenantSk)
 			covenantBtcPks = append(covenantBtcPks, btcPubKey)
-			covenantPks = append(covenantPks, *bbn.NewBIP340PubKeyFromBTCPK(btcPubKey))
+			covenantPks = append(covenantPks, *anc.NewBIP340PubKeyFromBTCPK(btcPubKey))
 		}
 		// mock slashing rate and covenant
 		bsParams := &bstypes.QueryParamsByVersionResponse{Params: bstypes.Params{
@@ -86,7 +86,7 @@ func FuzzSlasher(f *testing.F) {
 			CovenantPks:    covenantPks,
 			SlashingRate:   sdkmath.LegacyMustNewDecFromStr("0.1"),
 		}}
-		mockBabylonQuerier.EXPECT().BTCStakingParamsByVersion(gomock.Any()).Return(bsParams, nil).AnyTimes()
+		mockAnonQuerier.EXPECT().BTCStakingParamsByVersion(gomock.Any()).Return(bsParams, nil).AnyTimes()
 
 		logger, err := config.NewRootLogger("auto", "debug")
 		require.NoError(t, err)
@@ -94,7 +94,7 @@ func FuzzSlasher(f *testing.F) {
 		btcSlasher, err := btcslasher.New(
 			logger,
 			mockBTCClient,
-			mockBabylonQuerier,
+			mockAnonQuerier,
 			&chaincfg.SimNetParams,
 			commonCfg.RetrySleepTime,
 			commonCfg.MaxRetrySleepTime,
@@ -116,7 +116,7 @@ func FuzzSlasher(f *testing.F) {
 		// generate BTC key pair for slashed finality provider
 		valSK, valPK, err := datagen.GenRandomBTCKeyPair(r)
 		require.NoError(t, err)
-		fpBTCPK := bbn.NewBIP340PubKeyFromBTCPK(valPK)
+		fpBTCPK := anc.NewBIP340PubKeyFromBTCPK(valPK)
 
 		// mock a list of expired BTC delegations for this finality provider
 		expiredBTCDelsList := []*bstypes.BTCDelegatorDelegations{}
@@ -129,7 +129,7 @@ func FuzzSlasher(f *testing.F) {
 				r,
 				t,
 				net,
-				[]bbn.BIP340PubKey{*fpBTCPK},
+				[]anc.BIP340PubKey{*fpBTCPK},
 				delSK,
 				covenantSks,
 				covenantBtcPks,
@@ -157,7 +157,7 @@ func FuzzSlasher(f *testing.F) {
 				r,
 				t,
 				net,
-				[]bbn.BIP340PubKey{*fpBTCPK},
+				[]anc.BIP340PubKey{*fpBTCPK},
 				delSK,
 				covenantSks,
 				covenantBtcPks,
@@ -185,7 +185,7 @@ func FuzzSlasher(f *testing.F) {
 				r,
 				t,
 				net,
-				[]bbn.BIP340PubKey{*fpBTCPK},
+				[]anc.BIP340PubKey{*fpBTCPK},
 				delSK,
 
 				covenantSks,
@@ -214,7 +214,7 @@ func FuzzSlasher(f *testing.F) {
 			// Get the spend information for the unbonding path
 			unbondingPathSpendInfo, err := stakingInfo.UnbondingPathSpendInfo()
 			require.NoError(t, err)
-			stakingMsgTx, err := bbn.NewBTCTxFromBytes(unbondingBTCDel.StakingTx)
+			stakingMsgTx, err := anc.NewBTCTxFromBytes(unbondingBTCDel.StakingTx)
 			require.NoError(t, err)
 			stakingTxHash := stakingMsgTx.TxHash()
 			outPoint := wire.NewOutPoint(&stakingTxHash, 0)
@@ -258,7 +258,7 @@ func FuzzSlasher(f *testing.F) {
 				)
 				require.NoError(t, err)
 				covenantSlashingSigs = append(covenantSlashingSigs, &bstypes.CovenantAdaptorSignatures{
-					CovPk:       bbn.NewBIP340PubKeyFromBTCPK(sk.PubKey()),
+					CovPk:       anc.NewBIP340PubKeyFromBTCPK(sk.PubKey()),
 					AdaptorSigs: [][]byte{covenantSlashingSig.MustMarshal()},
 				})
 				// covenant Schnorr signature on unbonding tx
@@ -271,7 +271,7 @@ func FuzzSlasher(f *testing.F) {
 				)
 				require.NoError(t, err)
 
-				covenantUnbondingSig := bbn.NewBIP340SignatureFromBTCSig(covenantUnbondingSchnorrSig)
+				covenantUnbondingSig := anc.NewBIP340SignatureFromBTCSig(covenantUnbondingSchnorrSig)
 				covenantUnbondingSigs = append(covenantUnbondingSigs, &bstypes.SignatureInfo{
 					Pk:  &covenantPks[idx],
 					Sig: covenantUnbondingSig,
@@ -304,7 +304,7 @@ func FuzzSlasher(f *testing.F) {
 			BtcDelegatorDelegations: dels,
 			Pagination:              &query.PageResponse{NextKey: nil},
 		}
-		mockBabylonQuerier.EXPECT().FinalityProviderDelegations(gomock.Eq(fpBTCPK.MarshalHex()), gomock.Any()).Return(btcDelsResp, nil).Times(1)
+		mockAnonQuerier.EXPECT().FinalityProviderDelegations(gomock.Eq(fpBTCPK.MarshalHex()), gomock.Any()).Return(btcDelsResp, nil).Times(1)
 
 		mockBTCClient.EXPECT().
 			GetRawTransaction(gomock.Any()).

@@ -1,0 +1,243 @@
+package keeper_test
+
+import (
+	"context"
+	"math/rand"
+	"testing"
+
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	testkeeper "github.com/anon-org/anon/v4/testutil/keeper"
+	"github.com/anon-org/anon/v4/x/incentive/keeper"
+	"github.com/anon-org/anon/v4/x/incentive/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
+)
+
+func setupMsgServer(t testing.TB) (types.MsgServer, context.Context) {
+	k, ctx := testkeeper.IncentiveKeeper(t, nil, nil, nil, nil)
+	return keeper.NewMsgServerImpl(*k), ctx
+}
+
+func TestMsgServer(t *testing.T) {
+	ms, ctx := setupMsgServer(t)
+	require.NotNil(t, ms)
+	require.NotNil(t, ctx)
+}
+
+func FuzzWithdrawRewardBtcStakerCostaker(f *testing.F) {
+	datagen.AddRandomSeedsToFuzzer(f, 10)
+	f.Fuzz(func(t *testing.T, seed int64) {
+		r := rand.New(rand.NewSource(seed))
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// mock bank keeper
+		bk := types.NewMockBankKeeper(ctrl)
+		hook := types.NewMockIncentiveHooks(ctrl)
+
+		ik, ctx := testkeeper.IncentiveKeeper(t, bk, nil, nil, types.NewMultiIncentiveHooks(hook))
+		ms := keeper.NewMsgServerImpl(*ik)
+
+		// generate and set a random reward gauge for btc staker and costaker
+		rgBtcStaker := datagen.GenRandomRewardGauge(r)
+		rgBtcStaker.WithdrawnCoins = datagen.GenRandomWithdrawnCoins(r, rgBtcStaker.Coins)
+		rgCostaker := datagen.GenRandomRewardGauge(r)
+		rgCostaker.WithdrawnCoins = datagen.GenRandomWithdrawnCoins(r, rgCostaker.Coins)
+		sType := types.BTC_STAKER
+		sAddr := datagen.GenRandomAccount().GetAddress()
+		ik.SetRewardGauge(ctx, sType, sAddr, rgBtcStaker)
+		ik.SetRewardGauge(ctx, types.COSTAKER, sAddr, rgCostaker)
+
+		// mock transfer of withdrawable coins
+		bk.EXPECT().SendCoinsFromModuleToAccount(gomock.Any(), gomock.Eq(types.ModuleName), gomock.Eq(sAddr), gomock.Eq(rgBtcStaker.GetWithdrawableCoins())).Times(1)
+		bk.EXPECT().SendCoinsFromModuleToAccount(gomock.Any(), gomock.Eq(types.ModuleName), gomock.Eq(sAddr), gomock.Eq(rgCostaker.GetWithdrawableCoins())).Times(1)
+		hook.EXPECT().BeforeRewardWithdraw(gomock.Any(), gomock.Eq(sType), gomock.Eq(sAddr)).Times(1)
+		hook.EXPECT().BeforeRewardWithdraw(gomock.Any(), gomock.Eq(types.COSTAKER), gomock.Eq(sAddr)).Times(1)
+
+		// invoke withdraw and assert consistency
+		resp, err := ms.WithdrawReward(ctx, &types.MsgWithdrawReward{
+			Type:    sType.String(),
+			Address: sAddr.String(),
+		})
+		require.NoError(t, err)
+		withdrawableCoins := rgBtcStaker.GetWithdrawableCoins().Add(rgCostaker.GetWithdrawableCoins()...)
+		require.Equal(t, withdrawableCoins, resp.Coins)
+	})
+}
+
+func FuzzWithdrawRewardBtcStakerCostakerWithZeroRewardsInBtcStaker(f *testing.F) {
+	datagen.AddRandomSeedsToFuzzer(f, 10)
+	f.Fuzz(func(t *testing.T, seed int64) {
+		r := rand.New(rand.NewSource(seed))
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// mock bank keeper
+		bk := types.NewMockBankKeeper(ctrl)
+		hook := types.NewMockIncentiveHooks(ctrl)
+
+		ik, ctx := testkeeper.IncentiveKeeper(t, bk, nil, nil, types.NewMultiIncentiveHooks(hook))
+		ms := keeper.NewMsgServerImpl(*ik)
+
+		// generate and set a random reward gauge for costaker and zero for btc staker
+		rgBtcStaker := types.RewardGauge{
+			Coins:          sdk.NewCoins(),
+			WithdrawnCoins: sdk.NewCoins(),
+		}
+		rgCostaker := datagen.GenRandomRewardGauge(r)
+		rgCostaker.WithdrawnCoins = datagen.GenRandomWithdrawnCoins(r, rgCostaker.Coins)
+		sType := types.BTC_STAKER
+		sAddr := datagen.GenRandomAccount().GetAddress()
+		ik.SetRewardGauge(ctx, sType, sAddr, &rgBtcStaker)
+		ik.SetRewardGauge(ctx, types.COSTAKER, sAddr, rgCostaker)
+
+		// mock transfer of withdrawable coins
+		bk.EXPECT().SendCoinsFromModuleToAccount(gomock.Any(), gomock.Eq(types.ModuleName), gomock.Eq(sAddr), gomock.Eq(rgCostaker.GetWithdrawableCoins())).Times(1)
+		hook.EXPECT().BeforeRewardWithdraw(gomock.Any(), gomock.Eq(sType), gomock.Eq(sAddr)).Times(1)
+		hook.EXPECT().BeforeRewardWithdraw(gomock.Any(), gomock.Eq(types.COSTAKER), gomock.Eq(sAddr)).Times(1)
+
+		// invoke withdraw and assert consistency
+		resp, err := ms.WithdrawReward(ctx, &types.MsgWithdrawReward{
+			Type:    sType.String(),
+			Address: sAddr.String(),
+		})
+		require.NoError(t, err)
+		withdrawableCoins := rgBtcStaker.GetWithdrawableCoins().Add(rgCostaker.GetWithdrawableCoins()...)
+		require.Equal(t, withdrawableCoins, resp.Coins)
+
+		// withdraw rewards again, should error with empty rewards
+		hook.EXPECT().BeforeRewardWithdraw(gomock.Any(), gomock.Eq(sType), gomock.Eq(sAddr)).Times(1)
+		hook.EXPECT().BeforeRewardWithdraw(gomock.Any(), gomock.Eq(types.COSTAKER), gomock.Eq(sAddr)).Times(1)
+
+		_, err = ms.WithdrawReward(ctx, &types.MsgWithdrawReward{
+			Type:    sType.String(),
+			Address: sAddr.String(),
+		})
+		require.EqualError(t, err, types.ErrNoWithdrawableCoins.Error())
+	})
+}
+
+func FuzzWithdrawReward(f *testing.F) {
+	datagen.AddRandomSeedsToFuzzer(f, 10)
+	f.Fuzz(func(t *testing.T, seed int64) {
+		r := rand.New(rand.NewSource(seed))
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// mock bank keeper
+		bk := types.NewMockBankKeeper(ctrl)
+		hook := types.NewMockIncentiveHooks(ctrl)
+
+		ik, ctx := testkeeper.IncentiveKeeper(t, bk, nil, nil, types.NewMultiIncentiveHooks(hook))
+		ms := keeper.NewMsgServerImpl(*ik)
+
+		// generate and set a random reward gauge with a random set of withdrawable coins
+		rg := datagen.GenRandomRewardGauge(r)
+		rg.WithdrawnCoins = datagen.GenRandomWithdrawnCoins(r, rg.Coins)
+		sType := datagen.GenRandomStakeholderType(r)
+		sAddr := datagen.GenRandomAccount().GetAddress()
+		ik.SetRewardGauge(ctx, sType, sAddr, rg)
+
+		// mock transfer of withdrawable coins
+		withdrawableCoins := rg.GetWithdrawableCoins()
+		bk.EXPECT().SendCoinsFromModuleToAccount(gomock.Any(), gomock.Eq(types.ModuleName), gomock.Eq(sAddr), gomock.Eq(withdrawableCoins)).Times(1)
+		hook.EXPECT().BeforeRewardWithdraw(gomock.Any(), gomock.Eq(sType), gomock.Eq(sAddr)).Times(1)
+		if sType == types.BTC_STAKER {
+			hook.EXPECT().BeforeRewardWithdraw(gomock.Any(), gomock.Eq(types.COSTAKER), gomock.Eq(sAddr)).Times(1)
+		}
+
+		// invoke withdraw and assert consistency
+		resp, err := ms.WithdrawReward(ctx, &types.MsgWithdrawReward{
+			Type:    sType.String(),
+			Address: sAddr.String(),
+		})
+		require.NoError(t, err)
+		require.Equal(t, withdrawableCoins, resp.Coins)
+
+		// ensure reward gauge is now empty
+		newRg := ik.GetRewardGauge(ctx, sType, sAddr)
+		require.NotNil(t, newRg)
+		require.True(t, newRg.IsFullyWithdrawn())
+
+		// should fail with invalid stakeholder type
+		_, err = ms.WithdrawReward(ctx, &types.MsgWithdrawReward{
+			Type:    "invalid_type",
+			Address: sAddr.String(),
+		})
+		require.Error(t, err)
+		require.ErrorContains(t, err, "invalid stStr: INVALID_TYPE")
+	})
+}
+
+func FuzzSetWithdrawAddr(f *testing.F) {
+	datagen.AddRandomSeedsToFuzzer(f, 10)
+	f.Fuzz(func(t *testing.T, seed int64) {
+		r := rand.New(rand.NewSource(seed))
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+
+		// mock bank keeper
+		bk := types.NewMockBankKeeper(ctrl)
+		hook := types.NewMockIncentiveHooks(ctrl)
+		ik, ctx := testkeeper.IncentiveKeeper(t, bk, nil, nil, hook)
+		ms := keeper.NewMsgServerImpl(*ik)
+
+		// generate and set a random reward gauge with a random set of withdrawable coins
+		rg := datagen.GenRandomRewardGauge(r)
+		rg.WithdrawnCoins = datagen.GenRandomWithdrawnCoins(r, rg.Coins)
+		sType := datagen.GenRandomStakeholderType(r)
+		sAddr := datagen.GenRandomAccount().GetAddress()
+		withdrawalAddr := datagen.GenRandomAccount().GetAddress()
+
+		ik.SetRewardGauge(ctx, sType, sAddr, rg)
+
+		// Try to set a blocked address as withdrawer
+		// mock BlockAddress response
+		bk.EXPECT().BlockedAddr(authtypes.NewModuleAddress(authtypes.ModuleName)).Times(1).Return(true)
+		_, err := ms.SetWithdrawAddress(ctx, &types.MsgSetWithdrawAddress{
+			DelegatorAddress: sAddr.String(),
+			WithdrawAddress:  authtypes.NewModuleAddress(authtypes.ModuleName).String(),
+		})
+		require.Error(t, err)
+		require.ErrorContains(t, err, "not allowed to receive external funds")
+
+		// mock transfer of withdrawable coins
+		withdrawableCoins := rg.GetWithdrawableCoins()
+		bk.EXPECT().SendCoinsFromModuleToAccount(gomock.Any(), gomock.Eq(types.ModuleName), gomock.Eq(withdrawalAddr), gomock.Eq(withdrawableCoins)).Times(1)
+		bk.EXPECT().BlockedAddr(withdrawalAddr).Times(1).Return(false)
+
+		_, err = ms.SetWithdrawAddress(ctx, &types.MsgSetWithdrawAddress{
+			DelegatorAddress: sAddr.String(),
+			WithdrawAddress:  withdrawalAddr.String(),
+		})
+		require.NoError(t, err)
+
+		rgauge := ik.GetRewardGauge(ctx, sType, sAddr)
+		require.NotNil(t, rgauge)
+		require.False(t, rgauge.IsFullyWithdrawn())
+
+		// invoke withdraw and assert consistency
+		hook.EXPECT().BeforeRewardWithdraw(gomock.Any(), gomock.Eq(sType), gomock.Eq(sAddr)).Times(1)
+		if sType == types.BTC_STAKER {
+			hook.EXPECT().BeforeRewardWithdraw(gomock.Any(), gomock.Eq(types.COSTAKER), gomock.Eq(sAddr)).Times(1)
+		}
+		resp, err := ms.WithdrawReward(ctx, &types.MsgWithdrawReward{
+			Type:    sType.String(),
+			Address: sAddr.String(),
+		})
+		require.NoError(t, err)
+		require.Equal(t, withdrawableCoins, resp.Coins)
+
+		// ensure reward gauge is now empty
+		newRg := ik.GetRewardGauge(ctx, sType, sAddr)
+		require.NotNil(t, newRg)
+		require.True(t, newRg.IsFullyWithdrawn())
+	})
+}

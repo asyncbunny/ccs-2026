@@ -1,16 +1,16 @@
 package poller
 
 import (
-	checkpointingtypes "github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
+	checkpointingtypes "github.com/anon-org/anon/v4/x/checkpointing/types"
 )
 
 type Poller struct {
-	querier     BabylonQueryClient
+	querier     AnonQueryClient
 	bufferSize  uint
 	rawCkptChan chan *checkpointingtypes.RawCheckpointWithMetaResponse
 }
 
-func New(client BabylonQueryClient, bufferSize uint) *Poller {
+func New(client AnonQueryClient, bufferSize uint) *Poller {
 	return &Poller{
 		rawCkptChan: make(chan *checkpointingtypes.RawCheckpointWithMetaResponse, bufferSize),
 		bufferSize:  bufferSize,

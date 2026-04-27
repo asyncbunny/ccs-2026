@@ -6,14 +6,14 @@ import (
 	"sync"
 	"time"
 
-	"github.com/babylonlabs-io/vigilante/btcstaking-tracker/btcslasher/store"
+	"github.com/anon-org/vigilante/btcstaking-tracker/btcslasher/store"
 	"github.com/lightningnetwork/lnd/kvdb"
 	"golang.org/x/sync/semaphore"
 
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/metrics"
+	anc "github.com/anon-org/anon/v4/types"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/metrics"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/chaincfg"
 	"go.uber.org/zap"
@@ -25,8 +25,8 @@ type BTCSlasher struct {
 
 	// connect to BTC node
 	BTCClient btcclient.BTCClient
-	// BBNQuerier queries epoch info from Babylon
-	BBNQuerier BabylonQueryClient
+	// ANCQuerier queries epoch info from Anon
+	ANCQuerier AnonQueryClient
 
 	// parameters
 	netParams              *chaincfg.Params
@@ -55,7 +55,7 @@ type BTCSlasher struct {
 func New(
 	parentLogger *zap.Logger,
 	btcClient btcclient.BTCClient,
-	bbnQuerier BabylonQueryClient,
+	ancQuerier AnonQueryClient,
 	netParams *chaincfg.Params,
 	retrySleepTime time.Duration,
 	maxRetrySleepTime time.Duration,
@@ -76,7 +76,7 @@ func New(
 	return &BTCSlasher{
 		logger:                 logger,
 		BTCClient:              btcClient,
-		BBNQuerier:             bbnQuerier,
+		ANCQuerier:             ancQuerier,
 		netParams:              netParams,
 		retrySleepTime:         retrySleepTime,
 		maxRetrySleepTime:      maxRetrySleepTime,
@@ -114,7 +114,7 @@ func (bs *BTCSlasher) LoadParams() error {
 		return nil
 	}
 
-	btccParamsResp, err := bs.BBNQuerier.BTCCheckpointParams()
+	btccParamsResp, err := bs.ANCQuerier.BTCCheckpointParams()
 	if err != nil {
 		return err
 	}
@@ -168,7 +168,7 @@ func (bs *BTCSlasher) slashingEnforcer() {
 				return
 			}
 			// slash all the BTC delegations of this finality provider
-			fpBTCPKHex := bbn.NewBIP340PubKeyFromBTCPK(fpBTCSK.PubKey()).MarshalHex()
+			fpBTCPKHex := anc.NewBIP340PubKeyFromBTCPK(fpBTCSK.PubKey()).MarshalHex()
 			bs.logger.Infof("slashing finality provider %s", fpBTCPKHex)
 
 			if err := bs.SlashFinalityProvider(fpBTCSK); err != nil {
@@ -200,13 +200,13 @@ func (bs *BTCSlasher) slashingEnforcer() {
 // the checkBTC option indicates whether to check the slashing tx's input is still spendable
 // on Bitcoin (including mempool txs).
 func (bs *BTCSlasher) SlashFinalityProvider(extractedFpBTCSK *btcec.PrivateKey) error {
-	fpBTCPK := bbn.NewBIP340PubKeyFromBTCPK(extractedFpBTCSK.PubKey())
+	fpBTCPK := anc.NewBIP340PubKeyFromBTCPK(extractedFpBTCSK.PubKey())
 	bs.logger.Infof("start slashing finality provider %s", fpBTCPK.MarshalHex())
 
 	// get all active and unbonded BTC delegations at the current BTC height
-	// Some BTC delegations could be expired in Babylon's view but not expired in
+	// Some BTC delegations could be expired in Anon's view but not expired in
 	// Bitcoin's view. We will not slash such BTC delegations since they don't have
-	// voting power (thus don't affect consensus) in Babylon
+	// voting power (thus don't affect consensus) in Anon
 	activeBTCDels, unbondedBTCDels, err := bs.getAllActiveAndUnbondedBTCDelegations(fpBTCPK)
 	if err != nil {
 		return fmt.Errorf("failed to get BTC delegations under finality provider %s: %w", fpBTCPK.MarshalHex(), err)

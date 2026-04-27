@@ -4,19 +4,19 @@ import (
 	"context"
 
 	"cosmossdk.io/math"
-	btcstakingtypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
+	btcstakingtypes "github.com/anon-org/anon/v4/x/btcstaking/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 
-	"github.com/babylonlabs-io/finality-provider/types"
+	"github.com/anon-org/finality-provider/types"
 )
 
 //nolint:revive,unused
-const babylonConsumerChainType = "babylon"
+const anonConsumerChainType = "anon"
 
-// BabylonController defines the interface for interacting with the Babylon blockchain
+// AnonController defines the interface for interacting with the Anon blockchain
 // for finality provider operations
-type BabylonController interface {
+type AnonController interface {
 	// Start initializes the client connection
 	Start() error
 

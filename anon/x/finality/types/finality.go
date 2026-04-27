@@ -1,0 +1,266 @@
+package types
+
+import (
+	"bytes"
+	"fmt"
+
+	"github.com/btcsuite/btcd/btcec/v2"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/anon-org/anon/v4/crypto/eots"
+	"github.com/anon-org/anon/v4/types"
+	anc "github.com/anon-org/anon/v4/types"
+	btcstktypes "github.com/anon-org/anon/v4/x/btcstaking/types"
+)
+
+// FinalityProviderState defines the possible states of a finality provider
+// It is used in the power distribution change process
+// to determine the state of each finality provider and how it affects the power distribution
+type FinalityProviderState int32
+
+const (
+	// FinalityProviderState_UNKNOWN indicates the finality provider state is unknown or uninitialized
+	FinalityProviderState_UNKNOWN FinalityProviderState = iota
+	// FinalityProviderState_UNJAILED indicates the finality provider is active and can participate
+	FinalityProviderState_UNJAILED
+	// FinalityProviderState_JAILED indicates the finality provider is jailed and cannot participate
+	FinalityProviderState_JAILED
+	// FinalityProviderState_SLASHED indicates the finality provider has been slashed
+	FinalityProviderState_SLASHED
+)
+
+// DelegationInfo holds cached information about a delegation made by a delegator to one or more finality providers
+type DelegationInfo struct {
+	Delegator sdk.AccAddress
+	FpBtcPk   string
+	TotalSat  uint64
+}
+
+// Processing state during the power distribution change process
+// It holds the state of finality providers, BTC delegations, and events
+// It is used to track the changes in the finality providers' states and the BTC delegations
+// It is also used to determine the final state of each finality provider after the power distribution change
+// The state is updated during the power distribution change process and is used to generate the
+// final power distribution cache
+type ProcessingState struct {
+	// PrevActiveFpByBtcPk is a map of the active finality providers in the previous
+	// voting power distribution cache
+	PrevActiveFpByBtcPk map[string]struct{}
+	// FPStatesByBtcPk is a map of the finality providers' state
+	FPStatesByBtcPk map[string]FinalityProviderState
+	// FpByBtcPk is a map where key is finality provider's BTC PK hex and value is the finality provider
+	// It is used as cache to avoid fetching the finality provider from the store
+	// during the power distribution change process
+	FpByBtcPk map[string]*btcstktypes.FinalityProvider
+	// DeltaSatsByFpBtcPk is a map where key is finality provider's BTC PK hex and value is the
+	// delta of BTC delegations satoshis that were added or removed from the provider
+	// during the power distribution change process
+	DeltaSatsByFpBtcPk map[string]int64
+	// A slice of the BTC delegations expired events
+	ExpiredEvents []*btcstktypes.EventPowerDistUpdate_BtcDelStateUpdate
+	// A slice of the slashed finality provider events
+	SlashedEvents []*btcstktypes.EventPowerDistUpdate_SlashedFp
+	// ActiveDelegations holds information about active delegations events
+	ActiveDelegations []DelegationInfo
+	// UnbondingDelegations holds information about unbonding delegations events
+	UnbondingDelegations []DelegationInfo
+}
+
+func NewProcessingState() *ProcessingState {
+	return &ProcessingState{
+		PrevActiveFpByBtcPk: map[string]struct{}{},
+		FPStatesByBtcPk:     map[string]FinalityProviderState{},
+		FpByBtcPk:           map[string]*btcstktypes.FinalityProvider{},
+		DeltaSatsByFpBtcPk:  map[string]int64{},
+		ExpiredEvents:       []*btcstktypes.EventPowerDistUpdate_BtcDelStateUpdate{},
+		SlashedEvents:       []*btcstktypes.EventPowerDistUpdate_SlashedFp{},
+	}
+}
+
+// AddStateForFp adds the state of the given finality provider to the processing state
+// based on the finality provider's distribution info (e.g. if it is jailed or slashed)
+func (ps *ProcessingState) AddStateForFp(fp FinalityProviderDistInfo) {
+	fpBTCPKHex := fp.BtcPk.MarshalHex()
+	if fp.IsSlashed {
+		ps.FPStatesByBtcPk[fpBTCPKHex] = FinalityProviderState_SLASHED
+	}
+	if fp.IsJailed {
+		ps.FPStatesByBtcPk[fpBTCPKHex] = FinalityProviderState_JAILED
+	}
+}
+
+// FillByPrevVpDstCache fill up the state.PrevFpStatusByBtcPk based on the previous vp dst cache
+func (ps *ProcessingState) FillByPrevVpDstCache(dc *VotingPowerDistCache) {
+	for idx, fp := range dc.FinalityProviders {
+		isActive := idx < int(dc.NumActiveFps) // it should not be <= as idx starts at zero
+		if isActive {
+			ps.PrevActiveFpByBtcPk[fp.BtcPk.MarshalHex()] = struct{}{}
+		}
+		ps.AddStateForFp(*fp)
+	}
+}
+
+func (ps *ProcessingState) IsFpInPrevActiveSet(fpBtcPk *anc.BIP340PubKey) bool {
+	_, found := ps.PrevActiveFpByBtcPk[fpBtcPk.MarshalHex()]
+	return found
+}
+
+func (ps *ProcessingState) AddActiveDelegation(delAddr string, fpPubKey anc.BIP340PubKey, totalSat uint64) {
+	delAccAddr := sdk.MustAccAddressFromBech32(delAddr)
+	ps.ActiveDelegations = append(ps.ActiveDelegations, DelegationInfo{
+		Delegator: delAccAddr,
+		FpBtcPk:   fpPubKey.MarshalHex(),
+		TotalSat:  totalSat,
+	})
+}
+
+func (ps *ProcessingState) AddUnbondingDelegation(delAddr string, fpPubKey anc.BIP340PubKey, totalSat uint64) {
+	delAccAddr := sdk.MustAccAddressFromBech32(delAddr)
+	ps.UnbondingDelegations = append(ps.UnbondingDelegations, DelegationInfo{
+		Delegator: delAccAddr,
+		FpBtcPk:   fpPubKey.MarshalHex(),
+		TotalSat:  totalSat,
+	})
+}
+
+func (c *PubRandCommit) IsInRange(height uint64) bool {
+	start, end := c.Range()
+	return start <= height && height <= end
+}
+
+func (c *PubRandCommit) GetIndex(height uint64) (uint64, error) {
+	start, end := c.Range()
+	if start <= height && height <= end {
+		return height - start, nil
+	}
+	return 0, ErrPubRandNotFound.Wrapf("the given height (%d) is not in range [%d, %d]", height, start, end)
+}
+
+func (c *PubRandCommit) EndHeight() uint64 {
+	return c.StartHeight + c.NumPubRand - 1
+}
+
+// Range() returns the range of the heights that a public randomness is committed
+// both values are inclusive
+func (c *PubRandCommit) Range() (uint64, uint64) {
+	return c.StartHeight, c.EndHeight()
+}
+
+func (c *PubRandCommit) ToResponse() *PubRandCommitResponse {
+	return &PubRandCommitResponse{
+		NumPubRand: c.NumPubRand,
+		Commitment: c.Commitment,
+		EpochNum:   c.EpochNum,
+	}
+}
+
+func (c *PubRandCommit) Validate() error {
+	if len(c.Commitment) == 0 {
+		return ErrInvalidPubRandCommit.Wrap("empty commitment")
+	}
+	return nil
+}
+
+// msgToSignForVote returns the message for an EOTS signature
+// The EOTS signature on a block will be (blockHeight || blockHash)
+func msgToSignForVote(blockHeight uint64, blockHash []byte) []byte {
+	return append(sdk.Uint64ToBigEndian(blockHeight), blockHash...)
+}
+
+func (ib *IndexedBlock) Equal(ib2 *IndexedBlock) bool {
+	if !bytes.Equal(ib.AppHash, ib2.AppHash) {
+		return false
+	}
+	if ib.Height != ib2.Height {
+		return false
+	}
+	// NOTE: we don't compare finalisation status here
+	return true
+}
+
+func (ib *IndexedBlock) MsgToSign() []byte {
+	return msgToSignForVote(ib.Height, ib.AppHash)
+}
+
+func (ib IndexedBlock) Validate() error {
+	if ib.Height > 0 && len(ib.AppHash) == 0 {
+		return fmt.Errorf("invalid indexed block. Empty app hash")
+	}
+	return nil
+}
+
+func (e *Evidence) canonicalMsgToSign() []byte {
+	return msgToSignForVote(e.BlockHeight, e.CanonicalAppHash)
+}
+
+func (e *Evidence) forkMsgToSign() []byte {
+	return msgToSignForVote(e.BlockHeight, e.ForkAppHash)
+}
+
+func (e *Evidence) ValidateBasic() error {
+	if e.FpBtcPk == nil {
+		return fmt.Errorf("empty FpBtcPk")
+	}
+	if _, err := e.FpBtcPk.ToBTCPK(); err != nil {
+		return err
+	}
+	if e.PubRand == nil {
+		return fmt.Errorf("empty PubRand")
+	}
+	if len(e.CanonicalAppHash) != 32 {
+		return fmt.Errorf("malformed CanonicalAppHash")
+	}
+	if len(e.ForkAppHash) != 32 {
+		return fmt.Errorf("malformed ForkAppHash")
+	}
+	if e.ForkFinalitySig == nil {
+		return fmt.Errorf("empty ForkFinalitySig")
+	}
+	if e.ForkFinalitySig.Size() != types.SchnorrEOTSSigLen {
+		return fmt.Errorf("malformed ForkFinalitySig")
+	}
+
+	return nil
+}
+
+func (e *Evidence) IsSlashable() bool {
+	if err := e.ValidateBasic(); err != nil {
+		return false
+	}
+	if e.CanonicalFinalitySig == nil {
+		return false
+	}
+	return true
+}
+
+// ExtractBTCSK extracts the BTC SK given the data in the evidence
+func (e *Evidence) ExtractBTCSK() (*btcec.PrivateKey, error) {
+	if !e.IsSlashable() {
+		return nil, fmt.Errorf("the evidence lacks some fields so does not allow extracting BTC SK")
+	}
+	btcPK, err := e.FpBtcPk.ToBTCPK()
+	if err != nil {
+		return nil, err
+	}
+	return eots.Extract(
+		btcPK, e.PubRand.ToFieldValNormalized(),
+		e.canonicalMsgToSign(), e.CanonicalFinalitySig.ToModNScalar(), // msg and sig for canonical block
+		e.forkMsgToSign(), e.ForkFinalitySig.ToModNScalar(), // msg and sig for fork block
+	)
+}
+
+func (fp *FinalityProviderDistInfo) FpStatus(canBeActive bool) btcstktypes.FinalityProviderStatus {
+	if fp.IsSlashed {
+		return btcstktypes.FinalityProviderStatus_FINALITY_PROVIDER_STATUS_SLASHED
+	}
+
+	if fp.IsJailed {
+		return btcstktypes.FinalityProviderStatus_FINALITY_PROVIDER_STATUS_JAILED
+	}
+
+	if canBeActive && fp.IsTimestamped && fp.TotalBondedSat > 0 {
+		return btcstktypes.FinalityProviderStatus_FINALITY_PROVIDER_STATUS_ACTIVE
+	}
+
+	return btcstktypes.FinalityProviderStatus_FINALITY_PROVIDER_STATUS_INACTIVE
+}

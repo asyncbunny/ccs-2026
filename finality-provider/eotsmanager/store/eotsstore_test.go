@@ -14,13 +14,13 @@ import (
 
 	"github.com/btcsuite/btcd/btcec/v2"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
+	"github.com/anon-org/anon/v4/testutil/datagen"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/stretchr/testify/require"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/config"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/store"
-	"github.com/babylonlabs-io/finality-provider/testutil"
+	"github.com/anon-org/finality-provider/eotsmanager/config"
+	"github.com/anon-org/finality-provider/eotsmanager/store"
+	"github.com/anon-org/finality-provider/testutil"
 )
 
 // FuzzEOTSStore tests save and show EOTS key names properly

@@ -7,15 +7,15 @@ import (
 
 	"google.golang.org/grpc"
 
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
+	anctypes "github.com/anon-org/anon/v4/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/client"
-	"github.com/babylonlabs-io/finality-provider/types"
+	"github.com/anon-org/finality-provider/eotsmanager"
+	"github.com/anon-org/finality-provider/eotsmanager/client"
+	"github.com/anon-org/finality-provider/types"
 )
 
 const failedPreconditionErrStr = "FailedPrecondition"
@@ -84,7 +84,7 @@ func (fp *FinalityProviderInstance) SignPubRandCommit(_ context.Context, startHe
 	return sig, nil
 }
 
-func (fp *FinalityProviderInstance) SignFinalitySig(_ context.Context, b types.BlockDescription) (*bbntypes.SchnorrEOTSSig, error) {
+func (fp *FinalityProviderInstance) SignFinalitySig(_ context.Context, b types.BlockDescription) (*anctypes.SchnorrEOTSSig, error) {
 	sig, err := fp.em.SignEOTS(fp.btcPk.MustMarshal(), fp.GetChainID(), b.MsgToSign(""), b.GetHeight())
 	if err != nil {
 		if strings.Contains(err.Error(), failedPreconditionErrStr) {
@@ -94,5 +94,5 @@ func (fp *FinalityProviderInstance) SignFinalitySig(_ context.Context, b types.B
 		return nil, fmt.Errorf("failed to sign EOTS: %w", err)
 	}
 
-	return bbntypes.NewSchnorrEOTSSigFromModNScalar(sig), nil
+	return anctypes.NewSchnorrEOTSSigFromModNScalar(sig), nil
 }

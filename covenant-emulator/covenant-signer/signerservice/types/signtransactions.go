@@ -5,10 +5,10 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/babylonlabs-io/babylon/v4/btcstaking"
-	asig "github.com/babylonlabs-io/babylon/v4/crypto/schnorr-adaptor-signature"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerapp"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/utils"
+	"github.com/anon-org/anon/v4/btcstaking"
+	asig "github.com/anon-org/anon/v4/crypto/schnorr-adaptor-signature"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerapp"
+	"github.com/anon-org/covenant-emulator/covenant-signer/utils"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 )
 

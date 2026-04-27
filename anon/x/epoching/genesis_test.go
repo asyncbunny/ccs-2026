@@ -1,0 +1,39 @@
+package epoching_test
+
+import (
+	"testing"
+
+	"github.com/anon-org/anon/v4/x/epoching"
+	"github.com/stretchr/testify/require"
+
+	simapp "github.com/anon-org/anon/v4/app"
+	"github.com/anon-org/anon/v4/x/epoching/types"
+)
+
+func TestExportGenesis(t *testing.T) {
+	app := simapp.Setup(t, false)
+	ctx := app.BaseApp.NewContext(false)
+
+	if err := app.EpochingKeeper.SetParams(ctx, types.DefaultParams()); err != nil {
+		panic(err)
+	}
+
+	genesisState := epoching.ExportGenesis(ctx, app.EpochingKeeper)
+	require.Equal(t, genesisState.Params, types.DefaultParams())
+}
+
+func TestInitGenesis(t *testing.T) {
+	app := simapp.Setup(t, false)
+	ctx := app.BaseApp.NewContext(false)
+
+	genesisState := types.GenesisState{
+		Params: types.Params{
+			EpochInterval: 100,
+			ExecuteGas:    types.DefaultExecuteGas,
+			MinAmount:     types.DefaultMinAmount,
+		},
+	}
+
+	epoching.InitGenesis(ctx, app.EpochingKeeper, genesisState)
+	require.Equal(t, app.EpochingKeeper.GetParams(ctx).EpochInterval, uint64(100))
+}

@@ -3,9 +3,9 @@ package btcslasher
 import (
 	"fmt"
 
-	"github.com/babylonlabs-io/babylon/v4/types"
+	"github.com/anon-org/anon/v4/types"
 
-	ftypes "github.com/babylonlabs-io/babylon/v4/x/finality/types"
+	ftypes "github.com/anon-org/anon/v4/x/finality/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/hashicorp/go-multierror"
 )
@@ -112,7 +112,7 @@ func (bs *BTCSlasher) processEvidencesFromHeight(startHeight uint64) (uint64, er
 func (bs *BTCSlasher) handleAllEvidences(startHeight uint64, handleFunc func(evidences []*ftypes.EvidenceResponse) error) error {
 	pagination := query.PageRequest{Limit: defaultPaginationLimit}
 	for {
-		resp, err := bs.BBNQuerier.ListEvidences(startHeight, &pagination)
+		resp, err := bs.ANCQuerier.ListEvidences(startHeight, &pagination)
 		if err != nil {
 			return fmt.Errorf("failed to get evidences: %w", err)
 		}

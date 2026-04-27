@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/babylonlabs-io/vigilante/testutil"
+	"github.com/anon-org/vigilante/testutil"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg"
@@ -14,10 +14,10 @@ import (
 	"github.com/btcsuite/btcd/wire"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	bst "github.com/babylonlabs-io/vigilante/btcstaking-tracker"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
+	"github.com/anon-org/vigilante/btcclient"
+	bst "github.com/anon-org/vigilante/btcstaking-tracker"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +28,7 @@ func TestSlasher_GracefulShutdown(t *testing.T) {
 
 	tm := StartManager(t, WithNumMatureOutputs(numMatureOutputs), WithEpochInterval(defaultEpochInterval))
 	defer tm.Stop(t)
-	// Insert all existing BTC headers to babylon node
+	// Insert all existing BTC headers to anon node
 	tm.CatchUpBTCLightClient(t)
 
 	emptyHintCache := btcclient.EmptyHintCache{}
@@ -52,7 +52,7 @@ func TestSlasher_GracefulShutdown(t *testing.T) {
 	bsTracker := bst.NewBTCStakingTracker(
 		tm.BTCClient,
 		backend,
-		tm.BabylonClient,
+		tm.AnonClient,
 		&bstCfg,
 		&commonCfg,
 		zap.NewNop(),
@@ -77,10 +77,10 @@ func TestSlasher_Slasher(t *testing.T) {
 
 	tm := StartManager(t, WithNumMatureOutputs(numMatureOutputs), WithEpochInterval(5))
 	defer tm.Stop(t)
-	// start WebSocket connection with Babylon for subscriber services
-	err := tm.BabylonClient.Start()
+	// start WebSocket connection with Anon for subscriber services
+	err := tm.AnonClient.Start()
 	require.NoError(t, err)
-	// Insert all existing BTC headers to babylon node
+	// Insert all existing BTC headers to anon node
 	tm.CatchUpBTCLightClient(t)
 
 	emptyHintCache := btcclient.EmptyHintCache{}
@@ -104,7 +104,7 @@ func TestSlasher_Slasher(t *testing.T) {
 	bsTracker := bst.NewBTCStakingTracker(
 		tm.BTCClient,
 		backend,
-		tm.BabylonClient,
+		tm.AnonClient,
 		&bstCfg,
 		&commonCfg,
 		zap.NewNop(),
@@ -131,7 +131,7 @@ func TestSlasher_Slasher(t *testing.T) {
 	slashingMsgTxHash1 := slashingMsgTx.TxHash()
 	slashingMsgTxHash := &slashingMsgTxHash1
 
-	btccParamsResp, err := tm.BabylonClient.BTCCheckpointParams()
+	btccParamsResp, err := tm.AnonClient.BTCCheckpointParams()
 	require.NoError(t, err)
 
 	for i := 0; i <= int(btccParamsResp.Params.BtcConfirmationDepth); i++ {
@@ -156,10 +156,10 @@ func TestSlasher_SlashingUnbonding(t *testing.T) {
 
 	tm := StartManager(t, WithNumMatureOutputs(numMatureOutputs), WithEpochInterval(5))
 	defer tm.Stop(t)
-	// start WebSocket connection with Babylon for subscriber services
-	err := tm.BabylonClient.Start()
+	// start WebSocket connection with Anon for subscriber services
+	err := tm.AnonClient.Start()
 	require.NoError(t, err)
-	// Insert all existing BTC headers to babylon node
+	// Insert all existing BTC headers to anon node
 	tm.CatchUpBTCLightClient(t)
 
 	emptyHintCache := btcclient.EmptyHintCache{}
@@ -183,7 +183,7 @@ func TestSlasher_SlashingUnbonding(t *testing.T) {
 	bsTracker := bst.NewBTCStakingTracker(
 		tm.BTCClient,
 		backend,
-		tm.BabylonClient,
+		tm.AnonClient,
 		&bstCfg,
 		&commonCfg,
 		zap.NewNop(),
@@ -215,7 +215,7 @@ func TestSlasher_SlashingUnbonding(t *testing.T) {
 	unbondingSlashingMsgTxHash1 := unbondingSlashingMsgTx.TxHash()
 	unbondingSlashingMsgTxHash := &unbondingSlashingMsgTxHash1
 
-	btccParamsResp, err := tm.BabylonClient.BTCCheckpointParams()
+	btccParamsResp, err := tm.AnonClient.BTCCheckpointParams()
 	require.NoError(t, err)
 
 	for i := 0; i <= int(btccParamsResp.Params.BtcConfirmationDepth); i++ {
@@ -257,10 +257,10 @@ func TestSlasher_Bootstrapping(t *testing.T) {
 
 	tm := StartManager(t, WithNumMatureOutputs(numMatureOutputs), WithEpochInterval(5))
 	defer tm.Stop(t)
-	// start WebSocket connection with Babylon for subscriber services
-	err := tm.BabylonClient.Start()
+	// start WebSocket connection with Anon for subscriber services
+	err := tm.AnonClient.Start()
 	require.NoError(t, err)
-	// Insert all existing BTC headers to babylon node
+	// Insert all existing BTC headers to anon node
 	tm.CatchUpBTCLightClient(t)
 
 	// set up a finality provider
@@ -292,7 +292,7 @@ func TestSlasher_Bootstrapping(t *testing.T) {
 	bsTracker := bst.NewBTCStakingTracker(
 		tm.BTCClient,
 		backend,
-		tm.BabylonClient,
+		tm.AnonClient,
 		&bstCfg,
 		&commonCfg,
 		zap.NewNop(),

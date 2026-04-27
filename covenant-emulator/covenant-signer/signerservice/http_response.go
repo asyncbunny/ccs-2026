@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice/handlers"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice/types"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice/handlers"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice/types"
 	logger "github.com/rs/zerolog"
 )
 

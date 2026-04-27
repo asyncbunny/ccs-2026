@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/types"
 )
 
 const (

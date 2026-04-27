@@ -5,18 +5,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/babylonlabs-io/vigilante/btcstaking-tracker/indexer"
-	"github.com/babylonlabs-io/vigilante/version"
+	"github.com/anon-org/vigilante/btcstaking-tracker/indexer"
+	"github.com/anon-org/vigilante/version"
 	"github.com/lightningnetwork/lnd/kvdb"
 
-	bbnclient "github.com/babylonlabs-io/babylon/v4/client/client"
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/btcstaking-tracker/atomicslasher"
-	"github.com/babylonlabs-io/vigilante/btcstaking-tracker/btcslasher"
-	uw "github.com/babylonlabs-io/vigilante/btcstaking-tracker/stakingeventwatcher"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/netparams"
+	ancclient "github.com/anon-org/anon/v4/client/client"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/btcstaking-tracker/atomicslasher"
+	"github.com/anon-org/vigilante/btcstaking-tracker/btcslasher"
+	uw "github.com/anon-org/vigilante/btcstaking-tracker/stakingeventwatcher"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/netparams"
 	"github.com/btcsuite/btcd/btcec/v2"
 	notifier "github.com/lightningnetwork/lnd/chainntnfs"
 	"go.uber.org/zap"
@@ -28,12 +28,12 @@ type BTCStakingTracker struct {
 
 	btcClient   btcclient.BTCClient // TODO: limit the scope
 	btcNotifier notifier.ChainNotifier
-	// TODO: Ultimately all requests to babylon should go through some kind of semaphore
-	// to avoid spamming babylon with requests
-	bbnClient *bbnclient.Client
+	// TODO: Ultimately all requests to anon should go through some kind of semaphore
+	// to avoid spamming anon with requests
+	ancClient *ancclient.Client
 
 	// stakingEventWatcher monitors early all staking transactions on Bitcoin
-	// and reports unbonding BTC delegations back to Babylon. As well as staking transactions
+	// and reports unbonding BTC delegations back to Anon. As well as staking transactions
 	// that lack inclusion proof, wait for them on BTC and submits MsgActivateBTCDelegation
 	stakingEventWatcher *uw.StakingEventWatcher
 	// btcSlasher monitors slashing events in BTC staking protocol,
@@ -64,7 +64,7 @@ type BTCStakingTracker struct {
 func NewBTCStakingTracker(
 	btcClient btcclient.BTCClient,
 	btcNotifier notifier.ChainNotifier,
-	bbnClient *bbnclient.Client,
+	ancClient *ancclient.Client,
 	cfg *config.BTCStakingTrackerConfig,
 	commonCfg *config.CommonConfig,
 	parentLogger *zap.Logger,
@@ -76,12 +76,12 @@ func NewBTCStakingTracker(
 	indexerClient := indexer.NewHTTPIndexerClient(cfg.IndexerAddr, 10*time.Second, *logger)
 
 	// watcher routine
-	babylonAdapter := uw.NewBabylonClientAdapter(bbnClient, cfg)
+	anonAdapter := uw.NewAnonClientAdapter(ancClient, cfg)
 	watcher := uw.NewStakingEventWatcher(
 		btcNotifier,
 		btcClient,
 		indexerClient,
-		babylonAdapter,
+		anonAdapter,
 		cfg,
 		logger,
 		metrics.UnbondingWatcherMetrics,
@@ -92,7 +92,7 @@ func NewBTCStakingTracker(
 	// BTC slasher routine
 	// NOTE: To make subscriber in slasher work, the underlying RPC client
 	// has to be kept running with a websocket connection
-	bbnQueryClient := bbnClient.QueryClient
+	ancQueryClient := ancClient.QueryClient
 	btcParams, err := netparams.GetBTCParams(cfg.BTCNetParams)
 	if err != nil {
 		parentLogger.Fatal("failed to get BTC parameter", zap.Error(err))
@@ -100,7 +100,7 @@ func NewBTCStakingTracker(
 	btcSlasher, err := btcslasher.New(
 		logger,
 		btcClient,
-		bbnQueryClient,
+		ancQueryClient,
 		btcParams,
 		commonCfg.RetrySleepTime,
 		commonCfg.MaxRetrySleepTime,
@@ -124,7 +124,7 @@ func NewBTCStakingTracker(
 		commonCfg.MaxRetryTimes,
 		btcClient,
 		btcNotifier,
-		bbnClient,
+		ancClient,
 		slashedFPSKChan,
 		metrics.AtomicSlasherMetrics,
 	)
@@ -134,7 +134,7 @@ func NewBTCStakingTracker(
 		logger:              logger.Sugar(),
 		btcClient:           btcClient,
 		btcNotifier:         btcNotifier,
-		bbnClient:           bbnClient,
+		ancClient:           ancClient,
 		btcSlasher:          btcSlasher,
 		atomicSlasher:       atomicSlasher,
 		stakingEventWatcher: watcher,
@@ -212,7 +212,7 @@ func (tracker *BTCStakingTracker) Stop() error {
 
 			return
 		}
-		if err := tracker.bbnClient.Stop(); err != nil {
+		if err := tracker.ancClient.Stop(); err != nil {
 			stopErr = err
 
 			return

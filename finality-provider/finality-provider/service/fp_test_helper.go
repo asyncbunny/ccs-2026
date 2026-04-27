@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
-	ftypes "github.com/babylonlabs-io/babylon/v4/x/finality/types"
-	ccapi "github.com/babylonlabs-io/finality-provider/clientcontroller/api"
-	"github.com/babylonlabs-io/finality-provider/types"
+	anctypes "github.com/anon-org/anon/v4/types"
+	ftypes "github.com/anon-org/anon/v4/x/finality/types"
+	ccapi "github.com/anon-org/finality-provider/clientcontroller/api"
+	"github.com/anon-org/finality-provider/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/gogo/protobuf/jsonpb"
 	"go.uber.org/zap"
@@ -120,13 +120,13 @@ func (th *FinalityProviderTestHelper) SubmitFinalitySignatureAndExtractPrivKey(
 		return nil, nil, fmt.Errorf("failed to get public randomness inclusion proof: %w", err)
 	}
 
-	eotsSignerFunc := func(_ context.Context, b types.BlockDescription) (*bbntypes.SchnorrEOTSSig, error) {
+	eotsSignerFunc := func(_ context.Context, b types.BlockDescription) (*anctypes.SchnorrEOTSSig, error) {
 		sig, err := th.fp.em.UnsafeSignEOTS(th.fp.btcPk.MustMarshal(), th.fp.GetChainID(), b.MsgToSign(""), b.GetHeight())
 		if err != nil {
 			return nil, fmt.Errorf("failed to sign EOTS: %w", err)
 		}
 
-		return bbntypes.NewSchnorrEOTSSigFromModNScalar(sig), nil
+		return anctypes.NewSchnorrEOTSSigFromModNScalar(sig), nil
 	}
 
 	if useSafeEOTSFunc {
@@ -236,13 +236,13 @@ func (th *FinalityProviderTestHelper) SubmitBatchFinalitySignaturesAndExtractPri
 	}
 
 	// Determine which signer function to use
-	eotsSignerFunc := func(_ context.Context, b types.BlockDescription) (*bbntypes.SchnorrEOTSSig, error) {
+	eotsSignerFunc := func(_ context.Context, b types.BlockDescription) (*anctypes.SchnorrEOTSSig, error) {
 		sig, err := th.fp.em.UnsafeSignEOTS(th.fp.btcPk.MustMarshal(), th.fp.GetChainID(), b.MsgToSign(""), b.GetHeight())
 		if err != nil {
 			return nil, fmt.Errorf("failed to sign EOTS: %w", err)
 		}
 
-		return bbntypes.NewSchnorrEOTSSigFromModNScalar(sig), nil
+		return anctypes.NewSchnorrEOTSSigFromModNScalar(sig), nil
 	}
 
 	if useSafeEOTSFunc {

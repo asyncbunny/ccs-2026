@@ -13,11 +13,11 @@ import (
 	"github.com/btcsuite/btcd/chaincfg"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/service"
+	"github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/finality-provider/service"
 
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
+	anctypes "github.com/anon-org/anon/v4/types"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
 	"github.com/stretchr/testify/require"
 )
 
@@ -66,17 +66,17 @@ func RunCommand(name string, args ...string) ([]byte, error) {
 func GenerateCovenantCommittee(
 	numCovenants int,
 	t *testing.T,
-) ([]*btcec.PrivateKey, []*bbntypes.BIP340PubKey) {
+) ([]*btcec.PrivateKey, []*anctypes.BIP340PubKey) {
 	var (
 		covenantPrivKeys []*btcec.PrivateKey
-		covenantPubKeys  []*bbntypes.BIP340PubKey
+		covenantPubKeys  []*anctypes.BIP340PubKey
 	)
 
 	for i := 0; i < numCovenants; i++ {
 		privKey, err := btcec.NewPrivateKey()
 		require.NoError(t, err)
 		covenantPrivKeys = append(covenantPrivKeys, privKey)
-		pubKey := bbntypes.NewBIP340PubKeyFromBTCPK(privKey.PubKey())
+		pubKey := anctypes.NewBIP340PubKeyFromBTCPK(privKey.PubKey())
 		covenantPubKeys = append(covenantPubKeys, pubKey)
 	}
 
@@ -109,14 +109,14 @@ func DefaultFpConfig(keyringDir, homeDir string) *config.Config {
 	cfg.PollerConfig.PollInterval = 1 * time.Second
 	cfg.PollerConfig.AutoChainScanningMode = false
 
-	// babylon configs for sending transactions
-	cfg.BabylonConfig.KeyDirectory = keyringDir
+	// anon configs for sending transactions
+	cfg.AnonConfig.KeyDirectory = keyringDir
 	// need to use this one to send otherwise we will have account sequence mismatch
 	// errors
-	cfg.BabylonConfig.Key = "test-spending-key"
+	cfg.AnonConfig.Key = "test-spending-key"
 	// increase gas for large BTC delegation transactions
-	cfg.BabylonConfig.GasAdjustment = 2.0
-	cfg.BabylonConfig.GasPrices = "0.01ubbn"
+	cfg.AnonConfig.GasAdjustment = 2.0
+	cfg.AnonConfig.GasPrices = "0.01uanc"
 
 	return &cfg
 }
@@ -131,14 +131,14 @@ func DefaultFpConfigWithPorts(keyringDir, homeDir string, fpRpcPort, fpMetricsPo
 
 // ParseRespBTCDelToBTCDel parses an BTC delegation response to BTC Delegation
 // adapted from
-// https://github.com/babylonlabs-io/babylon/v4/blob/1a3c50da64885452c8d669fcea2a2fad78c8a028/test/e2e/btc_staking_e2e_test.go#L548
+// https://github.com/anon-org/anon/v4/blob/1a3c50da64885452c8d669fcea2a2fad78c8a028/test/e2e/btc_staking_e2e_test.go#L548
 func ParseRespBTCDelToBTCDel(resp *bstypes.BTCDelegationResponse) (btcDel *bstypes.BTCDelegation, err error) {
 	stakingTx, err := hex.DecodeString(resp.StakingTxHex)
 	if err != nil {
 		return nil, err
 	}
 
-	delSig, err := bbntypes.NewBIP340SignatureFromHex(resp.DelegatorSlashSigHex)
+	delSig, err := anctypes.NewBIP340SignatureFromHex(resp.DelegatorSlashSigHex)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +149,7 @@ func ParseRespBTCDelToBTCDel(resp *bstypes.BTCDelegationResponse) (btcDel *bstyp
 	}
 
 	btcDel = &bstypes.BTCDelegation{
-		// missing BabylonPk, Pop
+		// missing AnonPk, Pop
 		// these fields are not sent out to the client on BTCDelegationResponse
 		BtcPk:            resp.BtcPk,
 		FpBtcPkList:      resp.FpBtcPkList,
@@ -176,7 +176,7 @@ func ParseRespBTCDelToBTCDel(resp *bstypes.BTCDelegationResponse) (btcDel *bstyp
 			return nil, err
 		}
 
-		delSlashingSig, err := bbntypes.NewBIP340SignatureFromHex(ud.DelegatorSlashingSigHex)
+		delSlashingSig, err := anctypes.NewBIP340SignatureFromHex(ud.DelegatorSlashingSigHex)
 		if err != nil {
 			return nil, err
 		}

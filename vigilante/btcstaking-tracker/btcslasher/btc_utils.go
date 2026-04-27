@@ -3,7 +3,7 @@ package btcslasher
 import (
 	"fmt"
 
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
+	anc "github.com/anon-org/anon/v4/types"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 )
 
@@ -19,7 +19,7 @@ func (bs *BTCSlasher) isTxSubmittedToBitcoin(txHash *chainhash.Hash) bool {
 // isTaprootOutputSpendable checks if the taproot output of a given tx is still spendable on Bitcoin
 // This function can be used to check the output of a staking tx or an undelegation tx
 func (bs *BTCSlasher) isTaprootOutputSpendable(txBytes []byte, outIdx uint32) (bool, error) {
-	stakingMsgTx, err := bbn.NewBTCTxFromBytes(txBytes)
+	stakingMsgTx, err := anc.NewBTCTxFromBytes(txBytes)
 	if err != nil {
 		return false, fmt.Errorf(
 			"failed to convert staking tx to MsgTx: %w",

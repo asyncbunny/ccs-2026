@@ -6,12 +6,12 @@ import (
 	"github.com/btcsuite/btcd/chaincfg"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/covenant-emulator/config"
-	"github.com/babylonlabs-io/covenant-emulator/types"
+	"github.com/anon-org/covenant-emulator/config"
+	"github.com/anon-org/covenant-emulator/types"
 )
 
 const (
-	babylonConsumerChainName = "babylon"
+	anonConsumerChainName = "anon"
 )
 
 type (
@@ -36,16 +36,16 @@ type (
 
 func NewClientController(
 	chainName string,
-	bbnConfig *config.BBNConfig,
+	ancConfig *config.ANCConfig,
 	netParams *chaincfg.Params,
 	logger *zap.Logger,
 	maxRetiresBatchRemovingMsgs uint64,
 ) (ClientController, error) {
 	switch chainName {
-	case babylonConsumerChainName:
-		cc, err := NewBabylonController(bbnConfig, netParams, logger, maxRetiresBatchRemovingMsgs)
+	case anonConsumerChainName:
+		cc, err := NewAnonController(ancConfig, netParams, logger, maxRetiresBatchRemovingMsgs)
 		if err != nil {
-			return nil, fmt.Errorf("failed to create Babylon rpc client: %w", err)
+			return nil, fmt.Errorf("failed to create Anon rpc client: %w", err)
 		}
 
 		return cc, nil

@@ -5,16 +5,16 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
+	"github.com/anon-org/anon/v4/testutil/datagen"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	goflags "github.com/jessevdk/go-flags"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/require"
 
-	clientctx "github.com/babylonlabs-io/finality-provider/finality-provider/cmd/fpd/clientctx"
-	fpcfg "github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/util"
+	clientctx "github.com/anon-org/finality-provider/finality-provider/cmd/fpd/clientctx"
+	fpcfg "github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/util"
 )
 
 func TestPersistClientCtx(t *testing.T) {
@@ -55,7 +55,7 @@ func TestPersistClientCtx(t *testing.T) {
 	require.NoError(t, err)
 
 	config := fpcfg.DefaultConfigWithHome(flagHomeValue)
-	config.BabylonConfig.ChainID = randChainID
+	config.AnonConfig.ChainID = randChainID
 	fileParser := goflags.NewParser(&config, goflags.Default)
 
 	err = goflags.NewIniParser(fileParser).WriteFile(fpcfg.CfgFile(flagHomeValue), goflags.IniIncludeComments|goflags.IniIncludeDefaults)

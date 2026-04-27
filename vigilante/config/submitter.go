@@ -3,7 +3,7 @@ package config
 import (
 	"errors"
 
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/types"
 )
 
 const (
@@ -24,7 +24,7 @@ type SubmitterConfig struct {
 	BufferSize uint `mapstructure:"buffer-size"`
 	// ResubmitFeeMultiplier is used to multiply the estimated bumped fee in resubmission
 	ResubmitFeeMultiplier float64 `mapstructure:"resubmit-fee-multiplier"`
-	// PollingIntervalSeconds defines the intervals (in seconds) between each polling of Babylon checkpoints
+	// PollingIntervalSeconds defines the intervals (in seconds) between each polling of Anon checkpoints
 	PollingIntervalSeconds int64 `mapstructure:"polling-interval-seconds"`
 	// ResendIntervalSeconds defines the time (in seconds) which the submitter awaits
 	// before resubmitting checkpoints to BTC

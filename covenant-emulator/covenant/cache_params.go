@@ -4,8 +4,8 @@ import (
 	"sync"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/babylonlabs-io/covenant-emulator/clientcontroller"
-	"github.com/babylonlabs-io/covenant-emulator/types"
+	"github.com/anon-org/covenant-emulator/clientcontroller"
+	"github.com/anon-org/covenant-emulator/types"
 	"go.uber.org/zap"
 )
 

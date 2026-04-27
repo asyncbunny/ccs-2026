@@ -2,7 +2,7 @@ package e2etest
 
 import (
 	"fmt"
-	"github.com/babylonlabs-io/vigilante/e2etest/container"
+	"github.com/anon-org/vigilante/e2etest/container"
 	"github.com/ory/dockertest/v3"
 	"github.com/stretchr/testify/require"
 	"io"

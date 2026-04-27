@@ -6,21 +6,21 @@ import (
 	"sync"
 	"time"
 
-	"github.com/babylonlabs-io/vigilante/retrywrap"
-	"github.com/babylonlabs-io/vigilante/version"
+	"github.com/anon-org/vigilante/retrywrap"
+	"github.com/anon-org/vigilante/version"
 	"github.com/lightningnetwork/lnd/kvdb"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/babylonlabs-io/babylon/v4/btctxformatter"
-	btcctypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
+	"github.com/anon-org/anon/v4/btctxformatter"
+	btcctypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/submitter/poller"
-	"github.com/babylonlabs-io/vigilante/submitter/relayer"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/submitter/poller"
+	"github.com/anon-org/vigilante/submitter/relayer"
 )
 
 type Submitter struct {
@@ -42,7 +42,7 @@ func New(
 	cfg *config.SubmitterConfig,
 	parentLogger *zap.Logger,
 	btcWallet btcclient.BTCWallet,
-	queryClient BabylonQueryClient,
+	queryClient AnonQueryClient,
 	submitterAddr sdk.AccAddress,
 	retrySleepTime, maxRetrySleepTime time.Duration, maxRetryTimes uint,
 	submitterMetrics *metrics.SubmitterMetrics,

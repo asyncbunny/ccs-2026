@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/itest/containers"
+	"github.com/anon-org/covenant-emulator/covenant-signer/itest/containers"
 	"github.com/stretchr/testify/require"
 )
 

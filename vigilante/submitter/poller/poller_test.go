@@ -6,12 +6,12 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	checkpointingtypes "github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	checkpointingtypes "github.com/anon-org/anon/v4/x/checkpointing/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	"github.com/babylonlabs-io/vigilante/submitter/poller"
+	"github.com/anon-org/vigilante/submitter/poller"
 )
 
 func FuzzPollingCheckpoints(f *testing.F) {
@@ -39,10 +39,10 @@ func FuzzPollingCheckpoints(f *testing.F) {
 		sort.Slice(sealedCkpts, func(i, j int) bool {
 			return sealedCkpts[i].Ckpt.EpochNum < sealedCkpts[j].Ckpt.EpochNum
 		})
-		bbnClient := poller.NewMockBabylonQueryClient(gomock.NewController(t))
-		bbnClient.EXPECT().RawCheckpointList(gomock.Eq(checkpointingtypes.Sealed), gomock.Nil()).Return(
+		ancClient := poller.NewMockAnonQueryClient(gomock.NewController(t))
+		ancClient.EXPECT().RawCheckpointList(gomock.Eq(checkpointingtypes.Sealed), gomock.Nil()).Return(
 			&checkpointingtypes.QueryRawCheckpointListResponse{RawCheckpoints: sealedCkpts}, nil)
-		testPoller := poller.New(bbnClient, 10)
+		testPoller := poller.New(ancClient, 10)
 		wg.Add(1)
 		var ckpt *checkpointingtypes.RawCheckpointWithMetaResponse
 		go func() {

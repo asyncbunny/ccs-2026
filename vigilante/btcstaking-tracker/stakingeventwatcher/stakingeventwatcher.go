@@ -10,18 +10,18 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/babylonlabs-io/babylon/v4/client/babylonclient"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	btcctypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
-	btcstakingtypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/anon/v4/client/anonclient"
+	anc "github.com/anon-org/anon/v4/types"
+	btcctypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
+	btcstakingtypes "github.com/anon-org/anon/v4/x/btcstaking/types"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/types"
 	"golang.org/x/sync/semaphore"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/utils"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/utils"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
@@ -37,7 +37,7 @@ var (
 
 	// ErrSpendPathNotUnbonding indicates the spending tx uses timelock path (not unbonding).
 	// This happens when staking timelock expires and staker withdraws without unbonding.
-	// When timelock path is used, the delegation has already expired on Babylon side,
+	// When timelock path is used, the delegation has already expired on Anon side,
 	// so there is no unbonding to report.
 	ErrSpendPathNotUnbonding = errors.New("spending tx is not unbonding path")
 )
@@ -83,9 +83,9 @@ type StakingEventWatcher struct {
 	btcNotifier notifier.ChainNotifier
 	indexer     SpendChecker
 	metrics     *metrics.UnbondingWatcherMetrics
-	// TODO: Ultimately all requests to babylon should go through some kind of semaphore
-	// to avoid spamming babylon with requests
-	babylonNodeAdapter BabylonNodeAdapter
+	// TODO: Ultimately all requests to anon should go through some kind of semaphore
+	// to avoid spamming anon with requests
+	anonNodeAdapter AnonNodeAdapter
 	// keeps track of unbonding delegations, used as a cache to avoid registering ntfn twice
 	unbondingTracker *TrackedDelegations
 	// keeps track of verified delegations to be activated, periodically iterate over them and try to activate them
@@ -103,14 +103,14 @@ type StakingEventWatcher struct {
 	currentCometTipHeight         atomic.Int64
 	delegationRetrievalInProgress atomic.Bool
 	activationLimiter             *semaphore.Weighted
-	babylonConfirmationTimeBlocks uint32
+	anonConfirmationTimeBlocks uint32
 }
 
 func NewStakingEventWatcher(
 	btcNotifier notifier.ChainNotifier,
 	btcClient btcclient.BTCClient,
 	indexer SpendChecker,
-	babylonNodeAdapter BabylonNodeAdapter,
+	anonNodeAdapter AnonNodeAdapter,
 	cfg *config.BTCStakingTrackerConfig,
 	parentLogger *zap.Logger,
 	metrics *metrics.UnbondingWatcherMetrics,
@@ -122,7 +122,7 @@ func NewStakingEventWatcher(
 		btcNotifier:                     btcNotifier,
 		btcClient:                       btcClient,
 		indexer:                         indexer,
-		babylonNodeAdapter:              babylonNodeAdapter,
+		anonNodeAdapter:              anonNodeAdapter,
 		metrics:                         metrics,
 		unbondingTracker:                NewTrackedDelegations(),
 		pendingTracker:                  NewTrackedDelegations(),
@@ -165,7 +165,7 @@ func (sew *StakingEventWatcher) Start() error {
 		sew.logger.Infof("Initial btc best block height is: %d", sew.currentBestBlockHeight.Load())
 
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		latestHeight, err := sew.babylonNodeAdapter.CometBFTTipHeight(ctx)
+		latestHeight, err := sew.anonNodeAdapter.CometBFTTipHeight(ctx)
 		cancel()
 		if err != nil {
 			startErr = fmt.Errorf("error getting comet tip height: %w", err)
@@ -173,13 +173,13 @@ func (sew *StakingEventWatcher) Start() error {
 			return
 		}
 
-		params, err := sew.babylonNodeAdapter.Params()
+		params, err := sew.anonNodeAdapter.Params()
 		if err != nil {
 			startErr = fmt.Errorf("error getting tx params: %s", err.Error())
 
 			return
 		}
-		sew.babylonConfirmationTimeBlocks = params.ConfirmationTimeBlocks
+		sew.anonConfirmationTimeBlocks = params.ConfirmationTimeBlocks
 
 		sew.currentCometTipHeight.Store(latestHeight)
 		sew.delegationRetrievalInProgress.Store(true) // avoid potential race condition with fetchDelegations
@@ -275,19 +275,19 @@ func (sew *StakingEventWatcher) runBlockNotifier() error {
 	}
 }
 
-// checkBabylonDelegations iterates over all babylon delegations and adds them to unbondingTracker or pendingTracker
-func (sew *StakingEventWatcher) checkBabylonDelegations() error {
+// checkAnonDelegations iterates over all anon delegations and adds them to unbondingTracker or pendingTracker
+func (sew *StakingEventWatcher) checkAnonDelegations() error {
 	status := btcstakingtypes.BTCDelegationStatus_ANY
-	defer sew.latency(fmt.Sprintf("checkBabylonDelegations: %s", status))()
+	defer sew.latency(fmt.Sprintf("checkAnonDelegations: %s", status))()
 
 	cursor := []byte(nil)
 	for {
-		delegations, nextCursor, err := sew.babylonNodeAdapter.DelegationsByStatus(status, cursor, sew.cfg.NewDelegationsBatchSize)
+		delegations, nextCursor, err := sew.anonNodeAdapter.DelegationsByStatus(status, cursor, sew.cfg.NewDelegationsBatchSize)
 		if err != nil {
 			return fmt.Errorf("error fetching delegations: %w", err)
 		}
 
-		sew.logger.Debugf("fetched %d delegations from babylon by status %s", len(delegations), status)
+		sew.logger.Debugf("fetched %d delegations from anon by status %s", len(delegations), status)
 
 		for _, delegation := range delegations {
 			switch delegation.Status {
@@ -308,24 +308,24 @@ func (sew *StakingEventWatcher) checkBabylonDelegations() error {
 	return nil
 }
 
-// fetchDelegations - fetches all babylon delegations, used for bootstrap
+// fetchDelegations - fetches all anon delegations, used for bootstrap
 func (sew *StakingEventWatcher) fetchDelegations() {
 	defer sew.wg.Done()
 
 	sew.delegationRetrievalInProgress.Store(true)
 
-	if err := sew.checkBabylonDelegations(); err != nil {
-		sew.logger.Errorf("error checking babylon delegations: %v", err)
+	if err := sew.checkAnonDelegations(); err != nil {
+		sew.logger.Errorf("error checking anon delegations: %v", err)
 	}
 
 	sew.delegationRetrievalInProgress.Store(false)
 }
 
-// syncedWithBabylon - indicates whether the current btc tip is same as babylon btc light client tip
-func (sew *StakingEventWatcher) syncedWithBabylon() (bool, error) {
-	btcLightClientTipHeight, err := sew.babylonNodeAdapter.BtcClientTipHeight()
+// syncedWithAnon - indicates whether the current btc tip is same as anon btc light client tip
+func (sew *StakingEventWatcher) syncedWithAnon() (bool, error) {
+	btcLightClientTipHeight, err := sew.anonNodeAdapter.BtcClientTipHeight()
 	if err != nil {
-		sew.logger.Errorf("error fetching babylon tip height: %v", err)
+		sew.logger.Errorf("error fetching anon tip height: %v", err)
 
 		return false, err
 	}
@@ -365,7 +365,7 @@ func tryParseStakerSignatureFromSpentTx(tx *wire.MsgTx, td *TrackedDelegation) (
 	}
 
 	if tx.TxOut[0].Value != td.UnbondingOutput.Value || !bytes.Equal(tx.TxOut[0].PkScript, td.UnbondingOutput.PkScript) {
-		return nil, fmt.Errorf("unbonding tx must have output which matches unbonding output of retrieved from Babylon")
+		return nil, fmt.Errorf("unbonding tx must have output which matches unbonding output of retrieved from Anon")
 	}
 
 	stakingTxInputIdx, err := getStakingTxInputIdx(tx, td)
@@ -391,20 +391,20 @@ func tryParseStakerSignatureFromSpentTx(tx *wire.MsgTx, td *TrackedDelegation) (
 	return schnorr.ParseSignature(stakerSignature)
 }
 
-func (sew *StakingEventWatcher) reportUnbondingToBabylon(
+func (sew *StakingEventWatcher) reportUnbondingToAnon(
 	ctx context.Context,
 	stakingTxHash chainhash.Hash,
 	stakeSpendingTx *wire.MsgTx,
 	proof *btcstakingtypes.InclusionProof,
 ) {
 	_ = retry.Do(func() error {
-		active, err := sew.babylonNodeAdapter.IsDelegationActive(stakingTxHash)
+		active, err := sew.anonNodeAdapter.IsDelegationActive(stakingTxHash)
 
 		if err != nil {
 			return fmt.Errorf("error checking if delegation is active: %w", err)
 		}
 
-		verified, err := sew.babylonNodeAdapter.IsDelegationVerified(stakingTxHash)
+		verified, err := sew.anonNodeAdapter.IsDelegationVerified(stakingTxHash)
 
 		if err != nil {
 			return fmt.Errorf("error checking if delegation is verified: %w", err)
@@ -421,11 +421,11 @@ func (sew *StakingEventWatcher) reportUnbondingToBabylon(
 			return fmt.Errorf("error getting funding txs: %w", err)
 		}
 
-		if err = sew.babylonNodeAdapter.ReportUnbonding(ctx, stakingTxHash, stakeSpendingTx, proof, fundingTxs); err != nil {
+		if err = sew.anonNodeAdapter.ReportUnbonding(ctx, stakingTxHash, stakeSpendingTx, proof, fundingTxs); err != nil {
 			if !strings.Contains(err.Error(), "cannot unbond an unbonded BTC delegation") {
-				del, err := sew.babylonNodeAdapter.BTCDelegation(stakingTxHash.String())
+				del, err := sew.anonNodeAdapter.BTCDelegation(stakingTxHash.String())
 				if err != nil {
-					return fmt.Errorf("error fetching delegation from babylon: %w", err)
+					return fmt.Errorf("error fetching delegation from anon: %w", err)
 				}
 				// delegation still not unbonded, some other vigilante didn't manage to do it, err
 				if del.Status != btcstakingtypes.BTCDelegationStatus_UNBONDED.String() {
@@ -433,11 +433,11 @@ func (sew *StakingEventWatcher) reportUnbondingToBabylon(
 				}
 			}
 
-			if errors.Is(err, babylonclient.ErrTimeoutAfterWaitingForTxBroadcast) {
+			if errors.Is(err, anonclient.ErrTimeoutAfterWaitingForTxBroadcast) {
 				sew.metrics.UnbondingCensorshipGaugeVec.WithLabelValues(stakingTxHash.String()).Inc()
 			}
 
-			return fmt.Errorf("error reporting unbonding tx %s to babylon: %w", stakingTxHash, err)
+			return fmt.Errorf("error reporting unbonding tx %s to anon: %w", stakingTxHash, err)
 		}
 
 		sew.metrics.ReportedUnbondingTransactionsCounter.Inc()
@@ -464,7 +464,7 @@ func (sew *StakingEventWatcher) handleSpend(ctx context.Context, spendingTx *wir
 	nonUnbondingTx := errParseStkSig != nil
 
 	// if the spending tx is a stake expansion it should wait to be k-deep
-	stakeExpansion, err := sew.babylonNodeAdapter.BTCDelegation(spendingTxHash.String())
+	stakeExpansion, err := sew.anonNodeAdapter.BTCDelegation(spendingTxHash.String())
 	isStakeExpansion := err == nil && stakeExpansion != nil
 
 	switch {
@@ -504,7 +504,7 @@ func (sew *StakingEventWatcher) handleSpend(ctx context.Context, spendingTx *wir
 			return
 		}
 		// wait stk expansion to be k-deep
-		if err := sew.waitForRequiredDepth(ctx, blkHashInclusion, sew.babylonConfirmationTimeBlocks); err != nil {
+		if err := sew.waitForRequiredDepth(ctx, blkHashInclusion, sew.anonConfirmationTimeBlocks); err != nil {
 			sew.logger.Warnf("exceeded waiting for required depth for stake expansion tx: %s, will try later. Err: %v", spendingTxHash.String(), err)
 
 			return
@@ -515,20 +515,20 @@ func (sew *StakingEventWatcher) handleSpend(ctx context.Context, spendingTx *wir
 		// Error means that this is not unbonding tx. At this point, it means that it is
 		// either withdrawal transaction or slashing transaction spending staking staking output.
 		// As we only care about unbonding transactions, we do not need to take additional actions.
-		// We start polling babylon for delegation to stop being active, and then delete it from unbondingTracker.
+		// We start polling anon for delegation to stop being active, and then delete it from unbondingTracker.
 		sew.logger.Debugf("Spending tx %s for staking tx %s is not unbonding tx. Info: %v", spendingTxHash, delegationID, err)
 
 	default: // spending tx is the expected unbonding tx
 		sew.metrics.DetectedUnbondingTransactionsCounter.Inc()
-		// We found valid unbonding tx. We need to try to report it to babylon.
+		// We found valid unbonding tx. We need to try to report it to anon.
 		// We stop reporting if delegation is no longer active or we succeed.
 	}
 
-	// If spending tx is timelock path (not unbonding), skip reporting to Babylon.
+	// If spending tx is timelock path (not unbonding), skip reporting to Anon.
 	// Timelock path can only be used after the staking period expires, which means
-	// the delegation has already expired on Babylon side - there is nothing to report.
+	// the delegation has already expired on Anon side - there is nothing to report.
 	if errors.Is(errParseStkSig, ErrSpendPathNotUnbonding) {
-		sew.logger.Debugf("spending tx %s is timelock path, skipping babylon report for staking tx %s",
+		sew.logger.Debugf("spending tx %s is timelock path, skipping anon report for staking tx %s",
 			spendingTxHash, delegationID)
 
 		utils.PushOrQuit[*delegationInactive](
@@ -548,8 +548,8 @@ func (sew *StakingEventWatcher) handleSpend(ctx context.Context, spendingTx *wir
 		return
 	}
 	sew.logger.Debugf("found unbonding tx %s for staking tx %s", spendingTxHash, delegationID)
-	sew.reportUnbondingToBabylon(ctx, delegationID, spendingTx, proof)
-	sew.logger.Debugf("unbonding tx %s for staking tx %s reported to babylon", spendingTxHash, delegationID)
+	sew.reportUnbondingToAnon(ctx, delegationID, spendingTx, proof)
+	sew.logger.Debugf("unbonding tx %s for staking tx %s reported to anon", spendingTxHash, delegationID)
 
 	utils.PushOrQuit[*delegationInactive](
 		sew.unbondingRemovalChan,
@@ -779,12 +779,12 @@ func (sew *StakingEventWatcher) checkBtcForStakingTx() {
 
 		go func() {
 			defer sew.activationLimiter.Release(1)
-			sew.activateBtcDelegation(txHash, proof, details.Block.BlockHash(), sew.babylonConfirmationTimeBlocks)
+			sew.activateBtcDelegation(txHash, proof, details.Block.BlockHash(), sew.anonConfirmationTimeBlocks)
 		}()
 	}
 }
 
-// activateBtcDelegation invokes bbn client and send MsgAddBTCDelegationInclusionProof
+// activateBtcDelegation invokes anc client and send MsgAddBTCDelegationInclusionProof
 func (sew *StakingEventWatcher) activateBtcDelegation(
 	stakingTxHash chainhash.Hash,
 	proof *btcctypes.BTCSpvProof,
@@ -826,7 +826,7 @@ func (sew *StakingEventWatcher) activateBtcDelegation(
 	}
 
 	_ = retry.Do(func() error {
-		del, err := sew.babylonNodeAdapter.BTCDelegation(stakingTxHash.String())
+		del, err := sew.anonNodeAdapter.BTCDelegation(stakingTxHash.String())
 		if err != nil {
 			return fmt.Errorf("error checking if delegation is active: %w", err)
 		}
@@ -840,9 +840,9 @@ func (sew *StakingEventWatcher) activateBtcDelegation(
 			return nil
 		}
 
-		if err := sew.babylonNodeAdapter.ActivateDelegation(ctx, stakingTxHash, proof); err != nil {
+		if err := sew.anonNodeAdapter.ActivateDelegation(ctx, stakingTxHash, proof); err != nil {
 			if !strings.Contains(err.Error(), "already has inclusion proof") {
-				verified, err := sew.babylonNodeAdapter.IsDelegationVerified(stakingTxHash)
+				verified, err := sew.anonNodeAdapter.IsDelegationVerified(stakingTxHash)
 				if err != nil {
 					return fmt.Errorf("error checking if delegation is active: %w", err)
 				}
@@ -852,11 +852,11 @@ func (sew *StakingEventWatcher) activateBtcDelegation(
 				}
 			}
 
-			if errors.Is(err, babylonclient.ErrTimeoutAfterWaitingForTxBroadcast) {
+			if errors.Is(err, anonclient.ErrTimeoutAfterWaitingForTxBroadcast) {
 				sew.metrics.InclusionProofCensorshipGaugeVec.WithLabelValues(stakingTxHash.String()).Inc()
 			}
 
-			return fmt.Errorf("error reporting activate delegation tx %s to babylon: %w", stakingTxHash, err)
+			return fmt.Errorf("error reporting activate delegation tx %s to anon: %w", stakingTxHash, err)
 		}
 
 		sew.metrics.ReportedActivateDelegationsCounter.Inc()
@@ -894,12 +894,12 @@ func (sew *StakingEventWatcher) waitForRequiredDepth(
 
 	return retry.Do(func() error {
 		var err error
-		depth, err = sew.babylonNodeAdapter.QueryHeaderDepth(inclusionBlockHash)
+		depth, err = sew.anonNodeAdapter.QueryHeaderDepth(inclusionBlockHash)
 		if err != nil {
-			// If the header is not known to babylon, or it is on LCFork, then most probably
+			// If the header is not known to anon, or it is on LCFork, then most probably
 			// lc is not up to date, we should retry sending delegation after some time.
-			if errors.Is(err, ErrHeaderNotKnownToBabylon) || errors.Is(err, ErrHeaderOnBabylonLCFork) {
-				return fmt.Errorf("btc light client error %s: %w", err.Error(), ErrBabylonBtcLightClientNotReady)
+			if errors.Is(err, ErrHeaderNotKnownToAnon) || errors.Is(err, ErrHeaderOnAnonLCFork) {
+				return fmt.Errorf("btc light client error %s: %w", err.Error(), ErrAnonBtcLightClientNotReady)
 			}
 
 			return fmt.Errorf("error while getting delegation data: %w", err)
@@ -907,7 +907,7 @@ func (sew *StakingEventWatcher) waitForRequiredDepth(
 
 		if depth < requiredDepth {
 			return fmt.Errorf("btc lc not ready, required depth: %d, current depth: %d: %w",
-				requiredDepth, depth, ErrBabylonBtcLightClientNotReady)
+				requiredDepth, depth, ErrAnonBtcLightClientNotReady)
 		}
 
 		return nil
@@ -942,7 +942,7 @@ func (sew *StakingEventWatcher) getFundingTxs(tx *wire.MsgTx) ([][]byte, error) 
 			return nil, fmt.Errorf("error getting rawTransaction %s: %w", txIn.PreviousOutPoint.Hash, err)
 		}
 
-		serializedTx, err := bbn.SerializeBTCTx(rawTransaction.MsgTx())
+		serializedTx, err := anc.SerializeBTCTx(rawTransaction.MsgTx())
 		if err != nil {
 			return nil, fmt.Errorf("error serializing rawTransaction %s: %w", txIn.PreviousOutPoint.Hash, err)
 		}
@@ -971,10 +971,10 @@ func (sew *StakingEventWatcher) fetchCometBftBlockForever() {
 
 				continue
 			}
-			nodeSynced, err := sew.syncedWithBabylon()
+			nodeSynced, err := sew.syncedWithAnon()
 			if err != nil || !nodeSynced {
 				// Log message and continue if there's an error or node isn't synced
-				sew.logger.Debugf("err or node not synced with babylon, err: %v, synced: %v", err, nodeSynced)
+				sew.logger.Debugf("err or node not synced with anon, err: %v, synced: %v", err, nodeSynced)
 
 				continue
 			}
@@ -982,7 +982,7 @@ func (sew *StakingEventWatcher) fetchCometBftBlockForever() {
 				sew.logger.Errorf("error fetching comet bft block: %v", err)
 			}
 		case <-sew.quit:
-			sew.logger.Debug("fetch babylon block loop quit")
+			sew.logger.Debug("fetch anon block loop quit")
 
 			return
 		}
@@ -992,7 +992,7 @@ func (sew *StakingEventWatcher) fetchCometBftBlockForever() {
 func (sew *StakingEventWatcher) fetchCometBftBlockOnce() error {
 	sew.logger.Debug("Querying comet bft for new blocks")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	latestHeight, err := sew.babylonNodeAdapter.CometBFTTipHeight(ctx)
+	latestHeight, err := sew.anonNodeAdapter.CometBFTTipHeight(ctx)
 	cancel()
 	if err != nil {
 		return fmt.Errorf("error querying comet bft for new blocks: %w", err)
@@ -1023,9 +1023,9 @@ func (sew *StakingEventWatcher) fetchCometBftBlockOnce() error {
 
 func (sew *StakingEventWatcher) fetchDelegationsByEvents(startHeight, endHeight int64) error {
 	const (
-		covQuorumEvent           = `babylon.btcstaking.v1.EventCovenantQuorumReached`
-		inclusionProofReceived   = `babylon.btcstaking.v1.EventBTCDelegationInclusionProofReceived`
-		btcDelegationStateUpdate = `babylon.btcstaking.v1.EventBTCDelegationStateUpdate`
+		covQuorumEvent           = `anon.btcstaking.v1.EventCovenantQuorumReached`
+		inclusionProofReceived   = `anon.btcstaking.v1.EventBTCDelegationInclusionProofReceived`
+		btcDelegationStateUpdate = `anon.btcstaking.v1.EventBTCDelegationStateUpdate`
 	)
 	var (
 		stakingTxHashes []string
@@ -1047,7 +1047,7 @@ func (sew *StakingEventWatcher) fetchDelegationsByEvents(startHeight, endHeight 
 	stakingTxHashes = deduplicateStrings(stakingTxHashes)
 
 	for _, stakingTxHash := range stakingTxHashes {
-		delegation, err := sew.babylonNodeAdapter.BTCDelegation(stakingTxHash)
+		delegation, err := sew.anonNodeAdapter.BTCDelegation(stakingTxHash)
 		if err != nil {
 			return fmt.Errorf("error getting delegation %s: %w", stakingTxHash, err)
 		}
@@ -1073,10 +1073,10 @@ func (sew *StakingEventWatcher) fetchDelegationsModifiedByEvents(
 	var stakingTxHashes []string
 
 	err := retry.Do(func() error {
-		stkTxs, err := sew.babylonNodeAdapter.DelegationsModifiedInBlock(ctx, height, eventTypes)
+		stkTxs, err := sew.anonNodeAdapter.DelegationsModifiedInBlock(ctx, height, eventTypes)
 
 		if err != nil {
-			return fmt.Errorf("error fetching staking tx hashes by event from babylon: %w", err)
+			return fmt.Errorf("error fetching staking tx hashes by event from anon: %w", err)
 		}
 
 		stakingTxHashes = append(stakingTxHashes, stkTxs...)

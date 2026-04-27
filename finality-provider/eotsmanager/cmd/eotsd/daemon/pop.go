@@ -18,13 +18,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/spf13/cobra"
 
-	bbnparams "github.com/babylonlabs-io/babylon/v4/app/params"
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
+	ancparams "github.com/anon-org/anon/v4/app/params"
+	anctypes "github.com/anon-org/anon/v4/types"
 
-	"github.com/babylonlabs-io/finality-provider/codec"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/config"
-	"github.com/babylonlabs-io/finality-provider/log"
+	"github.com/anon-org/finality-provider/codec"
+	"github.com/anon-org/finality-provider/eotsmanager"
+	"github.com/anon-org/finality-provider/eotsmanager/config"
+	"github.com/anon-org/finality-provider/log"
 )
 
 const (
@@ -36,36 +36,36 @@ const (
 )
 
 func init() {
-	bbnparams.SetAddressPrefixes()
+	ancparams.SetAddressPrefixes()
 }
 
 // PoPExport the data needed to prove ownership of the eots and baby key pairs.
 type PoPExport struct {
-	// Btc public key is the EOTS PK *bbntypes.BIP340PubKey marshal hex
+	// Btc public key is the EOTS PK *anctypes.BIP340PubKey marshal hex
 	EotsPublicKey string `json:"eotsPublicKey"`
 	// Baby public key is the *secp256k1.PubKey marshal hex
 	BabyPublicKey string `json:"babyPublicKey"`
 
-	// Babylon key pair signs EOTS public key as hex
+	// Anon key pair signs EOTS public key as hex
 	BabySignEotsPk string `json:"babySignEotsPk"`
 	// Schnorr signature of EOTS private key over the SHA256(Baby address)
 	EotsSignBaby string `json:"eotsSignBaby"`
 
-	// Babylon address ex.: bbn1f04czxeqprn0s9fe7kdzqyde2e6nqj63dllwsm
+	// Anon address ex.: anc1f04czxeqprn0s9fe7kdzqyde2e6nqj63dllwsm
 	BabyAddress string `json:"babyAddress"`
 }
 
 // PoPExportDelete the data needed to delete an ownership previously created.
 type PoPExportDelete struct {
-	// Btc public key is the EOTS PK *bbntypes.BIP340PubKey marshal hex
+	// Btc public key is the EOTS PK *anctypes.BIP340PubKey marshal hex
 	EotsPublicKey string `json:"eotsPublicKey"`
 	// Baby public key is the *secp256k1.PubKey marshal hex
 	BabyPublicKey string `json:"babyPublicKey"`
 
-	// Babylon key pair signs message
+	// Anon key pair signs message
 	BabySignature string `json:"babySignature"`
 
-	// Babylon address ex.: bbn1f04czxeqprn0s9fe7kdzqyde2e6nqj63dllwsm
+	// Anon address ex.: anc1f04czxeqprn0s9fe7kdzqyde2e6nqj63dllwsm
 	BabyAddress string `json:"babyAddress"`
 }
 
@@ -192,7 +192,7 @@ func exportPop(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	babyKeyring, babyPubKey, bbnAddr, err := babyKeyring(babyHomePath, babyKeyName, babyKeyringBackend, cmd.InOrStdin())
+	babyKeyring, babyPubKey, ancAddr, err := babyKeyring(babyHomePath, babyKeyName, babyKeyringBackend, cmd.InOrStdin())
 	if err != nil {
 		return err
 	}
@@ -203,15 +203,15 @@ func exportPop(cmd *cobra.Command, _ []string) error {
 	}
 	defer cmdCloseEots(cmd, eotsManager)
 
-	bbnAddrStr := bbnAddr.String()
-	hashOfMsgToSign := tmhash.Sum([]byte(bbnAddrStr))
+	ancAddrStr := ancAddr.String()
+	hashOfMsgToSign := tmhash.Sum([]byte(ancAddrStr))
 	schnorrSigOverBabyAddr, eotsPk, err := eotsSignMsg(eotsManager, eotsKeyName, eotsFpPubKeyStr, hashOfMsgToSign)
 	if err != nil {
-		return fmt.Errorf("failed to sign address %s: %w", bbnAddrStr, err)
+		return fmt.Errorf("failed to sign address %s: %w", ancAddrStr, err)
 	}
 
 	eotsPkHex := eotsPk.MarshalHex()
-	babySignature, err := SignCosmosAdr36(babyKeyring, babyKeyName, bbnAddrStr, []byte(eotsPkHex))
+	babySignature, err := SignCosmosAdr36(babyKeyring, babyKeyName, ancAddrStr, []byte(eotsPkHex))
 	if err != nil {
 		return err
 	}
@@ -220,7 +220,7 @@ func exportPop(cmd *cobra.Command, _ []string) error {
 		EotsPublicKey: eotsPkHex,
 		BabyPublicKey: base64.StdEncoding.EncodeToString(babyPubKey.Bytes()),
 
-		BabyAddress: bbnAddrStr,
+		BabyAddress: ancAddrStr,
 
 		EotsSignBaby:   base64.StdEncoding.EncodeToString(schnorrSigOverBabyAddr.Serialize()),
 		BabySignEotsPk: base64.StdEncoding.EncodeToString(babySignature),
@@ -240,7 +240,7 @@ func deletePop(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	babyKeyring, babyPubKey, bbnAddr, err := babyKeyring(babyHomePath, babyKeyName, babyKeyringBackend, cmd.InOrStdin())
+	babyKeyring, babyPubKey, ancAddr, err := babyKeyring(babyHomePath, babyKeyName, babyKeyringBackend, cmd.InOrStdin())
 	if err != nil {
 		return err
 	}
@@ -261,8 +261,8 @@ func deletePop(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	bbnAddrStr := bbnAddr.String()
-	babySignature, err := SignCosmosAdr36(babyKeyring, babyKeyName, bbnAddrStr, []byte(interpretedMsg))
+	ancAddrStr := ancAddr.String()
+	babySignature, err := SignCosmosAdr36(babyKeyring, babyKeyName, ancAddrStr, []byte(interpretedMsg))
 	if err != nil {
 		return err
 	}
@@ -271,7 +271,7 @@ func deletePop(cmd *cobra.Command, _ []string) error {
 		EotsPublicKey: btcPubKey.MarshalHex(),
 		BabyPublicKey: base64.StdEncoding.EncodeToString(babyPubKey.Bytes()),
 
-		BabyAddress: bbnAddrStr,
+		BabyAddress: ancAddrStr,
 
 		BabySignature: base64.StdEncoding.EncodeToString(babySignature),
 	}
@@ -482,7 +482,7 @@ func ValidPopExport(pop PoPExport) (bool, error) {
 }
 
 func ValidEotsSignBaby(eotsPk, babyAddr, eotsSigOverBabyAddr string) (bool, error) {
-	eotsPubKey, err := bbntypes.NewBIP340PubKeyFromHex(eotsPk)
+	eotsPubKey, err := anctypes.NewBIP340PubKeyFromHex(eotsPk)
 	if err != nil {
 		return false, fmt.Errorf("failed to parse eots public key: %w", err)
 	}
@@ -511,7 +511,7 @@ func ValidBabySignEots(babyPk, babyAddr, eotsPkHex, babySigOverEotsPk string) (b
 		Key: babyPubKeyBz,
 	}
 
-	eotsPk, err := bbntypes.NewBIP340PubKeyFromHex(eotsPkHex)
+	eotsPk, err := anctypes.NewBIP340PubKeyFromHex(eotsPkHex)
 	if err != nil {
 		return false, fmt.Errorf("failed to parse eots public key: %w", err)
 	}
@@ -551,9 +551,9 @@ func babyPk(babyRecord *keyring.Record) (*secp256k1.PubKey, error) {
 func eotsPubKey(
 	eotsManager *eotsmanager.LocalEOTSManager,
 	keyName, fpPkStr string,
-) (*bbntypes.BIP340PubKey, error) {
+) (*anctypes.BIP340PubKey, error) {
 	if len(fpPkStr) > 0 {
-		fpPk, err := bbntypes.NewBIP340PubKeyFromHex(fpPkStr)
+		fpPk, err := anctypes.NewBIP340PubKeyFromHex(fpPkStr)
 		if err != nil {
 			return nil, fmt.Errorf("invalid finality-provider public key %s: %w", fpPkStr, err)
 		}
@@ -573,9 +573,9 @@ func eotsSignMsg(
 	eotsManager *eotsmanager.LocalEOTSManager,
 	keyName, fpPkStr string,
 	hashOfMsgToSign []byte,
-) (*schnorr.Signature, *bbntypes.BIP340PubKey, error) {
+) (*schnorr.Signature, *anctypes.BIP340PubKey, error) {
 	if len(fpPkStr) > 0 {
-		fpPk, err := bbntypes.NewBIP340PubKeyFromHex(fpPkStr)
+		fpPk, err := anctypes.NewBIP340PubKeyFromHex(fpPkStr)
 		if err != nil {
 			return nil, nil, fmt.Errorf("invalid finality-provider public key %s: %w", fpPkStr, err)
 		}

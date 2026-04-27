@@ -7,16 +7,16 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/store"
-	"github.com/babylonlabs-io/finality-provider/version"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
+	"github.com/anon-org/finality-provider/finality-provider/store"
+	"github.com/anon-org/finality-provider/version"
 )
 
 type FpMetrics struct {
 	// version info
 	versionInfo *prometheus.GaugeVec
 	// poller metrics
-	babylonTipHeight     prometheus.Gauge
+	anonTipHeight     prometheus.Gauge
 	lastPolledHeight     prometheus.Gauge
 	pollerStartingHeight prometheus.Gauge
 	// single finality provider metrics
@@ -56,9 +56,9 @@ func NewFpMetrics() *FpMetrics {
 				Name: "fp_status",
 				Help: "Current status of a finality provider",
 			}, []string{"fp_btc_pk_hex"}),
-			babylonTipHeight: prometheus.NewGauge(prometheus.GaugeOpts{
-				Name: "babylon_tip_height",
-				Help: "The current tip height of the Babylon network",
+			anonTipHeight: prometheus.NewGauge(prometheus.GaugeOpts{
+				Name: "anon_tip_height",
+				Help: "The current tip height of the Anon network",
 			}),
 			lastPolledHeight: prometheus.NewGauge(prometheus.GaugeOpts{
 				Name: "last_polled_height",
@@ -151,7 +151,7 @@ func NewFpMetrics() *FpMetrics {
 		// Register the metrics with Prometheus
 		prometheus.MustRegister(fpMetricsInstance.versionInfo)
 		prometheus.MustRegister(fpMetricsInstance.fpStatus)
-		prometheus.MustRegister(fpMetricsInstance.babylonTipHeight)
+		prometheus.MustRegister(fpMetricsInstance.anonTipHeight)
 		prometheus.MustRegister(fpMetricsInstance.lastPolledHeight)
 		prometheus.MustRegister(fpMetricsInstance.pollerStartingHeight)
 		prometheus.MustRegister(fpMetricsInstance.fpSecondsSinceLastVote)
@@ -188,9 +188,9 @@ func (fm *FpMetrics) RecordFpStatus(fpBtcPkHex string, status proto.FinalityProv
 	fm.fpStatus.WithLabelValues(fpBtcPkHex).Set(float64(status))
 }
 
-// RecordBabylonTipHeight records the current tip height of the Babylon network
-func (fm *FpMetrics) RecordBabylonTipHeight(height uint64) {
-	fm.babylonTipHeight.Set(float64(height))
+// RecordAnonTipHeight records the current tip height of the Anon network
+func (fm *FpMetrics) RecordAnonTipHeight(height uint64) {
+	fm.anonTipHeight.Set(float64(height))
 }
 
 // RecordLastPolledHeight records the most recent block height checked by the poller

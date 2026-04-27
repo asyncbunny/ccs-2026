@@ -42,7 +42,7 @@ checksum:
 
 release:
   github:
-    owner: babylonlabs-io
+    owner: anon-org
     name: covenant-emulator
 
 # Docs: https://goreleaser.com/customization/changelog/

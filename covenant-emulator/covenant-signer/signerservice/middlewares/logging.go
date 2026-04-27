@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/observability/tracing"
+	"github.com/anon-org/covenant-emulator/covenant-signer/observability/tracing"
 
 	"github.com/rs/zerolog/log"
 )

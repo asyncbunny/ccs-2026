@@ -8,11 +8,11 @@ import (
 	"io"
 	"strings"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/store"
+	"github.com/anon-org/finality-provider/eotsmanager/store"
 
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 
-	"github.com/babylonlabs-io/babylon/v4/types"
+	"github.com/anon-org/anon/v4/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/keys"
@@ -20,11 +20,11 @@ import (
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager"
-	eotsclient "github.com/babylonlabs-io/finality-provider/eotsmanager/client"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/config"
-	"github.com/babylonlabs-io/finality-provider/log"
-	"github.com/babylonlabs-io/finality-provider/util"
+	"github.com/anon-org/finality-provider/eotsmanager"
+	eotsclient "github.com/anon-org/finality-provider/eotsmanager/client"
+	"github.com/anon-org/finality-provider/eotsmanager/config"
+	"github.com/anon-org/finality-provider/log"
+	"github.com/anon-org/finality-provider/util"
 )
 
 type KeyOutputWithPubKeyHex struct {

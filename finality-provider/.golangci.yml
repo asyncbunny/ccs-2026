@@ -2,7 +2,7 @@ version: "2"
 run:
   build-tags:
     - e2e_rollup
-    - e2e_babylon
+    - e2e_anon
     - e2e_bcd
 linters:
   default: none

@@ -12,22 +12,22 @@ import (
 
 	"go.uber.org/zap/zaptest"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
-	btcstakingtypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
-	finalitytypes "github.com/babylonlabs-io/babylon/v4/x/finality/types"
-	"github.com/babylonlabs-io/finality-provider/clientcontroller/api"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager"
-	eotscfg "github.com/babylonlabs-io/finality-provider/eotsmanager/config"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/service"
-	fpstore "github.com/babylonlabs-io/finality-provider/finality-provider/store"
-	"github.com/babylonlabs-io/finality-provider/keyring"
-	"github.com/babylonlabs-io/finality-provider/metrics"
-	"github.com/babylonlabs-io/finality-provider/testutil"
-	"github.com/babylonlabs-io/finality-provider/types"
-	"github.com/babylonlabs-io/finality-provider/util"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	anctypes "github.com/anon-org/anon/v4/types"
+	btcstakingtypes "github.com/anon-org/anon/v4/x/btcstaking/types"
+	finalitytypes "github.com/anon-org/anon/v4/x/finality/types"
+	"github.com/anon-org/finality-provider/clientcontroller/api"
+	"github.com/anon-org/finality-provider/eotsmanager"
+	eotscfg "github.com/anon-org/finality-provider/eotsmanager/config"
+	"github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
+	"github.com/anon-org/finality-provider/finality-provider/service"
+	fpstore "github.com/anon-org/finality-provider/finality-provider/store"
+	"github.com/anon-org/finality-provider/keyring"
+	"github.com/anon-org/finality-provider/metrics"
+	"github.com/anon-org/finality-provider/testutil"
+	"github.com/anon-org/finality-provider/types"
+	"github.com/anon-org/finality-provider/util"
 	sdkkeyring "github.com/cosmos/cosmos-sdk/crypto/keyring"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -71,7 +71,7 @@ func FuzzCreateFinalityProvider(f *testing.F) {
 			require.NoError(t, err)
 		}()
 
-		// Create mocked babylon client
+		// Create mocked anon client
 		randomStartingHeight := uint64(r.Int63n(100) + 1)
 		currentHeight := randomStartingHeight + uint64(r.Int63n(10)+2)
 		mockConsumerController := testutil.PrepareMockedConsumerController(t, r, randomStartingHeight, currentHeight)
@@ -80,8 +80,8 @@ func FuzzCreateFinalityProvider(f *testing.F) {
 			gomock.Any()).Return(false, nil).AnyTimes()
 		mockConsumerController.EXPECT().QueryBlocks(gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
 		mockConsumerController.EXPECT().QueryLastPubRandCommit(gomock.Any(), gomock.Any()).Return(nil, nil).AnyTimes()
-		mockBabylonController := testutil.PrepareMockedBabylonController(t)
-		mockBabylonController.EXPECT().GetFpPopContextV0().Return("").AnyTimes()
+		mockAnonController := testutil.PrepareMockedAnonController(t)
+		mockAnonController.EXPECT().GetFpPopContextV0().Return("").AnyTimes()
 		mockConsumerController.EXPECT().IsBSN().Return(false).AnyTimes()
 
 		// Create randomized config
@@ -108,7 +108,7 @@ func FuzzCreateFinalityProvider(f *testing.F) {
 		finalitySubmitter := service.NewDefaultFinalitySubmitter(mockConsumerController, em, rndCommitter.GetPubRandProofList, fsCfg, logger, fpMetrics)
 
 		app, err := service.NewFinalityProviderApp(&fpCfg,
-			mockBabylonController,
+			mockAnonController,
 			mockConsumerController,
 			em,
 			poller,
@@ -135,7 +135,7 @@ func FuzzCreateFinalityProvider(f *testing.F) {
 			require.NoError(t, err)
 		}()
 
-		var eotsPk *bbntypes.BIP340PubKey
+		var eotsPk *anctypes.BIP340PubKey
 		eotsKeyName := testutil.GenRandomHexStr(r, 4)
 		require.NoError(t, err)
 		eotsPkBz, err := em.CreateKey(eotsKeyName, passphrase)
@@ -144,7 +144,7 @@ func FuzzCreateFinalityProvider(f *testing.F) {
 			err = em.Unlock(eotsPkBz, passphrase)
 			require.NoError(t, err)
 		}
-		eotsPk, err = bbntypes.NewBIP340PubKey(eotsPkBz)
+		eotsPk, err = anctypes.NewBIP340PubKey(eotsPkBz)
 		require.NoError(t, err)
 
 		// generate keyring
@@ -152,16 +152,16 @@ func FuzzCreateFinalityProvider(f *testing.F) {
 		chainID := testutil.GenRandomHexStr(r, 4)
 
 		cfg := app.GetConfig()
-		_, err = testutil.CreateChainKey(cfg.BabylonConfig.KeyDirectory, cfg.BabylonConfig.ChainID, keyName, sdkkeyring.BackendTest, passphrase, hdPath, "")
+		_, err = testutil.CreateChainKey(cfg.AnonConfig.KeyDirectory, cfg.AnonConfig.ChainID, keyName, sdkkeyring.BackendTest, passphrase, hdPath, "")
 		require.NoError(t, err)
 
 		txHash := testutil.GenRandomHexStr(r, 32)
-		mockBabylonController.EXPECT().
+		mockAnonController.EXPECT().
 			RegisterFinalityProvider(
 				ctx,
 				gomock.Any(),
 			).Return(&types.TxResponse{TxHash: txHash}, nil).AnyTimes()
-		mockBabylonController.EXPECT().QueryFinalityProvider(ctx, gomock.Any()).Return(nil, nil).AnyTimes()
+		mockAnonController.EXPECT().QueryFinalityProvider(ctx, gomock.Any()).Return(nil, nil).AnyTimes()
 		res, err := app.CreateFinalityProvider(ctx, keyName, chainID, eotsPk, testutil.RandomDescription(r), testutil.ZeroCommissionRate())
 		require.NoError(t, err)
 		require.Equal(t, txHash, res.TxHash)
@@ -180,7 +180,7 @@ func FuzzSyncFinalityProviderStatus(f *testing.F) {
 
 		ctx, cancel := context.WithCancel(t.Context())
 
-		mockBabylonController := testutil.PrepareMockedBabylonController(t)
+		mockAnonController := testutil.PrepareMockedAnonController(t)
 		randomStartingHeight := uint64(r.Int63n(100) + 1)
 		currentHeight := randomStartingHeight + uint64(r.Int63n(10)+2)
 		mockConsumerController := testutil.PrepareMockedConsumerController(t, r, randomStartingHeight, currentHeight)
@@ -232,7 +232,7 @@ func FuzzSyncFinalityProviderStatus(f *testing.F) {
 		fpCfg.SubmissionRetryInterval = time.Minute * 10
 
 		// Create fp app
-		app, fpPk, cleanup := startFPAppWithRegisteredFp(ctx, t, r, fpHomeDir, &fpCfg, mockBabylonController, mockConsumerController)
+		app, fpPk, cleanup := startFPAppWithRegisteredFp(ctx, t, r, fpHomeDir, &fpCfg, mockAnonController, mockConsumerController)
 		defer func() {
 			cancel()
 			cleanup()
@@ -263,7 +263,7 @@ func FuzzUnjailFinalityProvider(f *testing.F) {
 		t.Parallel()
 		r := rand.New(rand.NewSource(seed))
 
-		mockBabylonController := testutil.PrepareMockedBabylonController(t)
+		mockAnonController := testutil.PrepareMockedAnonController(t)
 		randomStartingHeight := uint64(r.Int63n(100) + 1)
 		currentHeight := randomStartingHeight + uint64(r.Int63n(10)+2)
 		mockConsumerController := testutil.PrepareMockedConsumerController(t, r, randomStartingHeight, currentHeight)
@@ -294,7 +294,7 @@ func FuzzUnjailFinalityProvider(f *testing.F) {
 		ctx, cancel := context.WithCancel(t.Context())
 
 		// Create fp app
-		app, fpPk, cleanup := startFPAppWithRegisteredFp(ctx, t, r, fpHomeDir, &fpCfg, mockBabylonController, mockConsumerController)
+		app, fpPk, cleanup := startFPAppWithRegisteredFp(ctx, t, r, fpHomeDir, &fpCfg, mockAnonController, mockConsumerController)
 		defer func() {
 			cancel()
 			cleanup()
@@ -349,14 +349,14 @@ func FuzzSaveAlreadyRegisteredFinalityProvider(f *testing.F) {
 
 		randomStartingHeight := uint64(r.Int63n(100) + 1)
 		currentHeight := randomStartingHeight + uint64(r.Int63n(10)+2)
-		mockBabylonController := testutil.PrepareMockedBabylonController(t)
+		mockAnonController := testutil.PrepareMockedAnonController(t)
 		mockConsumerController := testutil.PrepareMockedConsumerController(t, r, randomStartingHeight, currentHeight)
 		rndFp, err := datagen.GenRandomFinalityProvider(r)
 		require.NoError(t, err)
 
 		mockConsumerController.EXPECT().GetFpRandCommitContext().Return("").AnyTimes()
 		mockConsumerController.EXPECT().GetFpFinVoteContext().Return("").AnyTimes()
-		mockBabylonController.EXPECT().GetFpPopContextV0().Return("").AnyTimes()
+		mockAnonController.EXPECT().GetFpPopContextV0().Return("").AnyTimes()
 		mockConsumerController.EXPECT().IsBSN().Return(false).AnyTimes()
 
 		// Create randomized config
@@ -382,7 +382,7 @@ func FuzzSaveAlreadyRegisteredFinalityProvider(f *testing.F) {
 		finalitySubmitter := service.NewDefaultFinalitySubmitter(mockConsumerController, em, rndCommitter.GetPubRandProofList, fsCfg, logger, fpMetrics)
 
 		app, err := service.NewFinalityProviderApp(&fpCfg,
-			mockBabylonController,
+			mockAnonController,
 			mockConsumerController,
 			em,
 			poller,
@@ -410,12 +410,12 @@ func FuzzSaveAlreadyRegisteredFinalityProvider(f *testing.F) {
 			require.NoError(t, err)
 		}()
 
-		var eotsPk *bbntypes.BIP340PubKey
+		var eotsPk *anctypes.BIP340PubKey
 		eotsKeyName := testutil.GenRandomHexStr(r, 4)
 		require.NoError(t, err)
 		eotsPkBz, err := em.CreateKey(eotsKeyName, passphraseEots)
 		require.NoError(t, err)
-		eotsPk, err = bbntypes.NewBIP340PubKey(eotsPkBz)
+		eotsPk, err = anctypes.NewBIP340PubKey(eotsPkBz)
 		require.NoError(t, err)
 
 		if useFileKeyring {
@@ -428,7 +428,7 @@ func FuzzSaveAlreadyRegisteredFinalityProvider(f *testing.F) {
 		chainID := testutil.GenRandomHexStr(r, 4)
 
 		cfg := app.GetConfig()
-		_, err = testutil.CreateChainKey(cfg.BabylonConfig.KeyDirectory, cfg.BabylonConfig.ChainID, keyName, sdkkeyring.BackendTest, passphrase, hdPath, "")
+		_, err = testutil.CreateChainKey(cfg.AnonConfig.KeyDirectory, cfg.AnonConfig.ChainID, keyName, sdkkeyring.BackendTest, passphrase, hdPath, "")
 		require.NoError(t, err)
 
 		fpRes := &btcstakingtypes.QueryFinalityProviderResponse{FinalityProvider: &btcstakingtypes.FinalityProviderResponse{
@@ -437,14 +437,14 @@ func FuzzSaveAlreadyRegisteredFinalityProvider(f *testing.F) {
 			Addr:                 rndFp.Addr,
 			BtcPk:                eotsPk,
 			Pop:                  rndFp.Pop,
-			SlashedBabylonHeight: rndFp.SlashedBabylonHeight,
+			SlashedAnonHeight: rndFp.SlashedAnonHeight,
 			SlashedBtcHeight:     rndFp.SlashedBtcHeight,
 			Jailed:               rndFp.Jailed,
 			HighestVotedHeight:   rndFp.HighestVotedHeight,
 			CommissionInfo:       rndFp.CommissionInfo,
 		}}
 
-		mockBabylonController.EXPECT().QueryFinalityProvider(ctx, gomock.Any()).Return(fpRes, nil).AnyTimes()
+		mockAnonController.EXPECT().QueryFinalityProvider(ctx, gomock.Any()).Return(fpRes, nil).AnyTimes()
 
 		res, err := app.CreateFinalityProvider(ctx, keyName, chainID, eotsPk, testutil.RandomDescription(r), testutil.ZeroCommissionRate())
 		require.NoError(t, err)
@@ -456,7 +456,7 @@ func FuzzSaveAlreadyRegisteredFinalityProvider(f *testing.F) {
 	})
 }
 
-func startFPAppWithRegisteredFp(ctx context.Context, t *testing.T, r *rand.Rand, homePath string, cfg *config.Config, cc api.BabylonController, consumerCon api.ConsumerController) (*service.FinalityProviderApp, *bbntypes.BIP340PubKey, func()) {
+func startFPAppWithRegisteredFp(ctx context.Context, t *testing.T, r *rand.Rand, homePath string, cfg *config.Config, cc api.AnonController, consumerCon api.ConsumerController) (*service.FinalityProviderApp, *anctypes.BIP340PubKey, func()) {
 	logger := zaptest.NewLogger(t)
 	// create an EOTS manager
 	eotsHomeDir := filepath.Join(t.TempDir(), "eots-home")
@@ -504,9 +504,9 @@ func startFPAppWithRegisteredFp(ctx context.Context, t *testing.T, r *rand.Rand,
 	keyName := datagen.GenRandomHexStr(r, 10)
 	chainID := datagen.GenRandomHexStr(r, 10)
 	kr, err := keyring.CreateKeyring(
-		cfg.BabylonConfig.KeyDirectory,
-		cfg.BabylonConfig.ChainID,
-		cfg.BabylonConfig.KeyringBackend,
+		cfg.AnonConfig.KeyDirectory,
+		cfg.AnonConfig.ChainID,
+		cfg.AnonConfig.KeyringBackend,
 	)
 	require.NoError(t, err)
 	kc, err := keyring.NewChainKeyringControllerWithKeyring(kr, keyName)
@@ -519,7 +519,7 @@ func startFPAppWithRegisteredFp(ctx context.Context, t *testing.T, r *rand.Rand,
 		require.NoError(t, err)
 	}
 
-	btcPk, err := bbntypes.NewBIP340PubKey(btcPkBytes)
+	btcPk, err := anctypes.NewBIP340PubKey(btcPkBytes)
 	require.NoError(t, err)
 	keyInfo, err := kc.CreateChainKey(passphrase, hdPath, "")
 	require.NoError(t, err)

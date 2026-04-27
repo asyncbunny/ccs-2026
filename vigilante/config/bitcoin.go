@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/lightningnetwork/lnd/lnwallet/chainfee"
 
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/types"
 )
 
 // BTCConfig defines configuration for the Bitcoin client

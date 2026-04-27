@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/babylonlabs-io/vigilante/submitter/store"
+	"github.com/anon-org/vigilante/submitter/store"
 	"github.com/btcsuite/btcd/btcjson"
 	"github.com/lightningnetwork/lnd/kvdb"
 	"github.com/lightningnetwork/lnd/lntypes"
 
-	"github.com/babylonlabs-io/babylon/v4/btctxformatter"
-	ckpttypes "github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
+	"github.com/anon-org/anon/v4/btctxformatter"
+	ckpttypes "github.com/anon-org/anon/v4/x/checkpointing/types"
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcd/txscript"
@@ -25,10 +25,10 @@ import (
 	"github.com/lightningnetwork/lnd/lnwallet/chainfee"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/types"
 )
 
 const (
@@ -55,7 +55,7 @@ type Relayer struct {
 	btcclient.BTCWallet
 	store                   *store.SubmitterStore
 	lastSubmittedCheckpoint *types.CheckpointInfo
-	tag                     btctxformatter.BabylonTag
+	tag                     btctxformatter.AnonTag
 	version                 btctxformatter.FormatVersion
 	submitterAddress        sdk.AccAddress
 	metrics                 *metrics.RelayerMetrics
@@ -68,7 +68,7 @@ type Relayer struct {
 func New(
 	wallet btcclient.BTCWallet,
 	walletName string,
-	tag btctxformatter.BabylonTag,
+	tag btctxformatter.AnonTag,
 	version btctxformatter.FormatVersion,
 	submitterAddress sdk.AccAddress,
 	metrics *metrics.RelayerMetrics,

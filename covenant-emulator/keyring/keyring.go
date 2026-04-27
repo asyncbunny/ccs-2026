@@ -6,8 +6,8 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 
-	"github.com/babylonlabs-io/covenant-emulator/codec"
-	"github.com/babylonlabs-io/covenant-emulator/types"
+	"github.com/anon-org/covenant-emulator/codec"
+	"github.com/anon-org/covenant-emulator/types"
 )
 
 func CreateClientCtx(keyringDir string, chainID string) (client.Context, error) {

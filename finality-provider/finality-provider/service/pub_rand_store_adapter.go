@@ -2,11 +2,11 @@ package service
 
 import (
 	"fmt"
-	eotsclient "github.com/babylonlabs-io/finality-provider/eotsmanager/client"
-	"github.com/babylonlabs-io/finality-provider/types"
+	eotsclient "github.com/anon-org/finality-provider/eotsmanager/client"
+	"github.com/anon-org/finality-provider/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 
-	"github.com/babylonlabs-io/finality-provider/finality-provider/store"
+	"github.com/anon-org/finality-provider/finality-provider/store"
 	"github.com/cometbft/cometbft/crypto/merkle"
 )
 

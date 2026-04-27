@@ -11,9 +11,9 @@ import (
 	"github.com/jessevdk/go-flags"
 	"go.uber.org/zap/zapcore"
 
-	eotscfg "github.com/babylonlabs-io/finality-provider/eotsmanager/config"
-	"github.com/babylonlabs-io/finality-provider/metrics"
-	"github.com/babylonlabs-io/finality-provider/util"
+	eotscfg "github.com/anon-org/finality-provider/eotsmanager/config"
+	"github.com/anon-org/finality-provider/metrics"
+	"github.com/anon-org/finality-provider/util"
 )
 
 const (
@@ -64,7 +64,7 @@ type Config struct {
 
 	DatabaseConfig *DBConfig `group:"dbconfig" namespace:"dbconfig"`
 
-	BabylonConfig *BBNConfig `group:"babylon" namespace:"babylon"`
+	AnonConfig *ANCConfig `group:"anon" namespace:"anon"`
 
 	RPCListener string `long:"rpclistener" description:"the listener for RPC connections, e.g., 127.0.0.1:1234"`
 
@@ -78,14 +78,14 @@ type Config struct {
 }
 
 func DefaultConfigWithHome(homePath string) Config {
-	bbnCfg := DefaultBBNConfig()
-	bbnCfg.Key = defaultFinalityProviderKeyName
-	bbnCfg.KeyDirectory = homePath
+	ancCfg := DefaultANCConfig()
+	ancCfg.Key = defaultFinalityProviderKeyName
+	ancCfg.KeyDirectory = homePath
 	pollerCfg := DefaultChainPollerConfig()
 	cfg := Config{
 		LogLevel:                     defaultLogLevel.String(),
 		DatabaseConfig:               DefaultDBConfigWithHomePath(homePath),
-		BabylonConfig:                &bbnCfg,
+		AnonConfig:                &ancCfg,
 		PollerConfig:                 &pollerCfg,
 		NumPubRand:                   defaultNumPubRand,
 		TimestampingDelayBlocks:      defaultTimestampingDelayBlocks,
@@ -188,11 +188,11 @@ func (cfg *Config) Validate() error {
 		return fmt.Errorf("invalid poller config: %w", err)
 	}
 
-	if cfg.BabylonConfig == nil {
-		return fmt.Errorf("empty babylon config")
+	if cfg.AnonConfig == nil {
+		return fmt.Errorf("empty anon config")
 	}
-	if err := cfg.BabylonConfig.Validate(); err != nil {
-		return fmt.Errorf("invalid babylon config: %w", err)
+	if err := cfg.AnonConfig.Validate(); err != nil {
+		return fmt.Errorf("invalid anon config: %w", err)
 	}
 
 	if cfg.SignatureSubmissionInterval <= 0 {

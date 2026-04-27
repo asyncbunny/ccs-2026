@@ -6,9 +6,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	vdatagen "github.com/babylonlabs-io/vigilante/testutil/datagen"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	vdatagen "github.com/anon-org/vigilante/testutil/datagen"
+	"github.com/anon-org/vigilante/types"
 )
 
 // FuzzBtcCache fuzzes the BtcCache type

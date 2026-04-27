@@ -1,7 +1,7 @@
 # Slashing Protection on Finality Provider
 
 In the BTC staking protocol, finality providers operate the
-Finality Provider Daemon (`fpd`) to send finality votes to Babylon Genesis.
+Finality Provider Daemon (`fpd`) to send finality votes to Anon Genesis.
 If a finality provider re-uses the same committed randomness
 to sign two conflicting blocks on the same height,
 their EOTS private key is exposed, leading to the slashing
@@ -16,7 +16,7 @@ Recall that in our system, the finality provider operation stack involves
 two daemons:
 1. The EOTS manager daemon (`eotsd`) manages the EOTS key and responds to
    signing requests from the finality provider daemon.
-2. The finality provider daemon (`fpd`) connects to the Babylon Genesis node
+2. The finality provider daemon (`fpd`) connects to the Anon Genesis node
    and initiates EOTS signing requests upon a new block to finalize.
 
 The two daemons have different responsibilities to prevent double-signing.
@@ -27,7 +27,7 @@ in effective, and the state will recover after restarting the service.
 ### Finality provider daemon protection
 
 **Requirement**:
-- The Babylon Genesis node the daemon connects to is trusted and responsive.
+- The Anon Genesis node the daemon connects to is trusted and responsive.
 - The `finality-provider.db` file is not compromised.
 
 The finality provider daemon ensures that it will never initiate
@@ -71,7 +71,7 @@ Note that the mechanism shown above is not comprehensive in the sense that
 it is still possible that the assumptions listed at the beginning
 of the section do not hold, and the assurance might be broken.
 One common example is that, during software upgrade,
-the Babylon Genesis node might not be responsive. In this case, if the `fpd` is
+the Anon Genesis node might not be responsive. In this case, if the `fpd` is
 restarted, it might send duplicate signing requests as the previous ones were
 not processed.
 
@@ -117,7 +117,7 @@ Detailed specifications on the secure operation of the finality provider
 program stack can be found in
 the [Finality Provider Operation](./finality-provider-operation.md) document.
 Here, we list security tips specifically for preventing double-sign:
-- Operate your own Babylon Genesis RPC node and securely connect with it
+- Operate your own Anon Genesis RPC node and securely connect with it
   to ensure a trustless setup
 - The keyring files or the mnemonic phrases should be backed up and kept safe
 - Operate `fpd` and `eotsd` in separate machines connected in a secure

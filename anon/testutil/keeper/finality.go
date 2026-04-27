@@ -1,0 +1,93 @@
+package keeper
+
+import (
+	"testing"
+
+	"cosmossdk.io/core/header"
+	"cosmossdk.io/log"
+	"cosmossdk.io/store"
+	storemetrics "cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
+	cmtproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	dbm "github.com/cosmos/cosmos-db"
+	"github.com/cosmos/cosmos-sdk/codec"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
+
+	appparams "github.com/anon-org/anon/v4/app/params"
+	"github.com/anon-org/anon/v4/x/finality/keeper"
+	"github.com/anon-org/anon/v4/x/finality/types"
+)
+
+func FinalityKeeperWithStoreKey(
+	t testing.TB,
+	db dbm.DB,
+	stateStore store.CommitMultiStore,
+	storeKey *storetypes.KVStoreKey,
+	bsKeeper types.BTCStakingKeeper,
+	iKeeper types.IncentiveKeeper,
+	ckptKeeper types.CheckpointingKeeper,
+	hooks types.FinalityHooks,
+) (*keeper.Keeper, sdk.Context) {
+	if storeKey == nil {
+		storeKey = storetypes.NewKVStoreKey(types.StoreKey)
+	}
+
+	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
+	require.NoError(t, stateStore.LoadLatestVersion())
+
+	registry := codectypes.NewInterfaceRegistry()
+	cdc := codec.NewProtoCodec(registry)
+
+	k := keeper.NewKeeper(
+		cdc,
+		runtime.NewKVStoreService(storeKey),
+		bsKeeper,
+		iKeeper,
+		ckptKeeper,
+		appparams.AccGov.String(),
+	)
+
+	k.SetHooks(types.NewMultiFinalityHooks(hooks))
+
+	ctx := sdk.NewContext(stateStore, cmtproto.Header{}, false, log.NewNopLogger())
+	ctx = ctx.WithHeaderInfo(header.Info{})
+
+	return &k, ctx
+}
+
+func FinalityKeeperWithStore(
+	t testing.TB,
+	db dbm.DB,
+	stateStore store.CommitMultiStore,
+	bsKeeper types.BTCStakingKeeper,
+	iKeeper types.IncentiveKeeper,
+	ckptKeeper types.CheckpointingKeeper,
+	hooks types.FinalityHooks,
+) (*keeper.Keeper, sdk.Context) {
+	return FinalityKeeperWithStoreKey(t, db, stateStore, nil, bsKeeper, iKeeper, ckptKeeper, hooks)
+}
+
+func FinalityKeeper(
+	t testing.TB,
+	bsKeeper types.BTCStakingKeeper,
+	iKeeper types.IncentiveKeeper,
+	ckptKeeper types.CheckpointingKeeper,
+	hooks types.FinalityHooks,
+) (*keeper.Keeper, sdk.Context) {
+	db := dbm.NewMemDB()
+	stateStore := store.NewCommitMultiStore(db, log.NewTestLogger(t), storemetrics.NewNoOpMetrics())
+
+	k, ctx := FinalityKeeperWithStore(t, db, stateStore, bsKeeper, iKeeper, ckptKeeper, hooks)
+
+	// Initialize params
+	dParams := types.DefaultParams()
+	dParams.FinalityActivationHeight = 0
+	if err := k.SetParams(ctx, dParams); err != nil {
+		panic(err)
+	}
+
+	return k, ctx
+}

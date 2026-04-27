@@ -29,32 +29,32 @@ func NewReporterMetrics() *ReporterMetrics {
 		Registry: registry,
 		SuccessfulHeadersCounter: registerer.NewCounter(prometheus.CounterOpts{
 			Name: "vigilante_reporter_reported_headers",
-			Help: "The total number of BTC headers reported to Babylon",
+			Help: "The total number of BTC headers reported to Anon",
 		}),
 		SuccessfulCheckpointsCounter: registerer.NewCounter(prometheus.CounterOpts{
 			Name: "vigilante_reporter_reported_checkpoints",
-			Help: "The total number of BTC checkpoints reported to Babylon",
+			Help: "The total number of BTC checkpoints reported to Anon",
 		}),
 		FailedHeadersCounter: registerer.NewCounter(prometheus.CounterOpts{
 			Name: "vigilante_reporter_failed_headers",
-			Help: "The total number of failed BTC headers to Babylon",
+			Help: "The total number of failed BTC headers to Anon",
 		}),
 		FailedCheckpointsCounter: registerer.NewCounter(prometheus.CounterOpts{
 			Name: "vigilante_reporter_failed_checkpoints",
-			Help: "The total number of failed BTC checkpoints to Babylon",
+			Help: "The total number of failed BTC checkpoints to Anon",
 		}),
 		SecondsSinceLastHeaderGauge: registerer.NewGauge(prometheus.GaugeOpts{
 			Name: "vigilante_reporter_since_last_header_seconds",
-			Help: "Seconds since the last successful reported BTC header to Babylon",
+			Help: "Seconds since the last successful reported BTC header to Anon",
 		}),
 		SecondsSinceLastCheckpointGauge: registerer.NewGauge(prometheus.GaugeOpts{
 			Name: "vigilante_reporter_since_last_checkpoint_seconds",
-			Help: "Seconds since the last successful reported BTC checkpoint to Babylon",
+			Help: "Seconds since the last successful reported BTC checkpoint to Anon",
 		}),
 		NewReportedHeaderGaugeVec: registerer.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Name: "vigilante_reporter_new_btc_header",
-				Help: "The metric of a new BTC header reported to Babylon",
+				Help: "The metric of a new BTC header reported to Anon",
 			},
 			[]string{
 				// the id of the reported BTC header
@@ -64,7 +64,7 @@ func NewReporterMetrics() *ReporterMetrics {
 		NewReportedCheckpointGaugeVec: registerer.NewGaugeVec(
 			prometheus.GaugeOpts{
 				Name: "vigilante_reporter_new_btc_checkpoint",
-				Help: "The metric of a new BTC checkpoint reported to Babylon",
+				Help: "The metric of a new BTC checkpoint reported to Anon",
 			},
 			[]string{
 				// the epoch number of the reported checkpoint
@@ -79,11 +79,11 @@ func NewReporterMetrics() *ReporterMetrics {
 		),
 		HeadersCensorshipGauge: registerer.NewGauge(prometheus.GaugeOpts{
 			Name: "vigilante_reporter_insert_headers_censorship",
-			Help: "The metric of censorship in inserting headers to Babylon",
+			Help: "The metric of censorship in inserting headers to Anon",
 		}),
 		CheckpointCensorshipGauge: registerer.NewGaugeVec(prometheus.GaugeOpts{
 			Name: "vigilante_reporter_checkpoint_censorship",
-			Help: "The metric of censorship in inserting checkpoints to Babylon",
+			Help: "The metric of censorship in inserting checkpoints to Anon",
 		}, []string{
 			"epoch",
 			"height",

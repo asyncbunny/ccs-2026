@@ -7,8 +7,8 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/urfave/cli"
 
-	covcfg "github.com/babylonlabs-io/covenant-emulator/config"
-	"github.com/babylonlabs-io/covenant-emulator/util"
+	covcfg "github.com/anon-org/covenant-emulator/config"
+	"github.com/anon-org/covenant-emulator/util"
 )
 
 var initCommand = cli.Command{

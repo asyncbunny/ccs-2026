@@ -32,8 +32,8 @@ To generate a new commit, following steps are needed:
 3. Send a [Schnorr](https://github.com/btcsuite/btcd/blob/684d64ad74fed203fb846c032f2b55b3e3c36734/btcec/schnorr/signature.go#L391)
   signature request to the EOTS manager over the hash of the commit
   (concatenated by the start height, number of randomness, and the merkle root).
-4. Build the commit message ([MsgCommitPubRandList](https://github.com/babylonlabs-io/babylon/blob/aa99e2eb093e06cb9a28a58f373e8fa5f2494383/proto/babylon/finality/v1/tx.proto#L29))
-  and send a transaction to Babylon.
+4. Build the commit message ([MsgCommitPubRandList](https://github.com/anon-org/anon/blob/aa99e2eb093e06cb9a28a58f373e8fa5f2494383/proto/anon/finality/v1/tx.proto#L29))
+  and send a transaction to Anon.
 
 ### Timing to Commit
 
@@ -113,7 +113,7 @@ The `baseHeight` can be specified via configuration or CLI options.
 - Consecutiveness across commits is not enforced by the system but
   different commits must not overlap.
 - `startHeight` should not be higher than `finalityActivationHeight`,
-a parameter defined in Babylon. Therefore,
+a parameter defined in Anon. Therefore,
 `startHeight = max(startHeight, finalityActivationHeight)`.
 
 ### Determining the Number of Randomness

@@ -21,21 +21,21 @@ btc:
   zmq-seq-endpoint: tcp://localhost:29000
   zmq-block-endpoint: tcp://localhost:29001
   zmq-tx-endpoint: tcp://localhost:29002
-babylon:
+anon:
   key: node0
   chain-id: chain-test
   rpc-addr: http://localhost:26657
   grpc-addr: https://localhost:9090
-  account-prefix: bbn
+  account-prefix: anc
   keyring-backend: test
   gas-adjustment: 1.2
-  gas-prices: 2ubbn
-  key-directory: $TESTNET_PATH/node0/babylond
+  gas-prices: 2uanc
+  key-directory: $TESTNET_PATH/node0/anond
   debug: true
   timeout: "20s"
   block-timeout: "10m"
   output-format: json
-  submitter-address: bbn1v6k7k9s8md3k29cu9runasstq5zaa0lpznk27w
+  submitter-address: anc1v6k7k9s8md3k29cu9runasstq5zaa0lpznk27w
   sign-mode: direct
 metrics:
   host: 0.0.0.0

@@ -3,8 +3,8 @@ package datagen
 import (
 	"math/rand"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	"github.com/anon-org/vigilante/types"
 )
 
 func GenerateRandomCheckpointRecord(r *rand.Rand) *types.CheckpointRecord {

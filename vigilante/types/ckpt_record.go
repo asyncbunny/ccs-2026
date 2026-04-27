@@ -1,7 +1,7 @@
 package types // nolint:revive
 
 import (
-	ckpttypes "github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
+	ckpttypes "github.com/anon-org/anon/v4/x/checkpointing/types"
 )
 
 type CheckpointRecord struct {

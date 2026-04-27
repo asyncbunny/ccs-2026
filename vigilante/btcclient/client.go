@@ -1,4 +1,4 @@
-// Copyright (c) 2022-2022 The Babylon developers
+// Copyright (c) 2022-2022 The Anon developers
 // Copyright (c) 2013-2016 The btcsuite developers
 // Use of this source code is governed by an ISC
 // license that can be found in the LICENSE file.
@@ -14,7 +14,7 @@ import (
 	"github.com/btcsuite/btcd/rpcclient"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/vigilante/config"
+	"github.com/anon-org/vigilante/config"
 )
 
 var _ BTCClient = &Client{}

@@ -7,14 +7,14 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/babylonlabs-io/babylon/v4/crypto/eots"
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager"
-	eotscfg "github.com/babylonlabs-io/finality-provider/eotsmanager/config"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/types"
-	fplog "github.com/babylonlabs-io/finality-provider/log"
-	"github.com/babylonlabs-io/finality-provider/testutil"
+	"github.com/anon-org/anon/v4/crypto/eots"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	anctypes "github.com/anon-org/anon/v4/types"
+	"github.com/anon-org/finality-provider/eotsmanager"
+	eotscfg "github.com/anon-org/finality-provider/eotsmanager/config"
+	"github.com/anon-org/finality-provider/eotsmanager/types"
+	fplog "github.com/anon-org/finality-provider/log"
+	"github.com/anon-org/finality-provider/testutil"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -185,7 +185,7 @@ func FuzzSignRecord(f *testing.F) {
 			require.NoError(t, err)
 			require.NotNil(t, sig)
 
-			eotsPk, err := bbntypes.NewBIP340PubKey(fpPk)
+			eotsPk, err := anctypes.NewBIP340PubKey(fpPk)
 			require.NoError(t, err)
 
 			err = eots.Verify(eotsPk.MustToBTCPK(), pubRandList[0], msg, sig)

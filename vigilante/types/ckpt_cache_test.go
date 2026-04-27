@@ -5,13 +5,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/babylonlabs-io/babylon/v4/btctxformatter"
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/anon/v4/btctxformatter"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	"github.com/anon-org/vigilante/types"
 	"github.com/stretchr/testify/require"
 )
 
-func genRandomSegments(r *rand.Rand, tag btctxformatter.BabylonTag, version btctxformatter.FormatVersion, match bool) (*types.CkptSegment, *types.CkptSegment) {
+func genRandomSegments(r *rand.Rand, tag btctxformatter.AnonTag, version btctxformatter.FormatVersion, match bool) (*types.CkptSegment, *types.CkptSegment) {
 	rawBtcCkpt := &btctxformatter.RawBtcCheckpoint{
 		Epoch:            r.Uint64(),
 		BlockHash:        datagen.GenRandomByteArray(r, btctxformatter.BlockHashLength),
@@ -28,33 +28,33 @@ func genRandomSegments(r *rand.Rand, tag btctxformatter.BabylonTag, version btct
 		panic(err)
 	}
 	// encode two halves to checkpoint segments
-	bbnData1, err := btctxformatter.IsBabylonCheckpointData(tag, version, firstHalf)
+	ancData1, err := btctxformatter.IsAnonCheckpointData(tag, version, firstHalf)
 	if err != nil {
 		panic(err)
 	}
-	bbnData2, err := btctxformatter.IsBabylonCheckpointData(tag, version, secondHalf)
+	ancData2, err := btctxformatter.IsAnonCheckpointData(tag, version, secondHalf)
 	if err != nil {
 		panic(err)
 	}
 
-	// if we don't want a match, then mess up with one of BabylonData
+	// if we don't want a match, then mess up with one of AnonData
 	if !match {
 		if datagen.OneInN(r, 2) {
-			lenData := uint64(len(bbnData1.Data))
-			bbnData1.Data = datagen.GenRandomByteArray(r, lenData)
+			lenData := uint64(len(ancData1.Data))
+			ancData1.Data = datagen.GenRandomByteArray(r, lenData)
 		} else {
-			lenData := uint64(len(bbnData2.Data))
-			bbnData2.Data = datagen.GenRandomByteArray(r, lenData)
+			lenData := uint64(len(ancData2.Data))
+			ancData2.Data = datagen.GenRandomByteArray(r, lenData)
 		}
 	}
 
 	ckptSeg1 := &types.CkptSegment{
-		BabylonData: bbnData1,
+		AnonData: ancData1,
 		TxIdx:       r.Int(),
 		AssocBlock:  nil,
 	}
 	ckptSeg2 := &types.CkptSegment{
-		BabylonData: bbnData2,
+		AnonData: ancData2,
 		TxIdx:       r.Int(),
 		AssocBlock:  nil,
 	}

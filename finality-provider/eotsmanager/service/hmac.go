@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/client"
+	"github.com/anon-org/finality-provider/eotsmanager/client"
 )
 
 // HMACUnaryServerInterceptor creates a gRPC server interceptor that verifies HMAC

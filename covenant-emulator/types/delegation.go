@@ -8,8 +8,8 @@ import (
 	"github.com/btcsuite/btcd/btcutil"
 	"github.com/btcsuite/btcd/wire"
 
-	"github.com/babylonlabs-io/babylon/v4/btcstaking"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
+	"github.com/anon-org/anon/v4/btcstaking"
+	anc "github.com/anon-org/anon/v4/types"
 
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
@@ -116,7 +116,7 @@ type Undelegation struct {
 	// It must be provided after processing undelagate message by the consumer chain
 	CovenantUnbondingSigs []*CovenantSchnorrSigInfo
 	// The delegator signature for the unbonding tx
-	DelegatorUnbondingSig *bbn.BIP340Signature
+	DelegatorUnbondingSig *anc.BIP340Signature
 	// The transaction that spends the staking tx output but not unbonding tx
 	SpendStakeTxHex string
 }

@@ -5,16 +5,16 @@ import (
 	"os"
 	"testing"
 
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	"github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	"github.com/anon-org/anon/v4/x/btcstaking/types"
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
-	fpstore "github.com/babylonlabs-io/finality-provider/finality-provider/store"
-	"github.com/babylonlabs-io/finality-provider/testutil"
+	"github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
+	fpstore "github.com/anon-org/finality-provider/finality-provider/store"
+	"github.com/anon-org/finality-provider/testutil"
 )
 
 // FuzzFinalityProvidersStore tests save and list finality providers properly

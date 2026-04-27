@@ -6,12 +6,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/babylonlabs-io/babylon/v4/btcstaking"
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	btcctypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
-	bstypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/anon/v4/btcstaking"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	anc "github.com/anon-org/anon/v4/types"
+	btcctypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
+	bstypes "github.com/anon-org/anon/v4/x/btcstaking/types"
+	"github.com/anon-org/vigilante/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
 	"github.com/btcsuite/btcd/chaincfg/chainhash"
@@ -26,12 +26,12 @@ type Staker struct {
 	stakingMsgTxHash               *chainhash.Hash
 	unbondingSlashingInfo          *datagen.TestUnbondingSlashingInfo
 	unbondingSlashingPathSpendInfo *btcstaking.SpendInfo
-	slashingTxSig                  *bbn.BIP340Signature
+	slashingTxSig                  *anc.BIP340Signature
 	unbondingTxBytes               []byte
 	stakingValue                   int64
 	stakingTimeBlocks              uint32
 	stakingTxInfo                  *btcctypes.TransactionInfo
-	delegatorSig                   *bbn.BIP340Signature
+	delegatorSig                   *anc.BIP340Signature
 	pop                            *bstypes.ProofOfPossessionBTC
 	stakingOutIdx                  uint32
 	slashingSpendPath              *btcstaking.SpendInfo
@@ -50,7 +50,7 @@ func (s *Staker) CreateStakingTx(
 	stakingValue := int64(topUTXO.Amount) / 3
 	stakingTimeBlocks := bsParams.Params.MaxStakingTimeBlocks
 
-	covenantBtcPks, err := bbnPksToBtcPks(bsParams.Params.CovenantPks)
+	covenantBtcPks, err := ancPksToBtcPks(bsParams.Params.CovenantPks)
 	require.NoError(t, err)
 
 	stakingMsgTx, stakingSlashingInfo, stakingMsgTxHash := tm.createStakingAndSlashingTx(t, fpPKs, bsParams, covenantBtcPks, topUTXO, stakingValue, stakingTimeBlocks)
@@ -89,7 +89,7 @@ func (s *Staker) CreateUnbondingData(
 	tm *TestManager,
 	fpPKs []*btcec.PublicKey,
 	bsParams *bstypes.QueryParamsResponse) {
-	covenantBtcPks, err := bbnPksToBtcPks(bsParams.Params.CovenantPks)
+	covenantBtcPks, err := ancPksToBtcPks(bsParams.Params.CovenantPks)
 	require.NoError(t, err)
 
 	unbondingSlashingInfo, unbondingSlashingPathSpendInfo, unbondingTxBytes, slashingTxSig := tm.createUnbondingData(
@@ -157,7 +157,7 @@ func (s *Staker) SendTxAndWait(
 }
 
 func getTxInfoByHash(t *testing.T, hash *chainhash.Hash, block *wire.MsgBlock) *btcctypes.TransactionInfo {
-	mHeaderBytes := bbn.NewBTCHeaderBytesFromBlockHeader(&block.Header)
+	mHeaderBytes := anc.NewBTCHeaderBytesFromBlockHeader(&block.Header)
 	var txBytes [][]byte
 	txIndex := 0
 	for i, tx := range block.Transactions {
@@ -182,15 +182,15 @@ func (s *Staker) SendDelegation(t *testing.T,
 ) {
 	require.NotNil(t, s.stakingSlashingInfo)
 
-	var fpBtcPkList []bbn.BIP340PubKey
+	var fpBtcPkList []anc.BIP340PubKey
 	for _, fpPK := range fpPKs {
-		fpBtcPkList = append(fpBtcPkList, *bbn.NewBIP340PubKeyFromBTCPK(fpPK))
+		fpBtcPkList = append(fpBtcPkList, *anc.NewBIP340PubKeyFromBTCPK(fpPK))
 	}
 
 	msgBTCDel := &bstypes.MsgCreateBTCDelegation{
 		StakerAddr:   signerAddr,
 		Pop:          s.pop,
-		BtcPk:        bbn.NewBIP340PubKeyFromBTCPK(tm.WalletPrivKey.PubKey()),
+		BtcPk:        anc.NewBIP340PubKeyFromBTCPK(tm.WalletPrivKey.PubKey()),
 		FpBtcPkList:  fpBtcPkList,
 		StakingTime:  s.stakingTimeBlocks,
 		StakingValue: s.stakingValue,
@@ -208,7 +208,7 @@ func (s *Staker) SendDelegation(t *testing.T,
 		UnbondingSlashingTx:           s.unbondingSlashingInfo.SlashingTx,
 		DelegatorUnbondingSlashingSig: s.slashingTxSig,
 	}
-	_, err := tm.BabylonClient.ReliablySendMsg(context.Background(), msgBTCDel, nil, nil)
+	_, err := tm.AnonClient.ReliablySendMsg(context.Background(), msgBTCDel, nil, nil)
 	require.NoError(t, err)
 	t.Logf("submitted MsgCreateBTCDelegation")
 }
@@ -240,7 +240,7 @@ func (s *Staker) SendCovSig(t *testing.T,
 	tm *TestManager) {
 	require.NotNil(t, s.msgsCovSigs)
 	for _, msgCovSigs := range s.msgsCovSigs {
-		_, err := tm.BabylonClient.ReliablySendMsg(context.Background(), msgCovSigs, nil, nil)
+		_, err := tm.AnonClient.ReliablySendMsg(context.Background(), msgCovSigs, nil, nil)
 		require.NoError(t, err)
 		t.Logf("submitted MsgAddCovenantSigs")
 	}

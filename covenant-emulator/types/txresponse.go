@@ -1,9 +1,9 @@
 //nolint:revive
 package types
 
-import "github.com/babylonlabs-io/babylon/v4/client/babylonclient"
+import "github.com/anon-org/anon/v4/client/anonclient"
 
 type TxResponse struct {
 	TxHash string
-	Events []babylonclient.RelayerEvent
+	Events []anonclient.RelayerEvent
 }

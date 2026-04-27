@@ -3,15 +3,15 @@ package cmd
 import (
 	"fmt"
 
-	bbnqccfg "github.com/babylonlabs-io/babylon/v4/client/config"
-	bbnqc "github.com/babylonlabs-io/babylon/v4/client/query"
+	ancqccfg "github.com/anon-org/anon/v4/client/config"
+	ancqc "github.com/anon-org/anon/v4/client/query"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/submitter"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/submitter"
 )
 
 // GetSubmitterCmd returns the CLI commands for the submitter
@@ -38,22 +38,22 @@ func GetSubmitterCmd() *cobra.Command {
 				panic(fmt.Errorf("failed to open BTC client: %w", err))
 			}
 
-			// create Babylon query client
-			queryCfg := &bbnqccfg.BabylonQueryConfig{
-				RPCAddr: cfg.Babylon.RPCAddr,
-				Timeout: cfg.Babylon.Timeout,
+			// create Anon query client
+			queryCfg := &ancqccfg.AnonQueryConfig{
+				RPCAddr: cfg.Anon.RPCAddr,
+				Timeout: cfg.Anon.Timeout,
 			}
 			err = queryCfg.Validate()
 			if err != nil {
 				panic(fmt.Errorf("invalid config for the query client: %w", err))
 			}
-			queryClient, err := bbnqc.New(queryCfg)
+			queryClient, err := ancqc.New(queryCfg)
 			if err != nil {
-				panic(fmt.Errorf("failed to create babylon query client: %w", err))
+				panic(fmt.Errorf("failed to create anon query client: %w", err))
 			}
 
 			// get submitter address
-			submitterAddr, err := sdk.AccAddressFromBech32(cfg.Babylon.SubmitterAddress)
+			submitterAddr, err := sdk.AccAddressFromBech32(cfg.Anon.SubmitterAddress)
 			if err != nil {
 				panic(fmt.Errorf("invalid submitter address from config: %w", err))
 			}

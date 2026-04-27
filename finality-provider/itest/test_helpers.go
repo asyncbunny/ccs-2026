@@ -4,10 +4,10 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/babylonlabs-io/babylon/v4/crypto/eots"
-	"github.com/babylonlabs-io/babylon/v4/testutil/datagen"
-	bbn "github.com/babylonlabs-io/babylon/v4/types"
-	ftypes "github.com/babylonlabs-io/babylon/v4/x/finality/types"
+	"github.com/anon-org/anon/v4/crypto/eots"
+	"github.com/anon-org/anon/v4/testutil/datagen"
+	anc "github.com/anon-org/anon/v4/types"
+	ftypes "github.com/anon-org/anon/v4/x/finality/types"
 	"github.com/btcsuite/btcd/btcec/v2"
 
 	"github.com/btcsuite/btcd/btcec/v2/schnorr"
@@ -21,7 +21,7 @@ func GenCommitPubRandListMsg(r *rand.Rand, fpSk *btcec.PrivateKey, startHeight u
 	}
 	msg := &ftypes.MsgCommitPubRandList{
 		Signer:      datagen.GenRandomAccount().Address,
-		FpBtcPk:     bbn.NewBIP340PubKeyFromBTCPK(fpSk.PubKey()),
+		FpBtcPk:     anc.NewBIP340PubKeyFromBTCPK(fpSk.PubKey()),
 		StartHeight: startHeight,
 		NumPubRand:  numPubRand,
 		Commitment:  randListInfo.Commitment,
@@ -34,7 +34,7 @@ func GenCommitPubRandListMsg(r *rand.Rand, fpSk *btcec.PrivateKey, startHeight u
 	if err != nil {
 		panic(err)
 	}
-	msg.Sig = bbn.NewBIP340SignatureFromBTCSig(schnorrSig)
+	msg.Sig = anc.NewBIP340SignatureFromBTCSig(schnorrSig)
 
 	return randListInfo, msg, nil
 }
@@ -42,13 +42,13 @@ func GenCommitPubRandListMsg(r *rand.Rand, fpSk *btcec.PrivateKey, startHeight u
 func genRandomPubRandList(r *rand.Rand, numPubRand uint64) (*datagen.RandListInfo, error) {
 	// generate a list of secret/public randomness
 	var srList []*eots.PrivateRand
-	var prList []bbn.SchnorrPubRand
+	var prList []anc.SchnorrPubRand
 	for i := uint64(0); i < numPubRand; i++ {
 		eotsSR, eotsPR, err := eots.RandGen(r)
 		if err != nil {
 			return nil, err
 		}
-		pr := bbn.NewSchnorrPubRandFromFieldVal(eotsPR)
+		pr := anc.NewSchnorrPubRandFromFieldVal(eotsPR)
 		srList = append(srList, eotsSR)
 		prList = append(prList, *pr)
 	}
@@ -89,7 +89,7 @@ func newMsgAddFinalitySig(
 
 	msg := &ftypes.MsgAddFinalitySig{
 		Signer:       signer,
-		FpBtcPk:      bbn.NewBIP340PubKeyFromBTCPK(sk.PubKey()),
+		FpBtcPk:      anc.NewBIP340PubKeyFromBTCPK(sk.PubKey()),
 		PubRand:      &randListInfo.PRList[idx],
 		Proof:        randListInfo.ProofList[idx].ToProto(),
 		BlockHeight:  blockHeight,
@@ -101,7 +101,7 @@ func newMsgAddFinalitySig(
 	if err != nil {
 		return nil, err
 	}
-	msg.FinalitySig = bbn.NewSchnorrEOTSSigFromModNScalar(sig)
+	msg.FinalitySig = anc.NewSchnorrEOTSSigFromModNScalar(sig)
 
 	return msg, nil
 }

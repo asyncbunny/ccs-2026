@@ -5,7 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/babylonlabs-io/covenant-emulator/covenant-signer/signerservice/types"
+	"github.com/anon-org/covenant-emulator/covenant-signer/signerservice/types"
 	"io"
 	"net/http"
 	"strings"

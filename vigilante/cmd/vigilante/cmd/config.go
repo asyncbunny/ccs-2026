@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/babylonlabs-io/vigilante/config"
+	"github.com/anon-org/vigilante/config"
 	"github.com/spf13/cobra"
 	"os"
 	"path"

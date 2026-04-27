@@ -8,7 +8,7 @@ BUILDDIR ?= $(CURDIR)/build
 GO_BIN := ${GOPATH}/bin
 VERSION := $(shell echo $(shell git describe --tags) | sed 's/^v//')
 
-ldflags := $(LDFLAGS) -X github.com/babylonlabs-io/vigilante/version.version=$(VERSION)
+ldflags := $(LDFLAGS) -X github.com/anon-org/vigilante/version.version=$(VERSION)
 build_tags := $(BUILD_TAGS)
 build_args := $(BUILD_ARGS)
 
@@ -50,22 +50,22 @@ test-e2e:
 	go test -mod=readonly -failfast -timeout=15m -v $(PACKAGES_E2E) -count=1 --parallel 12 --tags=e2e
 
 build-docker:
-	$(DOCKER) build --tag babylonlabs-io/vigilante -f Dockerfile \
+	$(DOCKER) build --tag anon-org/vigilante -f Dockerfile \
 		$(shell git rev-parse --show-toplevel)
 
 rm-docker:
-	$(DOCKER) rmi babylonlabs-io/vigilante 2>/dev/null; true
+	$(DOCKER) rmi anon-org/vigilante 2>/dev/null; true
 
 mocks:
 	mkdir -p $(MOCKS_DIR)
 	$(MOCKGEN_CMD) -source=btcclient/interface.go -package mocks -destination $(MOCKS_DIR)/btcclient.go
-	$(MOCKGEN_CMD) -source=submitter/poller/expected_babylon_client.go -package poller -destination submitter/poller/mock_babylon_client.go
-	$(MOCKGEN_CMD) -source=submitter/expected_babylon_client.go -package submitter -destination submitter/mock_babylon_client.go
-	$(MOCKGEN_CMD) -source=reporter/expected_babylon_client.go -package reporter -destination reporter/mock_babylon_client.go
-	$(MOCKGEN_CMD) -source=monitor/expected_babylon_client.go -package monitor -destination monitor/mock_babylon_client.go
-	$(MOCKGEN_CMD) -source=btcstaking-tracker/btcslasher/expected_babylon_client.go -package btcslasher -destination btcstaking-tracker/btcslasher/mock_babylon_client.go
-	$(MOCKGEN_CMD) -source=btcstaking-tracker/atomicslasher/expected_babylon_client.go -package atomicslasher -destination btcstaking-tracker/atomicslasher/mock_babylon_client.go
-	$(MOCKGEN_CMD) -source=btcstaking-tracker/stakingeventwatcher/expected_babylon_client.go -package stakingeventwatcher -destination btcstaking-tracker/stakingeventwatcher/mock_babylon_client.go
+	$(MOCKGEN_CMD) -source=submitter/poller/expected_anon_client.go -package poller -destination submitter/poller/mock_anon_client.go
+	$(MOCKGEN_CMD) -source=submitter/expected_anon_client.go -package submitter -destination submitter/mock_anon_client.go
+	$(MOCKGEN_CMD) -source=reporter/expected_anon_client.go -package reporter -destination reporter/mock_anon_client.go
+	$(MOCKGEN_CMD) -source=monitor/expected_anon_client.go -package monitor -destination monitor/mock_anon_client.go
+	$(MOCKGEN_CMD) -source=btcstaking-tracker/btcslasher/expected_anon_client.go -package btcslasher -destination btcstaking-tracker/btcslasher/mock_anon_client.go
+	$(MOCKGEN_CMD) -source=btcstaking-tracker/atomicslasher/expected_anon_client.go -package atomicslasher -destination btcstaking-tracker/atomicslasher/mock_anon_client.go
+	$(MOCKGEN_CMD) -source=btcstaking-tracker/stakingeventwatcher/expected_anon_client.go -package stakingeventwatcher -destination btcstaking-tracker/stakingeventwatcher/mock_anon_client.go
 	$(MOCKGEN_CMD) -source=btcstaking-tracker/stakingeventwatcher/indexer.go -package stakingeventwatcher -destination btcstaking-tracker/stakingeventwatcher/mock_indexer.go
 
 .PHONY: build test test-e2e build-docker rm-docker mocks
@@ -101,8 +101,8 @@ release-dry-run:
 		--rm \
 		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:/go/src/babylon \
-		-w /go/src/babylon \
+		-v `pwd`:/go/src/anon \
+		-w /go/src/anon \
 		$(GORELEASER_IMAGE) \
 		release \
 		--clean \
@@ -113,8 +113,8 @@ release-snapshot:
 		--rm \
 		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:/go/src/babylon \
-		-w /go/src/babylon \
+		-v `pwd`:/go/src/anon \
+		-w /go/src/anon \
 		$(GORELEASER_IMAGE) \
 		release \
 		--clean \
@@ -131,8 +131,8 @@ release:
 		-e GITHUB_TOKEN=$(GITHUB_TOKEN) \
 		-e COSMWASM_VERSION=$(COSMWASM_VERSION) \
 		-v /var/run/docker.sock:/var/run/docker.sock \
-		-v `pwd`:/go/src/babylon \
-		-w /go/src/babylon \
+		-v `pwd`:/go/src/anon \
+		-w /go/src/anon \
 		$(GORELEASER_IMAGE) \
 		release \
 		--clean

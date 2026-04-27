@@ -2,7 +2,7 @@ package stakingeventwatcher
 
 import (
 	"context"
-	"github.com/babylonlabs-io/vigilante/btcstaking-tracker/indexer"
+	"github.com/anon-org/vigilante/btcstaking-tracker/indexer"
 )
 
 type SpendChecker interface {

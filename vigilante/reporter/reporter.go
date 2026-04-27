@@ -6,18 +6,18 @@ import (
 	"sync"
 	"time"
 
-	"github.com/babylonlabs-io/vigilante/version"
+	"github.com/anon-org/vigilante/version"
 
-	"github.com/babylonlabs-io/vigilante/retrywrap"
+	"github.com/anon-org/vigilante/retrywrap"
 	notifier "github.com/lightningnetwork/lnd/chainntnfs"
 
 	"github.com/avast/retry-go/v4"
-	"github.com/babylonlabs-io/babylon/v4/btctxformatter"
-	btcctypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
-	"github.com/babylonlabs-io/vigilante/btcclient"
-	"github.com/babylonlabs-io/vigilante/config"
-	"github.com/babylonlabs-io/vigilante/metrics"
-	"github.com/babylonlabs-io/vigilante/types"
+	"github.com/anon-org/anon/v4/btctxformatter"
+	btcctypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
+	"github.com/anon-org/vigilante/btcclient"
+	"github.com/anon-org/vigilante/config"
+	"github.com/anon-org/vigilante/metrics"
+	"github.com/anon-org/vigilante/types"
 	"go.uber.org/zap"
 )
 
@@ -26,7 +26,7 @@ type Reporter struct {
 	logger *zap.SugaredLogger
 
 	btcClient     btcclient.BTCClient
-	babylonClient BabylonClient
+	anonClient AnonClient
 	btcNotifier   notifier.ChainNotifier
 
 	// retry attributes
@@ -57,7 +57,7 @@ func New(
 	cfg *config.ReporterConfig,
 	parentLogger *zap.Logger,
 	btcClient btcclient.BTCClient,
-	babylonClient BabylonClient,
+	anonClient AnonClient,
 	btcNotifier notifier.ChainNotifier,
 	retrySleepTime,
 	maxRetrySleepTime time.Duration,
@@ -71,7 +71,7 @@ func New(
 		err           error
 	)
 	err = retrywrap.Do(func() error {
-		btccParamsRes, err = babylonClient.BTCCheckpointParams()
+		btccParamsRes, err = anonClient.BTCCheckpointParams()
 
 		return err
 	},
@@ -100,7 +100,7 @@ func New(
 		maxRetrySleepTime:             maxRetrySleepTime,
 		maxRetryTimes:                 maxRetryTimes,
 		btcClient:                     btcClient,
-		babylonClient:                 babylonClient,
+		anonClient:                 anonClient,
 		btcNotifier:                   btcNotifier,
 		checkpointCache:               ckptCache,
 		btcConfirmationDepth:          k,
@@ -194,6 +194,6 @@ func (r *Reporter) ShuttingDown() bool {
 
 // WaitForShutdown blocks until all vigilante goroutines have finished executing.
 func (r *Reporter) WaitForShutdown() {
-	// TODO: let Babylon client WaitForShutDown
+	// TODO: let Anon client WaitForShutDown
 	r.wg.Wait()
 }

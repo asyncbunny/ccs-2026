@@ -7,11 +7,11 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/babylonlabs-io/finality-provider/finality-provider/cmd/fpd/clientctx"
-	commoncmd "github.com/babylonlabs-io/finality-provider/finality-provider/cmd/fpd/common"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/cmd/fpd/daemon"
-	fpcfg "github.com/babylonlabs-io/finality-provider/finality-provider/config"
-	"github.com/babylonlabs-io/finality-provider/version"
+	"github.com/anon-org/finality-provider/finality-provider/cmd/fpd/clientctx"
+	commoncmd "github.com/anon-org/finality-provider/finality-provider/cmd/fpd/common"
+	"github.com/anon-org/finality-provider/finality-provider/cmd/fpd/daemon"
+	fpcfg "github.com/anon-org/finality-provider/finality-provider/config"
+	"github.com/anon-org/finality-provider/version"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -45,7 +45,7 @@ func main() {
 	// add version commands
 	version.AddVersionCommands(cmd, BinaryName)
 
-	// add the rest of commands that are specific to Babylon finality provider
+	// add the rest of commands that are specific to Anon finality provider
 	cmd.AddCommand(
 		daemon.CommandInit(BinaryName),
 		daemon.CommandStart(BinaryName),

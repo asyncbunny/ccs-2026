@@ -2,11 +2,11 @@ package btcclient
 
 import (
 	"fmt"
-	"github.com/babylonlabs-io/vigilante/netparams"
+	"github.com/anon-org/vigilante/netparams"
 	"net"
 	"time"
 
-	"github.com/babylonlabs-io/vigilante/config"
+	"github.com/anon-org/vigilante/config"
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcwallet/chain"
 	"github.com/lightningnetwork/lnd/blockcache"

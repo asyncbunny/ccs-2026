@@ -8,11 +8,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	"go.uber.org/zap"
 
-	"github.com/babylonlabs-io/babylon/v4/app"
-	btccheckpointtypes "github.com/babylonlabs-io/babylon/v4/x/btccheckpoint/types"
-	btclightclienttypes "github.com/babylonlabs-io/babylon/v4/x/btclightclient/types"
-	checkpointingtypes "github.com/babylonlabs-io/babylon/v4/x/checkpointing/types"
-	epochingtypes "github.com/babylonlabs-io/babylon/v4/x/epoching/types"
+	"github.com/anon-org/anon/v4/app"
+	btccheckpointtypes "github.com/anon-org/anon/v4/x/btccheckpoint/types"
+	btclightclienttypes "github.com/anon-org/anon/v4/x/btclightclient/types"
+	checkpointingtypes "github.com/anon-org/anon/v4/x/checkpointing/types"
+	epochingtypes "github.com/anon-org/anon/v4/x/epoching/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
@@ -55,13 +55,13 @@ func GetGenesisInfoFromFile(filePath string, logger *zap.Logger) (*GenesisInfo, 
 		return nil, fmt.Errorf("failed to read genesis file %v, %w", filePath, err)
 	}
 
-	tmpBabylon := app.NewTmpBabylonApp()
-	gentxModule, ok := tmpBabylon.BasicModuleManager[genutiltypes.ModuleName].(genutil.AppModuleBasic)
+	tmpAnon := app.NewTmpAnonApp()
+	gentxModule, ok := tmpAnon.BasicModuleManager[genutiltypes.ModuleName].(genutil.AppModuleBasic)
 	if !ok {
 		return nil, fmt.Errorf("unexpected message type: %T", gentxModule)
 	}
 
-	checkpointingGenState, err := getCheckpointGenState(tmpBabylon.AppCodec(), appState)
+	checkpointingGenState, err := getCheckpointGenState(tmpAnon.AppCodec(), appState)
 	if err != nil {
 		return nil, fmt.Errorf("invalid checkpointing genesis %w ", err)
 	}
@@ -79,7 +79,7 @@ func GetGenesisInfoFromFile(filePath string, logger *zap.Logger) (*GenesisInfo, 
 		return nil, fmt.Errorf("invalid checkpointing genesis %w", err2)
 	}
 
-	genutilGenState := genutiltypes.GetGenesisStateFromAppState(tmpBabylon.AppCodec(), appState)
+	genutilGenState := genutiltypes.GetGenesisStateFromAppState(tmpAnon.AppCodec(), appState)
 	gentxs := genutilGenState.GenTxs
 
 	valSet.ValSet = make([]*checkpointingtypes.ValidatorWithBlsKey, 0)
@@ -90,7 +90,7 @@ func GetGenesisInfoFromFile(filePath string, logger *zap.Logger) (*GenesisInfo, 
 		} else {
 			validatorFunc = gentxModule.GenTxValidator
 		}
-		tx, err := genutiltypes.ValidateAndGetGenTx(tx, tmpBabylon.TxConfig().TxJSONDecoder(), validatorFunc)
+		tx, err := genutiltypes.ValidateAndGetGenTx(tx, tmpAnon.TxConfig().TxJSONDecoder(), validatorFunc)
 		if err != nil {
 			return nil, fmt.Errorf("invalid genesis tx %w", err)
 		}
@@ -126,14 +126,14 @@ func GetGenesisInfoFromFile(filePath string, logger *zap.Logger) (*GenesisInfo, 
 		valSet.ValSet = append(valSet.ValSet, keyWithPower)
 	}
 
-	btclightclientGenState := GetBtclightclientGenesisStateFromAppState(tmpBabylon.AppCodec(), appState)
+	btclightclientGenState := GetBtclightclientGenesisStateFromAppState(tmpAnon.AppCodec(), appState)
 	err = btclightclientGenState.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("invalid btclightclient genesis %w", err)
 	}
 	baseBTCHeight = btclightclientGenState.BtcHeaders[0].Height
 
-	epochingParams, err := getEpochingParamsFromAppState(tmpBabylon.AppCodec(), appState)
+	epochingParams, err := getEpochingParamsFromAppState(tmpAnon.AppCodec(), appState)
 	if err != nil {
 		return nil, fmt.Errorf("invalid epoching genesis %w", err)
 	}
@@ -144,7 +144,7 @@ func GetGenesisInfoFromFile(filePath string, logger *zap.Logger) (*GenesisInfo, 
 	}
 	epochInterval = epochingParams.EpochInterval
 
-	btccheckpointParams, err := getBtccheckpointParamsFromAppState(tmpBabylon.AppCodec(), appState)
+	btccheckpointParams, err := getBtccheckpointParamsFromAppState(tmpAnon.AppCodec(), appState)
 	if err != nil {
 		return nil, fmt.Errorf("invalid btccheckpoint genesis %w", err)
 	}

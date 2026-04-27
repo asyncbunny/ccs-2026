@@ -2,14 +2,14 @@
 package types
 
 import (
-	bbntypes "github.com/babylonlabs-io/babylon/v4/types"
-	"github.com/babylonlabs-io/finality-provider/finality-provider/proto"
+	anctypes "github.com/anon-org/anon/v4/types"
+	"github.com/anon-org/finality-provider/finality-provider/proto"
 	"github.com/btcsuite/btcd/btcec/v2"
 )
 
 type FinalityProviderState interface {
 	GetBtcPk() *btcec.PublicKey
-	GetBtcPkBIP340() *bbntypes.BIP340PubKey
+	GetBtcPkBIP340() *anctypes.BIP340PubKey
 	GetBtcPkHex() string
 	GetChainID() []byte
 	GetLastVotedHeight() uint64

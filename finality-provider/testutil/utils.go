@@ -7,9 +7,9 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"go.uber.org/mock/gomock"
 
-	btcstktypes "github.com/babylonlabs-io/babylon/v4/x/btcstaking/types"
-	"github.com/babylonlabs-io/finality-provider/testutil/mocks"
-	"github.com/babylonlabs-io/finality-provider/types"
+	btcstktypes "github.com/anon-org/anon/v4/x/btcstaking/types"
+	"github.com/anon-org/finality-provider/testutil/mocks"
+	"github.com/anon-org/finality-provider/types"
 )
 
 const TestPubRandNum = 25
@@ -44,10 +44,10 @@ func PrepareMockedConsumerControllerWithTxHash(t *testing.T, r *rand.Rand, start
 	return mockConsumerController
 }
 
-func PrepareMockedBabylonController(t *testing.T) *mocks.MockBabylonController {
+func PrepareMockedAnonController(t *testing.T) *mocks.MockAnonController {
 	ctl := gomock.NewController(t)
-	mockBabylonController := mocks.NewMockBabylonController(ctl)
-	mockBabylonController.EXPECT().Close().Return(nil).AnyTimes()
+	mockAnonController := mocks.NewMockAnonController(ctl)
+	mockAnonController.EXPECT().Close().Return(nil).AnyTimes()
 
-	return mockBabylonController
+	return mockAnonController
 }

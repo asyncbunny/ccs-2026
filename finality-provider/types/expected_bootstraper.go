@@ -4,7 +4,7 @@ package types
 import (
 	"context"
 
-	"github.com/babylonlabs-io/babylon/v4/types"
+	"github.com/anon-org/anon/v4/types"
 )
 
 // LastVotedHeightProvider provides access to finality provider state

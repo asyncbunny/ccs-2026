@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"testing"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/service"
+	"github.com/anon-org/finality-provider/eotsmanager/service"
 
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -16,9 +16,9 @@ import (
 	"google.golang.org/grpc/status"
 	protobuf "google.golang.org/protobuf/proto"
 
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/client"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/config"
-	"github.com/babylonlabs-io/finality-provider/eotsmanager/proto"
+	"github.com/anon-org/finality-provider/eotsmanager/client"
+	"github.com/anon-org/finality-provider/eotsmanager/config"
+	"github.com/anon-org/finality-provider/eotsmanager/proto"
 )
 
 func TestHMACVerification(t *testing.T) {
