@@ -95,9 +95,10 @@ require (
 require (
 	cloud.google.com/go/auth v0.14.1 // indirect
 	cloud.google.com/go/auth/oauth2adapt v0.2.7 // indirect
-	github.com/bytedance/sonic v1.14.0 // indirect
-	github.com/bytedance/sonic/loader v0.3.0 // indirect
-	github.com/cloudwego/base64x v0.1.5 // indirect
+	github.com/bytedance/gopkg v0.1.3 // indirect
+	github.com/bytedance/sonic v1.15.1 // indirect
+	github.com/bytedance/sonic/loader v0.5.1 // indirect
+	github.com/cloudwego/base64x v0.1.6 // indirect
 	github.com/ferranbt/fastssz v0.1.4 // indirect
 	github.com/gogo/status v1.1.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.2.10 // indirect
@@ -299,7 +300,7 @@ replace (
 	// Fix protoc-gen-validate moved to envoyproxy
 	github.com/lyft/protoc-gen-validate => github.com/envoyproxy/protoc-gen-validate v1.1.0
 
-	github.com/strangelove-ventures/tokenfactory => github.com/anon-org/tokenfactory v0.50.6-wasmvm2
+	github.com/strangelove-ventures/tokenfactory => github.com/babylonlabs-io/tokenfactory v0.50.6-wasmvm2
 	// Downgraded to stable version see: https://github.com/cosmos/cosmos-sdk/pull/14952
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	// Fix websocket version conflict

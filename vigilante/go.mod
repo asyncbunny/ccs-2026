@@ -6,9 +6,9 @@ require (
 	cosmossdk.io/errors v1.0.2
 	cosmossdk.io/log v1.6.1
 	cosmossdk.io/math v1.5.3
-	github.com/CosmWasm/wasmd v0.55.1
-	github.com/avast/retry-go/v4 v4.6.0
+	github.com/CosmWasm/wasmd v0.60.2
 	github.com/anon-org/anon/v4 v4.2.0
+	github.com/avast/retry-go/v4 v4.6.0
 	github.com/boljen/go-bitmap v0.0.0-20151001105940-23cd2fb0ce7d
 	github.com/btcsuite/btcd v0.24.3-0.20250318170759-4f4ea81776d6
 	github.com/btcsuite/btcd/btcec/v2 v2.3.4
@@ -17,7 +17,7 @@ require (
 	github.com/btcsuite/btcwallet v0.16.13
 	github.com/btcsuite/btcwallet/walletdb v1.5.1
 	github.com/cockroachdb/errors v1.12.0
-	github.com/cometbft/cometbft v0.38.19
+	github.com/cometbft/cometbft v0.38.21
 	github.com/cosmos/cosmos-sdk v0.53.4
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
 	github.com/golang/mock v1.6.0
@@ -93,8 +93,9 @@ require (
 	github.com/btcsuite/go-socks v0.0.0-20170105172521-4720035b7bfd // indirect
 	github.com/btcsuite/websocket v0.0.0-20150119174127-31079b680792 // indirect
 	github.com/btcsuite/winsvc v1.0.0 // indirect
-	github.com/bytedance/sonic v1.14.0 // indirect
-	github.com/bytedance/sonic/loader v0.3.0 // indirect
+	github.com/bytedance/gopkg v0.1.3 // indirect
+	github.com/bytedance/sonic v1.15.1 // indirect
+	github.com/bytedance/sonic/loader v0.5.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chzyer/readline v1.5.1 // indirect
@@ -362,9 +363,10 @@ replace (
 	cosmossdk.io/core => cosmossdk.io/core v0.11.3
 	// use cosmos fork of keyring
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
+	github.com/anon-org/anon/v4 => ../anon
 	// use anon fork of btcec with crypto fix
-	github.com/btcsuite/btcd/btcec/v2 => github.com/anon-org/btcd/btcec/v2 v2.3.4-anon.rc.0
+	github.com/btcsuite/btcd/btcec/v2 => github.com/babylonlabs-io/btcd/btcec/v2 v2.3.4-babylon.rc.0
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/strangelove-ventures/tokenfactory => github.com/anon-org/tokenfactory v0.50.6-wasmvm2
+	github.com/strangelove-ventures/tokenfactory => github.com/babylonlabs-io/tokenfactory v0.50.6-wasmvm2
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
